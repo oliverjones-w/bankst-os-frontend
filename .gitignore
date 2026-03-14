@@ -2,6 +2,11 @@
 .claude/
 session.txt
 
+# Node / Electron
+node_modules/
+dist/
+out/
+
 # Environment / secrets
 .env
 .env.local
@@ -19,3 +24,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+__pycache__/
+*.pyc
+

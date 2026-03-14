@@ -44,19 +44,19 @@
      Kept available for status + system states
      ========================= */
 
-  --color-red: #fb464c;
+  --color-red: #f85149;
   --color-orange: #e9973f;
-  --color-yellow: #e0de71;
-  --color-green: #44cf6e;
+  --color-yellow: #d29922;
+  --color-green: #3fb950;
   --color-cyan: #53dfdd;
   --color-blue: #027aff;
   --color-purple: #a882ff;
   --color-pink: #fa99cd;
 
-  --color-red-rgb: 251, 70, 76;
+  --color-red-rgb: 248, 81, 73;
   --color-orange-rgb: 233, 151, 63;
-  --color-yellow-rgb: 224, 222, 113;
-  --color-green-rgb: 68, 207, 110;
+  --color-yellow-rgb: 210, 153, 34;
+  --color-green-rgb: 63, 185, 80;
   --color-cyan-rgb: 83, 223, 221;
   --color-blue-rgb: 2, 122, 255;
   --color-purple-rgb: 168, 130, 255;
@@ -81,7 +81,7 @@
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.1);
 
-  --background-modifier-border: rgba(var(--mono-rgb-100), 0.08);
+  --background-modifier-border: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.14);
   --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
 
@@ -179,6 +179,17 @@
   --shadow-sm: 0 4px 12px rgba(var(--mono-rgb-0), 0.24);
   --shadow-md: 0 8px 24px rgba(var(--mono-rgb-0), 0.32);
   --shadow-lg: 0 20px 50px rgba(var(--mono-rgb-0), 0.46);
+
+  /* =========================
+     Transitions
+     ========================= */
+
+  --transition-fast: 80ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-ui:   180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Needed by components that reference --accent-color */
+  --accent-color: var(--interactive-accent);
 
   /* =========================
      Typography
@@ -286,9 +297,9 @@
 *::after {
   box-sizing: border-box;
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background-color var(--transition-ui),
+    border-color var(--transition-ui),
+    color var(--transition-ui);
 }
 
 html,
@@ -305,6 +316,8 @@ body {
 body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv05", "cv02", "ss01";
+  letter-spacing: -0.011em;
 }
 
 img,
@@ -364,6 +377,16 @@ hr {
   height: 100vh;
   overflow: hidden;
   background: var(--background-primary);
+  transition: grid-template-columns var(--transition-slow);
+}
+
+.app-shell[data-left-rail="closed"] {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.app-shell[data-left-rail="closed"] .left-rail {
+  overflow: hidden;
+  border-right: none;
 }
 
 .left-rail {
@@ -385,9 +408,9 @@ hr {
 
 .topbar {
   overflow: hidden;
-  background: color-mix(in srgb, var(--background-primary) 92%, transparent);
+  background: color-mix(in srgb, var(--background-primary) 88%, transparent);
   border-bottom: 1px solid var(--background-modifier-border);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px) saturate(1.4);
 }
 
 .workspace-row {
@@ -395,6 +418,16 @@ hr {
   grid-template-columns: minmax(0, 1fr) var(--right-rail-w);
   min-height: 0;
   overflow: hidden;
+  transition: grid-template-columns var(--transition-slow);
+}
+
+.app-shell[data-right-rail="closed"] .workspace-row {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+
+.app-shell[data-right-rail="closed"] .right-rail {
+  overflow: hidden;
+  border-left: none;
 }
 
 .workspace {
@@ -435,10 +468,11 @@ hr {
    ========================= */
 
 .eyebrow {
-  font-size: var(--font-ui-smaller);
+  font-size: 10px;
+  font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--text-faint);
 }
 
@@ -464,12 +498,12 @@ hr {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-base-40) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 4px;
+  height: 4px;
 }
 
 *::-webkit-scrollbar-track {
@@ -477,15 +511,12 @@ hr {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--color-base-35);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--color-base-40);
-  background-clip: padding-box;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* =========================

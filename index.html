@@ -60,9 +60,7 @@
       <div class="rail-section">
         <div class="rail-label">FINRA Monitor</div>
         <nav class="nav-list">
-          <button class="nav-item" data-open-finra-tab="finra.dashboard">Dashboard</button>
-          <button class="nav-item" data-open-finra-tab="finra.changes">Recent Changes</button>
-          <button class="nav-item" data-open-finra-tab="finra.individuals">Individuals</button>
+          <button class="nav-item" data-open-finra-tab="finra.monitor">Monitor</button>
         </nav>
       </div>
 
@@ -74,11 +72,7 @@
 
       <div class="rail-section rail-section-bottom">
         <div class="rail-label">Recent</div>
-        <div class="recent-list">
-          <button class="recent-item">David Flowerdew</button>
-          <button class="recent-item">BNP Paribas</button>
-          <button class="recent-item">Millennium</button>
-        </div>
+        <div id="recentList" class="recent-list"></div>
       </div>
     </aside>
 
@@ -87,7 +81,7 @@
       <!-- Top bar -->
       <header class="topbar">
         <div class="topbar-left">
-          <button class="icon-button" aria-label="Toggle left rail">☰</button>
+          <button id="leftRailToggle" class="icon-button" aria-label="Toggle left rail">☰</button>
           <div class="topbar-title-group">
             <div class="eyebrow">Workspace</div>
             <h1 class="topbar-title">People</h1>
@@ -105,6 +99,7 @@
           <button class="icon-button">+</button>
           <button class="icon-button">⟲</button>
           <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
+          <button id="rightRailToggle" class="icon-button" aria-label="Toggle right rail" title="Toggle context panel (Ctrl+\)">⊟</button>
           <button class="icon-button">⚙</button>
         </div>
       </header>
@@ -132,7 +127,7 @@
               <div class="eyebrow">Context</div>
               <div id="rightRailTitle" class="right-rail-title">Context</div>
             </div>
-            <button class="icon-button" aria-label="Close right rail">×</button>
+            <button id="rightRailClose" class="icon-button" aria-label="Close right rail">×</button>
           </div>
 
           <section id="rightRailContent" class="context-panel"></section>
@@ -184,6 +179,51 @@
       });
       if (!res.ok) throw new Error(`BankSt API ${res.status}: ${path}`);
       return res.json();
+    }
+
+    // ── Recently viewed / trending ────────────────────────────────
+
+    let trendingCache = [];
+
+    function recordView(entityId, entityType, entityLabel) {
+      fetch(`${BANKST_API_BASE}/viewed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entity_id: entityId, entity_type: entityType, entity_label: entityLabel })
+      }).catch(() => {});
+      // Refresh sidebar + trending cache after a short delay (let the write land)
+      setTimeout(() => {
+        loadRecentlyViewed();
+        loadTrending();
+      }, 400);
+    }
+
+    async function loadRecentlyViewed() {
+      try {
+        const items = await bankstGet("/recently-viewed?limit=8");
+        renderRecentlyViewed(items);
+      } catch { /* API not available, leave blank */ }
+    }
+
+    function renderRecentlyViewed(items) {
+      const el = document.getElementById("recentList");
+      if (!el) return;
+      if (!items?.length) {
+        el.innerHTML = `<div style="color:var(--text-faint);font-size:12px;padding:4px 12px;">No recent activity</div>`;
+        return;
+      }
+      el.innerHTML = items.map((item) => `
+        <button class="recent-item" data-open-recent="${item.entity_id}" data-recent-type="${item.entity_type}" data-recent-label="${escapeHtml(item.entity_label || "")}">
+          ${escapeHtml(item.entity_label || item.entity_id)}
+        </button>
+      `).join("");
+    }
+
+    async function loadTrending() {
+      try {
+        trendingCache = await bankstGet("/trending?hours=48&limit=8");
+        renderRightRail(); // refresh right rail if people.table is active
+      } catch { trendingCache = []; }
     }
 
     function escapeHtml(str) {
@@ -411,9 +451,11 @@
     };
 
     const commandData = [
-      { id: "open-people", type: "command", title: "Open People Table", subtitle: "Command" },
-      { id: "open-firms", type: "command", title: "Open Firms Table", subtitle: "Command" },
-      { id: "open-pipeline", type: "command", title: "Open Pipeline Queue", subtitle: "Command" },
+      { id: "open-people",  type: "command", title: "Open People Table",   subtitle: "Command" },
+      { id: "open-firms",   type: "command", title: "Open Firms Table",    subtitle: "Command" },
+      { id: "open-finra",    type: "command", title: "Open FINRA Monitor",  subtitle: "Command" },
+      { id: "open-trending", type: "command", title: "Open Trending",        subtitle: "Command" },
+      { id: "open-pipeline", type: "command", title: "Open Pipeline Queue",  subtitle: "Command" },
       { id: "toggle-right-rail", type: "command", title: "Toggle Right Rail", subtitle: "Command" }
     ];
 
@@ -799,6 +841,49 @@
       }
     });
 
+    // Trending
+    registerWorkspaceView({
+      id: "trending",
+      match: (tab) => tab.type === "trending",
+      toolbar: () => ({ left: [], right: [{ id: "trending.refresh", label: "Refresh" }] }),
+      onActivate: async (tab) => {
+        if (tab.state?.data !== undefined || fetchingTabs.has(tab.id)) return;
+        fetchingTabs.add(tab.id);
+        try {
+          const data = await bankstGet("/trending?hours=48&limit=50");
+          fetchingTabs.delete(tab.id);
+          updateActiveTabState({ data, error: null });
+        } catch (err) {
+          fetchingTabs.delete(tab.id);
+          updateActiveTabState({ data: null, error: err.message });
+        }
+      },
+      render: (tab) => {
+        if (tab.state?.error) return `<div class="table-shell view-placeholder"><span>Trending</span><p class="text-error">Error: ${tab.state.error}</p></div>`;
+        if (tab.state?.data === undefined) return `<div class="table-shell view-placeholder"><span>Trending</span><p>Loading…</p></div>`;
+        if (!tab.state.data?.length) return `<div class="table-shell view-placeholder"><span>Trending</span><p>No views recorded in the last 48 hours.</p></div>`;
+
+        return `
+          <div class="table-shell">
+            <div class="table-header-grid trending-grid">
+              <div>#</div>
+              <div>Name</div>
+              <div>Type</div>
+              <div>Views (48h)</div>
+            </div>
+            ${tab.state.data.map((item, i) => `
+              <div class="table-row-grid trending-grid">
+                <div class="text-muted">${i + 1}</div>
+                <div>${escapeHtml(item.entity_label || item.entity_id)}</div>
+                <div class="text-muted">${item.entity_type}</div>
+                <div><span class="finra-badge finra-badge--active">${item.view_count}</span></div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+    });
+
     // Master reference search
     registerWorkspaceView({
       id: "master.search",
@@ -857,228 +942,172 @@
       return `<span class="finra-badge finra-badge--active">${status}</span>`;
     }
 
-    // FINRA — Recent Changes
+    // FINRA — Monitor (unified)
     registerWorkspaceView({
-      id: "finra.changes",
-      match: (tab) => tab.type === "finra.changes",
+      id: "finra.monitor",
+      match: (tab) => tab.type === "finra.monitor",
       toolbar: (tab) => ({
         left: [
-          { id: "finra.changes.mode.feed", label: "Feed", active: (tab.state?.mode || "feed") === "feed" }
+          { id: "finra.monitor.mode.overview",     label: "Overview",     active: (tab.state?.mode || "overview") === "overview" },
+          { id: "finra.monitor.mode.changes",      label: "Changes",      active: tab.state?.mode === "changes" },
+          { id: "finra.monitor.mode.individuals",  label: "Individuals",  active: tab.state?.mode === "individuals" },
         ],
-        right: [
-          { id: "finra.changes.refresh", label: "Refresh" }
-        ]
+        right: [{ id: "finra.monitor.refresh", label: "Refresh" }]
       }),
       onActivate: async (tab) => {
         if (tab.state?.data !== undefined || fetchingTabs.has(tab.id)) return;
         fetchingTabs.add(tab.id);
         try {
-          const data = await finraGet("/api/changes?limit=100");
-          finraChangesCache = data; // populate shared cache for right rail
+          const [summary, arrivals, departures, runs, changes, individuals] = await Promise.all([
+            finraGet("/api/summary"),
+            finraGet("/api/firms/arrivals?limit=12"),
+            finraGet("/api/firms/departures?limit=12"),
+            finraGet("/api/runs"),
+            finraGet("/api/changes?limit=100"),
+            finraGet("/api/individuals"),
+          ]);
+          finraChangesCache = changes;
           fetchingTabs.delete(tab.id);
-          updateActiveTabState({ data, error: null });
+          updateActiveTabState({ data: { summary, arrivals, departures, runs, changes, individuals }, error: null });
         } catch (err) {
           fetchingTabs.delete(tab.id);
           updateActiveTabState({ data: null, error: err.message });
         }
       },
       render: (tab) => {
-        if (tab.state?.error)          return finraErrorHTML("FINRA · Recent Changes", tab.state.error);
-        if (tab.state?.data === undefined) return finraLoadingHTML("FINRA · Recent Changes");
-        if (!tab.state.data?.length)   return `<div class="table-shell view-placeholder"><span>FINRA · Recent Changes</span><p>No changes recorded yet.</p></div>`;
+        if (tab.state?.error)            return finraErrorHTML("FINRA Monitor", tab.state.error);
+        if (tab.state?.data === undefined) return finraLoadingHTML("FINRA Monitor");
 
-        const rows = tab.state.data;
-        return `
-          <div class="table-shell">
-            <div class="table-header-grid finra-changes-grid">
-              <div>Name</div>
-              <div>From</div>
-              <div>To</div>
-              <div>Function</div>
-              <div>Group</div>
-              <div>Detected</div>
-            </div>
-            ${rows.map((r) => `
-              <div class="table-row-grid finra-changes-grid">
-                <div>${r.name || "—"}</div>
-                <div class="text-muted">${r.old_status || "—"}</div>
-                <div>${finraStatusBadge(r.new_status)}</div>
-                <div>${r.function || "—"}</div>
-                <div>${r.group || "—"}</div>
-                <div class="text-muted">${r.detected_at?.slice(0, 10) || "—"}</div>
-              </div>
-            `).join("")}
+        const mode = tab.state.mode || "overview";
+        const { summary, arrivals, departures, runs, changes, individuals } = tab.state.data;
+
+        // ── Stat strip (shared across all modes) ──────────────────
+        const lastRun = runs?.[0];
+        const lastRunLabel = lastRun?.completed_at
+          ? (() => {
+              const diff = Date.now() - new Date(lastRun.completed_at);
+              const h = Math.floor(diff / 36e5);
+              const m = Math.floor((diff % 36e5) / 6e4);
+              return h > 0 ? `${h}h ${m}m ago` : `${m}m ago`;
+            })()
+          : "—";
+
+        const statStrip = `
+          <div class="finra-stat-strip">
+            <div class="finra-ssi"><span class="finra-ssi-label">Tracked</span><span class="finra-ssi-value">${summary.total ?? "—"}</span></div>
+            <div class="finra-ssi finra-ssi--green"><span class="finra-ssi-label">Active</span><span class="finra-ssi-value">${summary.active ?? "—"}</span></div>
+            <div class="finra-ssi finra-ssi--yellow"><span class="finra-ssi-label">Inactive</span><span class="finra-ssi-value">${summary.inactive ?? "—"}</span></div>
+            <div class="finra-ssi finra-ssi--accent"><span class="finra-ssi-label">Changes Logged</span><span class="finra-ssi-value">${summary.total_changes ?? "—"}</span></div>
+            <div class="finra-ssi"><span class="finra-ssi-label">Last Run</span><span class="finra-ssi-value" style="font-size:13px;padding-top:3px;">${lastRunLabel}</span></div>
           </div>
         `;
-      }
-    });
 
-    // FINRA — Dashboard
-    registerWorkspaceView({
-      id: "finra.dashboard",
-      match: (tab) => tab.type === "finra.dashboard",
-      toolbar: (tab) => ({
-        left: [],
-        right: [{ id: "finra.dashboard.refresh", label: "Refresh" }]
-      }),
-      onActivate: async (tab) => {
-        if (tab.state?.data !== undefined || fetchingTabs.has(tab.id)) return;
-        fetchingTabs.add(tab.id);
-        try {
-          const [summary, arrivals, departures, runs] = await Promise.all([
-            finraGet("/api/summary"),
-            finraGet("/api/firms/arrivals"),
-            finraGet("/api/firms/departures"),
-            finraGet("/api/runs")
-          ]);
-          fetchingTabs.delete(tab.id);
-          updateActiveTabState({ data: { summary, arrivals, departures, runs }, error: null });
-        } catch (err) {
-          fetchingTabs.delete(tab.id);
-          updateActiveTabState({ data: null, error: err.message });
+        // ── Overview mode ──────────────────────────────────────────
+        if (mode === "overview") {
+          const maxArrival = Math.max(1, ...arrivals.map(f => f.count));
+          const maxDeparture = Math.max(1, ...departures.map(f => f.count));
+
+          const lbRows = (items, maxVal, barClass = "") => items.map((f, i) => `
+            <div class="finra-lb-row">
+              <span class="finra-lb-rank">${i + 1}</span>
+              <span class="finra-lb-name" title="${escapeHtml(f.firm)}">${escapeHtml(f.firm)}</span>
+              <div class="finra-lb-bar-track"><div class="finra-lb-bar-fill ${barClass}" style="width:${Math.round((f.count / maxVal) * 100)}%"></div></div>
+              <span class="finra-lb-count">${f.count}</span>
+            </div>
+          `).join("");
+
+          const recentChanges = (changes || []).slice(0, 30);
+
+          return `
+            <div class="detail-view-shell" style="gap:16px;">
+              ${statStrip}
+              <div class="finra-overview-body">
+                <div>
+                  <div class="finra-section-hdr">Firm Arrivals</div>
+                  ${lbRows(arrivals, maxArrival)}
+                </div>
+                <div>
+                  <div class="finra-section-hdr">Departures to Inactive</div>
+                  ${lbRows(departures, maxDeparture, "finra-lb-bar-fill--red")}
+                </div>
+                <div>
+                  <div class="finra-section-hdr">Run History</div>
+                  <div class="table-shell" style="margin-top:6px;">
+                    <div class="table-header-grid finra-runs-compact-grid">
+                      <div>Completed</div><div>Checked</div><div>Changes</div>
+                    </div>
+                    ${(runs || []).slice(0, 8).map((r) => `
+                      <div class="table-row-grid finra-runs-compact-grid">
+                        <div class="text-muted">${r.completed_at?.slice(0, 16).replace("T", " ") || "—"}</div>
+                        <div>${r.total_checked}</div>
+                        <div>${r.changes_detected > 0 ? `<span class="finra-badge finra-badge--active">${r.changes_detected}</span>` : `<span class="text-muted">${r.changes_detected}</span>`}</div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+                <div class="finra-overview-full">
+                  <div class="finra-section-hdr">Recent Changes</div>
+                  <div class="table-shell" style="margin-top:6px;">
+                    <div class="table-header-grid finra-changes-compact-grid">
+                      <div>Name</div><div>From</div><div>To</div><div>Function</div><div>Detected</div>
+                    </div>
+                    ${recentChanges.length ? recentChanges.map((r) => `
+                      <div class="table-row-grid finra-changes-compact-grid">
+                        <div>${escapeHtml(r.name || "—")}</div>
+                        <div class="text-muted">${r.old_status || "—"}</div>
+                        <div>${finraStatusBadge(r.new_status)}</div>
+                        <div class="text-muted">${r.function || "—"}</div>
+                        <div class="text-muted">${r.detected_at?.slice(0, 10) || "—"}</div>
+                      </div>
+                    `).join("") : `<div class="table-row-grid" style="grid-column:1/-1;padding:12px;color:var(--text-faint);">No changes recorded yet.</div>`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
         }
-      },
-      render: (tab) => {
-        if (tab.state?.error)          return finraErrorHTML("FINRA · Dashboard", tab.state.error);
-        if (tab.state?.data === undefined) return finraLoadingHTML("FINRA · Dashboard");
 
-        const { summary, arrivals, departures, runs } = tab.state.data;
-        return `
-          <div class="detail-view-shell">
-            <div class="finra-stat-row">
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.total}</div><div class="finra-stat-label">Tracked</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.active}</div><div class="finra-stat-label">Active</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.inactive}</div><div class="finra-stat-label">Inactive</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.total_changes}</div><div class="finra-stat-label">Changes Logged</div></div>
-            </div>
-
-            <div class="finra-leaderboard-grid">
-              <div>
-                <div class="floating-section-title">Firm Arrivals</div>
-                <div class="meta-grid">
-                  ${arrivals.map((f) => `
-                    <div class="meta-block">
-                      <div class="meta-label">${f.firm}</div>
-                      <div class="meta-value">${f.count} move${f.count !== 1 ? "s" : ""}</div>
-                    </div>
-                  `).join("")}
+        // ── Changes mode ───────────────────────────────────────────
+        if (mode === "changes") {
+          if (!changes?.length) return `<div class="table-shell view-placeholder"><span>FINRA · Changes</span><p>No changes recorded yet.</p></div>`;
+          return `
+            <div class="detail-view-shell" style="gap:12px;">
+              ${statStrip}
+              <div class="table-shell">
+                <div class="table-header-grid finra-changes-grid">
+                  <div>Name</div><div>From</div><div>To</div><div>Function</div><div>Group</div><div>Detected</div>
                 </div>
-              </div>
-              <div>
-                <div class="floating-section-title">Firm Departures (to Inactive)</div>
-                <div class="meta-grid">
-                  ${departures.map((f) => `
-                    <div class="meta-block">
-                      <div class="meta-label">${f.firm}</div>
-                      <div class="meta-value">${f.count} departure${f.count !== 1 ? "s" : ""}</div>
-                    </div>
-                  `).join("")}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div class="floating-section-title">Run History</div>
-              <div class="table-shell" style="margin-top:8px;">
-                <div class="table-header-grid finra-runs-grid">
-                  <div>Started</div><div>Completed</div><div>Checked</div><div>Changes</div>
-                </div>
-                ${runs.map((r) => `
-                  <div class="table-row-grid finra-runs-grid">
-                    <div>${r.started_at?.slice(0, 16).replace("T", " ") || "—"}</div>
-                    <div>${r.completed_at?.slice(0, 16).replace("T", " ") || "—"}</div>
-                    <div>${r.total_checked}</div>
-                    <div>${r.changes_detected > 0 ? `<span class="finra-badge finra-badge--active">${r.changes_detected}</span>` : r.changes_detected}</div>
+                ${changes.map((r) => `
+                  <div class="table-row-grid finra-changes-grid">
+                    <div>${escapeHtml(r.name || "—")}</div>
+                    <div class="text-muted">${r.old_status || "—"}</div>
+                    <div>${finraStatusBadge(r.new_status)}</div>
+                    <div class="text-muted">${r.function || "—"}</div>
+                    <div class="text-muted">${r.group || "—"}</div>
+                    <div class="text-muted">${r.detected_at?.slice(0, 10) || "—"}</div>
                   </div>
                 `).join("")}
               </div>
             </div>
-          </div>
-        `;
-      }
-    });
-
-    // FINRA — Individuals
-    registerWorkspaceView({
-      id: "finra.individuals",
-      match: (tab) => tab.type === "finra.individuals",
-      toolbar: (tab) => ({
-        left: [],
-        right: [{ id: "finra.individuals.refresh", label: "Refresh" }]
-      }),
-      onActivate: async (tab) => {
-        if (tab.state?.data !== undefined || fetchingTabs.has(tab.id)) return;
-        fetchingTabs.add(tab.id);
-        try {
-          const [data, summary, arrivals, departures] = await Promise.all([
-            finraGet("/api/individuals"),
-            finraGet("/api/summary"),
-            finraGet("/api/firms/arrivals?limit=8"),
-            finraGet("/api/firms/departures?limit=8")
-          ]);
-          fetchingTabs.delete(tab.id);
-          updateActiveTabState({ data, summary, arrivals, departures, error: null });
-        } catch (err) {
-          fetchingTabs.delete(tab.id);
-          updateActiveTabState({ data: null, error: err.message });
+          `;
         }
-      },
-      render: (tab) => {
-        if (tab.state?.error)          return finraErrorHTML("FINRA · Individuals", tab.state.error);
-        if (tab.state?.data === undefined) return finraLoadingHTML("FINRA · Individuals");
-        if (!tab.state.data?.length)   return `<div class="table-shell view-placeholder"><span>FINRA · Individuals</span><p>No individuals loaded.</p></div>`;
 
-        const { data: rows, summary, arrivals, departures } = tab.state;
+        // ── Individuals mode ───────────────────────────────────────
+        if (!individuals?.length) return `<div class="table-shell view-placeholder"><span>FINRA · Individuals</span><p>No individuals loaded.</p></div>`;
         return `
-          <div class="detail-view-shell">
-            <div class="finra-stat-row">
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.total}</div><div class="finra-stat-label">Tracked</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.active}</div><div class="finra-stat-label">Active</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.inactive}</div><div class="finra-stat-label">Inactive</div></div>
-              <div class="finra-stat-card"><div class="finra-stat-value">${summary.total_changes}</div><div class="finra-stat-label">Changes Logged</div></div>
-            </div>
-
-            <div class="finra-leaderboard-grid">
-              <div>
-                <div class="floating-section-title">Top Firm Arrivals</div>
-                <div class="meta-grid" style="margin-top:8px;">
-                  ${arrivals.map((f) => `
-                    <div class="meta-block">
-                      <div class="meta-label">${f.firm}</div>
-                      <div class="meta-value">${f.count}</div>
-                    </div>
-                  `).join("")}
-                </div>
-              </div>
-              <div>
-                <div class="floating-section-title">Departures to Inactive</div>
-                <div class="meta-grid" style="margin-top:8px;">
-                  ${departures.map((f) => `
-                    <div class="meta-block">
-                      <div class="meta-label">${f.firm}</div>
-                      <div class="meta-value">${f.count}</div>
-                    </div>
-                  `).join("")}
-                </div>
-              </div>
-            </div>
-
+          <div class="detail-view-shell" style="gap:12px;">
+            ${statStrip}
             <div class="table-shell">
               <div class="table-header-grid finra-individuals-grid">
-                <div>Name</div>
-                <div>Map Firm</div>
-                <div>Current Status</div>
-                <div>Function</div>
-                <div>Group</div>
-                <div>Last Checked</div>
+                <div>Name</div><div>Firm</div><div>Status</div><div>Function</div><div>Group</div><div>Last Checked</div>
               </div>
-              ${rows.map((r) => `
+              ${individuals.map((r) => `
                 <div class="table-row-grid finra-individuals-grid">
-                  <div>${r.name || "—"}</div>
-                  <div class="text-muted">${r.firm || "—"}</div>
+                  <div>${escapeHtml(r.name || "—")}</div>
+                  <div class="text-muted">${escapeHtml(r.firm || "—")}</div>
                   <div>${finraStatusBadge(r.status)}</div>
-                  <div>${r.function || "—"}</div>
-                  <div>${r.group || "—"}</div>
+                  <div class="text-muted">${r.function || "—"}</div>
+                  <div class="text-muted">${r.group || "—"}</div>
                   <div class="text-muted">${r.last_checked?.slice(0, 10) || "—"}</div>
                 </div>
               `).join("")}
@@ -1091,19 +1120,14 @@
     // ── Tab helpers ───────────────────────────────────────────────
 
     function openFinraTab(type) {
-      const meta = {
-        "finra.dashboard":   { id: "tab-finra-dashboard",   title: "FINRA Dashboard" },
-        "finra.changes":     { id: "tab-finra-changes",     title: "FINRA Changes" },
-        "finra.individuals": { id: "tab-finra-individuals", title: "FINRA Individuals" }
-      };
-      const m = meta[type];
-      if (!m) return;
-      openTab({ id: m.id, type, title: m.title, state: { mode: "default" } });
+      // Legacy types redirect to the consolidated monitor
+      openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
     }
 
     function openPersonTab(entityId) {
       const entity = entityData[entityId];
       if (!entity) return;
+      recordView(entityId, "person", entity.title || entityId);
       openTab({
         id: `tab-person-${entityId}`,
         type: "person.detail",
@@ -1141,12 +1165,14 @@
 
     function openFirmTab(entityId, firmName) {
       const entity = entityData[entityId];
+      const label = entity?.title || firmName || "Firm";
+      recordView(entityId, "firm", label);
       openTab({
         id: `tab-firm-${entityId}`,
         type: "firm.detail",
         entityType: "firm",
         entityId,
-        title: entity?.title || firmName || "Firm",
+        title: label,
         state: { mode: "profile" }
       });
     }
@@ -1357,7 +1383,15 @@
         // Firms table
         case "firms.table.mode.table": break; // only one mode, no-op
         case "firms.table.refresh":    updateActiveTabState({ firms: undefined, error: null }); break;
-        // FINRA — refresh clears loaded data so onActivate re-fetches
+        // FINRA Monitor — mode switches
+        case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
+        case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;
+        case "finra.monitor.mode.individuals": updateActiveTabState({ mode: "individuals" }); break;
+        // FINRA Monitor — refresh clears loaded data so onActivate re-fetches
+        case "trending.refresh":
+          updateActiveTabState({ data: undefined, error: null, _fetching: false });
+          break;
+        case "finra.monitor.refresh":
         case "finra.changes.refresh":
         case "finra.dashboard.refresh":
         case "finra.individuals.refresh":
@@ -1457,6 +1491,22 @@
     }
 
     // People table widgets
+    registerRightRailWidget({
+      id: "people-table-trending",
+      order: 5,
+      when: (ctx) => ctx.type === "people.table",
+      render: () => {
+        if (!trendingCache.length) return "";
+        const rows = trendingCache.map((item) => `
+          <div class="feed-item">
+            <div class="feed-item-title">${escapeHtml(item.entity_label || item.entity_id)}</div>
+            <div class="feed-item-meta">${item.entity_type} · ${item.view_count} view${item.view_count !== 1 ? "s" : ""} / 48h</div>
+          </div>
+        `).join("");
+        return renderContextCard("Trending", rows);
+      }
+    });
+
     registerRightRailWidget({
       id: "people-table-activity",
       order: 10,
@@ -1890,14 +1940,33 @@
       createCard(entity);
     }
 
+    const appShell = document.querySelector(".app-shell");
+
+    function toggleLeftRail() {
+      const closed = appShell.dataset.leftRail === "closed";
+      appShell.dataset.leftRail = closed ? "open" : "closed";
+    }
+
+    function toggleRightRail() {
+      const closed = appShell.dataset.rightRail === "closed";
+      appShell.dataset.rightRail = closed ? "open" : "closed";
+    }
+
+    document.getElementById("leftRailToggle")?.addEventListener("click", toggleLeftRail);
+    document.getElementById("rightRailToggle")?.addEventListener("click", toggleRightRail);
+    document.getElementById("rightRailClose")?.addEventListener("click", toggleRightRail);
+
     function runCommand(commandId) {
       if (commandId === "toggle-right-rail") {
-        const rail = document.querySelector(".right-rail");
-        if (rail) rail.style.display = rail.style.display === "none" ? "" : "none";
+        toggleRightRail();
       } else if (commandId === "open-people") {
         openTab({ id: "tab-people-table", type: "people.table", title: "People Table", state: { mode: "table" } });
       } else if (commandId === "open-firms") {
         openTab({ id: "tab-firms-table", type: "firms.table", title: "Firms Table", state: {} });
+      } else if (commandId === "open-finra") {
+        openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
+      } else if (commandId === "open-trending") {
+        openTab({ id: "tab-trending", type: "trending", title: "Trending", state: {} });
       } else {
         console.log("Run command:", commandId);
       }
@@ -2024,18 +2093,25 @@
       });
     }
 
-    function activatePaletteItem(index) {
+    function activatePaletteItem(index, useCard = false) {
       const item = paletteItems[index];
       if (!item) return;
 
       if (item.kind === "entity") {
-        openCard(item.key);
+        if (useCard) {
+          openCard(item.key);
+        } else {
+          const entity = entityData[item.key];
+          if (entity?.entityType === "person") openPersonTab(item.key);
+          else openFirmTab(item.key);
+        }
         closePalette();
         return;
       }
 
       if (item.kind === "firm") {
-        openFirmCard(item.key, item.name);
+        if (useCard) openFirmCard(item.key, item.name);
+        else openFirmTab(item.key, item.name);
         closePalette();
         return;
       }
@@ -2059,7 +2135,7 @@
       if (!row) return;
 
       const index = Number(row.dataset.paletteIndex);
-      activatePaletteItem(index);
+      activatePaletteItem(index, e.ctrlKey);
     });
 
     resultsEl.addEventListener("pointermove", (e) => {
@@ -2080,6 +2156,7 @@
       const firmTrigger = e.target.closest("[data-open-firm]");
       const firmIdTrigger = e.target.closest("[data-open-firm-id]");
       const navTabTrigger = e.target.closest("[data-open-nav-tab]");
+      const recentTrigger = e.target.closest("[data-open-recent]");
       const actionTrigger = e.target.closest(".action-btn");
       const toolbarTrigger = e.target.closest("[data-toolbar-action]");
 
@@ -2123,6 +2200,13 @@
 
       if (toolbarTrigger) {
         handleToolbarAction(toolbarTrigger.dataset.toolbarAction);
+        return;
+      }
+
+      if (recentTrigger) {
+        const { openRecent, recentType, recentLabel } = recentTrigger.dataset;
+        if (recentType === "person") openPersonTab(openRecent);
+        else openFirmTab(openRecent, recentLabel);
         return;
       }
 
@@ -2182,6 +2266,45 @@
         return;
       }
 
+      // Ctrl+B — toggle left rail
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        toggleLeftRail();
+        return;
+      }
+
+      // Ctrl+\ — toggle right rail
+      if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+        e.preventDefault();
+        toggleRightRail();
+        return;
+      }
+
+      // Alt+W — close active tab
+      if (e.altKey && e.key.toLowerCase() === "w") {
+        e.preventDefault();
+        if (workspaceState.activeTabId) closeTab(workspaceState.activeTabId);
+        return;
+      }
+
+      // Alt+] — next tab
+      if (e.altKey && e.key === "]") {
+        e.preventDefault();
+        const tabs = workspaceState.tabs;
+        const idx = tabs.findIndex(t => t.id === workspaceState.activeTabId);
+        if (idx !== -1 && idx < tabs.length - 1) focusTab(tabs[idx + 1].id);
+        return;
+      }
+
+      // Alt+[ — previous tab
+      if (e.altKey && e.key === "[") {
+        e.preventDefault();
+        const tabs = workspaceState.tabs;
+        const idx = tabs.findIndex(t => t.id === workspaceState.activeTabId);
+        if (idx > 0) focusTab(tabs[idx - 1].id);
+        return;
+      }
+
       if (e.key === "Escape") {
         if (paletteIsOpen()) {
           closePalette();
@@ -2210,7 +2333,7 @@
 
       if (e.key === "Enter") {
         e.preventDefault();
-        activatePaletteItem(activePaletteIndex);
+        activatePaletteItem(activePaletteIndex, e.ctrlKey);
       }
     });
 
@@ -2246,6 +2369,25 @@
 
     renderWorkspaceSnapshots();
     loadFirmsIndex();
+    loadRecentlyViewed();
+    loadTrending();
+
+    // Electron IPC — tab shortcuts (Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab)
+    if (window.electron) {
+      window.electron.onTabCloseActive(() => {
+        if (workspaceState.activeTabId) closeTab(workspaceState.activeTabId);
+      });
+      window.electron.onTabNext(() => {
+        const tabs = workspaceState.tabs;
+        const idx = tabs.findIndex(t => t.id === workspaceState.activeTabId);
+        if (idx !== -1 && idx < tabs.length - 1) focusTab(tabs[idx + 1].id);
+      });
+      window.electron.onTabPrev(() => {
+        const tabs = workspaceState.tabs;
+        const idx = tabs.findIndex(t => t.id === workspaceState.activeTabId);
+        if (idx > 0) focusTab(tabs[idx - 1].id);
+      });
+    }
   })();
 </script>
 <script>

@@ -4,8 +4,9 @@ FastAPI on port 8765, connects to PostgreSQL via SSH tunnel on localhost:5432.
 Start with: python -m uvicorn api:app --port 8765 --reload
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import psycopg2
 import psycopg2.extras
 import json
@@ -118,6 +119,66 @@ def get_firm(firm_id: str):
     result["platforms"] = [a["alias_text"] for a in aliases if a["alias_type"] == "platform"]
     result["blacklist"] = [a["alias_text"] for a in aliases if a["alias_type"] == "blacklist"]
     return result
+
+
+# ── Recently Viewed ───────────────────────────────────────────────────────────
+
+class ViewRecord(BaseModel):
+    entity_id: str
+    entity_type: str
+    entity_label: str = ""
+
+def _insert_view(entity_id: str, entity_type: str, entity_label: str):
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO recently_viewed (entity_id, entity_type, entity_label) VALUES (%s, %s, %s)",
+            (entity_id, entity_type, entity_label)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[viewed] write failed: {e}")
+
+@app.post("/viewed", status_code=204)
+async def record_view(record: ViewRecord, background_tasks: BackgroundTasks):
+    background_tasks.add_task(_insert_view, record.entity_id, record.entity_type, record.entity_label)
+
+@app.get("/recently-viewed")
+def get_recently_viewed(limit: int = Query(default=10, le=50)):
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT entity_id, entity_type, entity_label, viewed_at
+        FROM (
+            SELECT DISTINCT ON (entity_id)
+                entity_id, entity_type, entity_label, viewed_at
+            FROM recently_viewed
+            ORDER BY entity_id, viewed_at DESC
+        ) sub
+        ORDER BY viewed_at DESC
+        LIMIT %s
+    """, (limit,))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.get("/trending")
+def get_trending(hours: int = Query(default=48, le=168), limit: int = Query(default=10, le=50)):
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT entity_id, entity_type, entity_label, COUNT(*) AS view_count
+        FROM recently_viewed
+        WHERE viewed_at > NOW() - make_interval(hours => %s)
+        GROUP BY entity_id, entity_type, entity_label
+        ORDER BY view_count DESC
+        LIMIT %s
+    """, (hours, limit))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 # ── Job Functions ─────────────────────────────────────────────────────────────
