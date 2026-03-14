@@ -293,8 +293,9 @@
 
 html,
 body {
+  height: 100vh;
   margin: 0;
-  min-height: 100%;
+  overflow: hidden;
   background: var(--background-primary);
   color: var(--text-normal);
   font-family: var(--font-interface);
@@ -302,7 +303,6 @@ body {
 }
 
 body {
-  min-height: 100vh;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -361,12 +361,16 @@ hr {
 .app-shell {
   display: grid;
   grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--background-primary);
 }
 
 .left-rail {
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid var(--background-modifier-border);
   background: var(--background-primary-alt);
 }
@@ -375,9 +379,12 @@ hr {
   display: grid;
   grid-template-rows: var(--topbar-h) minmax(0, 1fr);
   min-width: 0;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .topbar {
+  overflow: hidden;
   background: color-mix(in srgb, var(--background-primary) 92%, transparent);
   border-bottom: 1px solid var(--background-modifier-border);
   backdrop-filter: blur(10px);
@@ -387,17 +394,22 @@ hr {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--right-rail-w);
   min-height: 0;
+  overflow: hidden;
 }
 
 .workspace {
   min-width: 0;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
   background: var(--background-primary);
 }
 
 .right-rail {
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid var(--background-modifier-border);
   background: var(--background-primary-alt);
 }

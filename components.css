@@ -456,17 +456,19 @@
 .master-search-shell {
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding: 0;
 }
 
 .master-search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--background-modifier-border);
-  flex-shrink: 0;
+  background: var(--background-secondary); /* match .view */
 }
 
 .master-search-input {
@@ -495,8 +497,6 @@
 
 .master-search-results {
   flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .master-table-header-grid,
