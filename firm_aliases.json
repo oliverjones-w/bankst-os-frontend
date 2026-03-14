@@ -1,0 +1,1127 @@
+[
+  {
+    "id": "citadel",
+    "canonical": "Citadel",
+    "aliases": [
+      "Citadel",
+      "Ashler Capital",
+      "Citadel AM SH Corp Srvs Co Ltd", 
+      "Citadel Asia Limited", 
+      "Citadel Enterprise", 
+      "Citadel Enterprise Americas LLC",
+      "Citadel Enterprise Europe Limited",
+      "Citadel Enterprise Japan Limited", 
+      "Citadel Enterprise Singapore Pte Ltd", 
+      "Citadel France SAS",
+      "Surveyor Capital"
+    ],
+    "blacklist":[
+      "Abu Dhabi Investment Authority",
+      "Brookings Institution", 
+      "Chronometer Holdings LLC", 
+      "Citadel Federal Credit Union",
+      "Citadel Finance SA", 
+      "Citadel Investment Srvs Pty Ltd", 
+      "Citadel Securities Aus Pty Ltd", 
+      "Citadel Securities Europe Ltd", 
+      "Citadel Securities Gcs Ireland Ltd", 
+      "Citadel Securities Gcs Limited", 
+      "Citadel Securities Hong Kong Ltd", 
+      "Citadel Securities in Mkts Pvt Ltd", 
+      "Citadel Securities Institutional LLC", 
+      "Citadel Securities Japan Co Ltd", 
+      "Citadel Securities LLC", 
+      "Citadel Servicing Corporation",
+      "D E Shaw & Co LP", 
+      "Deutsche Securities Inc",
+      "Millennium Partners LP", 
+      "RJ O'brien France SAS", 
+      "Santander US Capital Markets LLC", 
+      "Seawolf Capital LLC",
+      "Sodali & Co Pty Limited"
+    ]
+  },
+
+  {
+  "id": "millennium",
+  "canonical": "Millennium Management",
+  "aliases": [
+    "Millennium",
+    "MLP",
+    "Millennium Management",
+    "Millennium Capital Dflc Ltd",
+    "Millennium Capital Jersey Limited",
+    "Millennium Capital Management France",
+    "Millennium Capital Management HK Ltd",
+    "Millennium Capital Management Monaco",
+    "Millennium Capital Mgmt AL Pty Ltd",
+    "Millennium Capital Mgmt Asia Ltd",
+    "Millennium Capital Mgmt S Pte Ltd",
+    "Millennium Capital Partners LLP",
+    "Millennium Consulting India Pvt Ltd",
+    "Millennium Europe Limited",
+    "Millennium Limited Partners",
+    "Millennium Management LLC",
+    "Millennium Operations Limited",
+    "Millennium Partners LP",
+    "Millennium Towarzystwo Fund Inwe SA",
+    "MCP Switzerland GmbH"
+    ],
+  "platforms": [
+    "10b Asset Mgmt",
+    "1508 Asset Mgmt",
+    "3 Drives Capital",
+    "Abacove (Millennium)",
+    "Abacove Capital",
+    "Abacove Capital Mgmt",
+    "Alchemy Capital Mgmt",
+    "AlphaSys Global",
+    "Andora Partners",
+    "Anianna Investments",
+    "Black Kite Capital",
+    "Catapult Captl Mgmt",
+    "Cde Capital Mgmt LP",
+    "Centenus",
+    "Chimera Capital Mgmt",
+    "Crescent Dune Mgmt",
+    "Dinovo Capital",
+    "Echion Capital Mgmt",
+    "Extant Capital LLC",
+    "Facet Capital",
+    "Facet Capital Mgmt",
+    "Facet Capital Mngmt",
+    "Fletcher Street Cap",
+    "Green Grove Capital",
+    "Gryphus Fund",
+    "Intentional Cap Mgmt",
+    "Kashi Capital",
+    "Kinmen Capital",
+    "LNY Capital",
+    "Longeava Partners LP",
+    "Lucidus",
+    "North Arrow Capital",
+    "Passaic Capital LLC",
+    "Santa Rosa Capital",
+    "Saski Capital Mgmt",
+    "Saxa Capital Mgmt",
+    "Seven Oak Capital",
+    "Sunac Capital",
+    "Tamridge Capital",
+    "Teragon Capital",
+    "Terso Capital LLC",
+    "Third Wave Asset Mgt",
+    "Throughline Capital",
+    "Tsy Capital",
+    "Twin Lights A/M",
+    "Verbena Value LP",
+    "Waterbend Capital",
+    "Winward Capital",
+    "YK ASSET MANAGEMENT"
+    ],
+
+  "blacklist": [
+    "Millennium Advisors LLC",
+    "AXA Investment Managers Paris",
+    "Banco Millennium Atlantico SA",
+    "Bank Millennium SA",
+    "Bluecrest Capital Mgmt Difc Ltd",
+    "BNP Paribas",
+    "Bretwood Capital Partners LLC",
+    "Broyhill Asset Management LLC",
+    "Caption Partners LP",
+    "Fidelity Management & Research Co",
+    "Hong Leong Asia Ltd",
+    "Hudson Square Cap",
+    "IM Gestao de Ativos Sgoic SA",
+    "Janus Henderson Inv.",
+    "Kovitz Investment Group LLC",
+    "Marblegate Asset Management",
+    "Meteora Capital LLC",
+    "Millennium Advisors SG Pte Ltd",
+    "Millennium Bank Hipoteczny SA",
+    "Millennium Bcp",
+    "Millennium Consolidated Holdings LLC",
+    "Millennium Consulting BJ C Ltd SH BR",
+    "Millennium Consulting Korea LLC",
+    "Millennium Corporate Credit Union",
+    "Millennium Global Investments Ltd",
+    "Millennium Global Treasury Srvcs Ltd",
+    "Milltechfx Europe SAS",
+    "MLP Research India Private Limited",
+    "North Afton Capital",
+    "Oaktree Capital Management LP",
+    "Propeller Capital",
+    "Purpose Investments Inc",
+    "Renaissancere Europe AG",
+    "Roga Capital Mgmt",
+    "Santa Rosa Capital",
+    "Schonfeld Strategic Advrs SP Pte Ltd",
+    "Soros Fund Management LLC",
+    "Stg Commodities Pte Ltd",
+    "Third Wave AM",
+    "UBS Europe SE Spain Branch"
+    ]
+  },
+
+{
+  "id": "balyasny",
+  "canonical": "Balyasny Asset Management",
+  "aliases": [
+    "BAM",
+    "Balyasny Asset Management UK LLP",
+    "Balyasny Asset Management LP",
+    "Balyasny Asset Mgmt SP Pte Ltd",
+    "Balyasny Asset Management HK Ltd",
+    "Balyasny Asset Management Japan Ltd",
+    "Balyasny Asset Mgmt Middle East Ltd",
+    "Balyasny Asset Mgmt EU Fond AS",
+    "Balyasny Management Denmark APS",
+    "Balyasny Asset Management Canada Ulc"
+  ],
+  "platforms": [
+    "Corbets Capital",
+    "Longaeva Partners LP"
+  ],
+  "blacklist": [
+    ""
+  ]
+	},
+
+  
+  {
+    "id": "point72",
+    "canonical": "Point72 Asset Management",
+    "aliases": [
+      "Point72",
+      "P72",
+      "Cubist",
+      "Cubist Systematic Strategies"
+    ]
+  },
+
+  {
+    "id": "tenaron",
+    "canonical": "Tenaron Capital Management",
+    "aliases": [
+      "Tenaron",
+      "Tenaron Capital Management",
+      "Tenaron Capital Management LP",
+      "Tenaron Capital Management UK LLP"
+    ]
+  },
+
+  {
+    "id": "brevan_howard",
+    "canonical": "Brevan Howard Asset Management",
+    "aliases": [
+      "Brevan Howard",
+      "BH",
+      "Brevan",
+      "Brevan Howard Gva BR",
+      "Brevan Howard Hong Kong Limited",
+      "Brevan Howard Inc",
+      "Brevan Howard India Private Limited",
+      "Brevan Howard Inv PR Ltd SH J S D G",
+      "Brevan Howard Invest Products Ltd",
+      "Brevan Howard Investment Mgmt Ltd",
+      "Brevan Howard Investment Product Ltd",
+      "Brevan Howard Invmt Products Ltd",
+      "Brevan Howard Pte Ltd",
+      "Brevan Howard US Invst Mgmt LP"
+    ],
+    "affiliates":[
+      "AI Mx2 UK Limited",
+      "Coremont Hong Kong Limited",
+      "Coremont LLP"
+    ],
+    "blacklist":[
+      "Polar Asset Management Partners Inc",
+      "Rokos Capital Management LLP",
+      "Symmetry Investments Jersey Limited",
+      "Unigestion SA",
+      "Vega Asset Management Holdings Ltd"
+    ]
+  },
+  {
+    "id": "exoduspoint",
+    "canonical": "ExodusPoint Capital Management",
+    "aliases": [
+      "ExodusPoint",
+      "Exodus Point",
+      "EP",
+      "Exodus",
+      "Exoduspoint Capital Management LP",
+      "Exoduspoint Capital Mgmt SP Pte Ltd",
+      "Exoduspoint Capital",
+      "Exoduspoint Capital Mgmt Difc Ltd",
+      "Exoduspoint Capital Manage UK LLP",
+      "Exoduspoint Capital Technologies Ltd",
+      "Exoduspoint Capital Mgmt HK Ltd",
+      "Exoduspoint Capital Mgmt Jersey Ltd",
+      "Exoduspoint Capital MG in HL in at J"
+    ],
+    "blacklist":[
+      "Noventa Capital Management Limited",
+      "Capula Investment US LP",
+      "Insight Investment Mgmt Global Ltd",
+      "Gallo Partners LP",
+      "Verition Advisors UK Partners LLP",
+      "Atlantic Investment Management Inc"
+    ]
+  },
+  {
+    "id": "verition",
+    "canonical": "Verition Fund Management",
+    "aliases": [
+      "Verition",
+      "Verition Group LLC",
+      "Verition Advisors UK Partners LLP",
+      "Verition Advisors SG Pte Ltd",
+      "Verition Management Difc Limited",
+      "Verition Advisors Hong Kong Limited",
+      "Verition Group, LLC",
+      "Verition Advisors Canada Ulc",
+      "Cooper River Capital Management LLC"
+    ]
+  },
+  {
+    "id": "schonfeld",
+    "canonical": "Schonfeld Strategic Advisors",
+    "aliases": [
+      "Schonfeld",
+      "Aster Cap Mgmt DIFC",
+       "Schonfeld Strategic Advisors LLC",
+        "Schonfeld Strategic Advisors UK LLP",
+         "Schonfeld Strategic Adv Difc Ltd",
+          "Schonfeld Strategic Advisors HK Ltd",
+           "Schonfeld Strategic Adv BR Ltda",
+            "Schonfeld Strategic Advrs SP Pte Ltd",
+             "Schonfeld Strategic Advisors",
+              "Sassicaia Capital",
+               "Fieldview Capital",
+                "Schonfeld Strategic Advsrs A Pty Ltd",
+                 "Aster Capital Mgmt",
+                  "Y-Intercept HK Ltd",
+                   "Keystone Investors Pte Ltd"
+    ],
+    "blacklist":[
+       "BofA Securities Inc", 
+       "Eox Holdings LLC"
+    ]
+  },
+  {
+    "id": "qube",
+    "canonical": "Qube Research & Technologies",
+    "aliases": [
+      "Qube",
+      "QRT",
+    "Q-TX LLC",
+    "Qube Holdings Limited",
+    "Qube Information Cslt SH Limited",
+    "Qube Investment Management Inc",
+    "Qube Research & Tech Aust Pty Ltd",
+    "Qube Research & Tech Difc Ltd",
+    "Qube Research & Tech Switzerland AG",
+    "Qube Research & Technologies DK APS",
+    "Qube Research & Technologies HK Ltd",
+    "Qube Research & Technologies in LLP",
+    "Qube Research & Technologies Ltd",
+    "Qube Research & Technologies P SAS",
+    "Qube Research & Technologies S P Ltd",
+    "Qube Research & Trading Pvt Ltd"],
+
+    "blacklist":[
+    "--",
+    "Phillips Hager & North",
+    "RBC Global Asset Management Inc"
+    ]
+  
+  },
+  {
+    "id": "bluecrest",
+    "canonical": "BlueCrest Capital Management",
+    "aliases": [
+      "BlueCrest",
+
+      "Bluecrest Capital Mgmt New York LP",
+      "Bluecrest Capital Mgmt UK LLP",
+      "Bluecrest Capital Mgmt Jersey Ltd",
+      "Bluecrest Capital Mgmt Sing Pte Ltd",
+      "Bluecrest Capital Mgmt Difc Ltd",
+      "Bluecrest Capital Mgmt Guernsey LP"
+    ],
+    "blacklist":[
+      "Millennium Capital Mgmt S Pte Ltd",
+      "Balyasny Asset Management UK LLP",
+      "Citadel Enterprise",
+      "Schroder Investment Management Ltd",
+      "Marex Capital Markets Inc",
+      "Derosa Research and Trading Inc"
+    ]
+  },
+  {
+    "id": "blackrock",
+    "canonical": "BlackRock",
+    "aliases": [
+      "BlackRock"
+    ]
+  },
+  {
+    "id": "alliancebernstein",
+    "canonical": "AllianceBernstein",
+    "aliases": [
+      "AllianceBernstein",
+      "AB"
+    ]
+  },
+  {
+    "id": "squarepoint",
+    "canonical": "Squarepoint Capital",
+    "aliases": [
+      "Squarepoint",
+      "Stg Switzerland GmbH",
+      "Stg Management UK Ltd",
+      "Stg Management Difc Limited",
+      "Stg Denmark APS",
+      "Stg Commodities Pte Ltd",
+      "Squarepoint Ops LLC",
+      "Squarepoint Operations Pte Ltd",
+      "Squarepoint OP Co Sarl",
+      "Squarepoint Difc Limited",
+      "Squarepoint Capital LLP"
+    ],
+    "blacklist":[
+      "Qube Research & Technologies Ltd"
+    ]
+  },
+  {
+    "id": "capula",
+    "canonical": "Capula Investment Management",
+    "aliases": [
+      "Capula",
+      "Capula Investment Mgmt Asia Ltd", 
+      "Capula Investment Mgmt Switz Sarl", 
+      "Capula Investment Mgt SP Pte Ltd",
+      "Capula Investment Services Limited",
+      "Capula Investment Services Ltd",
+      "Capula Investment US LP"
+    ],
+    "blacklist":[
+      "Citadel Enterprise", 
+      "Tokio Marine Asset Management Co Ltd"
+    ] 
+
+  },
+  {
+    "id": "de_shaw",
+    "canonical": "D.E. Shaw & Co.",
+    "aliases": [
+      "DE Shaw",
+      "D.E. Shaw"
+    ]
+  },
+  {
+    "id": "drw",
+    "canonical": "DRW Holdings",
+    "aliases": [
+      "DRW"
+    ]
+  },
+  {
+    "id": "rokos",
+    "canonical": "Rokos Capital Management",
+    "aliases": [
+      "Rokos",
+      "RCM",
+      "Rokos Capital Management LLP",
+      "Rokos Capital Management US LP",
+      "Rokos Services SP Private Ltd"
+    ],
+    "blacklist":[
+      "Burkehill Global Management LP","Tang Capital Advisors LLC"
+    ]
+  },
+  {
+    "id": "centiva",
+    "canonical": "Centiva Capital",
+    "aliases": [
+      "Centiva",
+      "Centiva Capital LP",
+      "Centiva Capital UK Ltd",
+      "Centiva Capital HK Limited",
+      "Centiva Capital Asia Pte Ltd",
+      "Centiva Capital Europe SAS"
+    ]
+  },
+  {
+    "id": "pimco",
+    "canonical": "PIMCO",
+    "aliases": [
+      "PIMCO"
+    ]
+  },
+  {
+    "id": "eisler",
+    "canonical": "Eisler Capital",
+    "aliases": [
+      "Eisler"
+    ]
+  },
+  {
+    "id": "moore_capital",
+    "canonical": "Moore Capital Management",
+    "aliases": [
+      "Moore Capital",
+      "MCM",
+      "Moore Capital Asia Limited",
+      "Moore Capital Management LP",
+      "MECM Limited"
+    ],
+    
+    "blacklist":[
+      "Axilrod Capital LLC",
+      "Benjamin Moore & Co",
+      "Causey Demgen & Moore PC",
+      "Causey Public Finance LLC",
+      "Cravath Swaine & Moore LLP",
+      "Gordon & Betty Moore Foundation",
+      "Harrington Moore Limited",
+      "Moore Ellrich Neal PA",
+      "Smith Moore & Company"
+    ]
+  },
+  {
+    "id": "davidson_kempner",
+    "canonical": "Davidson Kempner Capital Management",
+    "aliases": [
+      "Davidson Kempner",
+      "DK"
+    ]
+  },
+  {
+    "id": "symmetry",
+    "canonical": "Symmetry Investments",
+    "aliases": [
+      "Symmetry",
+      "Symmetry Business Services UK Ltd", 
+      "Symmetry Business Services US LLC", 
+      "Symmetry Global Services Ltd", 
+      "Symmetry Investments Cayman Limited", 
+      "Symmetry Investments Hong Kong Ltd", 
+      "Symmetry Investments Jersey Limited", 
+      "Symmetry Investments SP Pte Ltd", 
+      "Symmetry Investments UK LLP", 
+      "Symmetry Investments US LLC", 
+      "Symmetry Research Services Limited"
+    ],
+
+    "blacklist":[
+      "Coronation Asset Management", 
+      "Coronation International Limited", 
+      "JP Morgan Chase Bank NA", 
+      "JP Morgan Investment Management Inc", 
+      "Mackenzie Financial Corporation", 
+      "Mandg Investment Managers Pty Ltd", 
+      "Mount Lucas Management Co", 
+      "Mount Lucas Management LP",
+      "Ninety One SA Proprietary Limited", 
+      "Point72 Hong Kong Limited", 
+      "Santa Lucia Asset Management Pte Ltd", 
+      "Symmetry Administration APS",
+      "Symmetry Energy Solutions LLC", 
+      "Symmetry Peak Management LLC", 
+      "Visio Fund Management Pty Ltd"
+    ]
+
+  },
+  {
+    "id": "tudor",
+    "canonical": "Tudor Investment Corporation",
+    "aliases": [
+      "Tudor",
+      "TIC",
+      "Tudor Capital Difc Limited", 
+      "Tudor Capital Europe LLP", 
+      "Tudor Capital France SAS", 
+      "Tudor Capital Singapore Pte Ltd",
+      "Tudor Investment Corporation"
+    ],
+    "blacklist":[
+      "Aizawa Asset Mgmt Co Ltd",
+      "Pickering Energy Partners LP",
+      "Sailingstone Capital Partners LLC", 
+      "Sundt AS", 
+      "Thomist Capital Management LP", 
+      "Tph Partners LLC",
+      "Tudor Pickering Holt & Co Sec Inc",
+      "Tudor Pickering Holt & Co Sec LLC",
+      "Tudor Research Hungary Kft", 
+      "Veriten LLC"
+    ]
+
+  },
+  {
+    "id": "lmr",
+    "canonical": "LMR Partners",
+    "aliases": [
+      "LMR",
+      "Lmr Cipher LP",
+      "LMR Partners AG",
+      "LMR Partners Limited",
+      "Lmr Partners Difc Limited",
+      "Lmr Partners Ireland Limited",
+      "LMR Partners LLC",
+      "LMR Partners LLP"
+    ],
+    "blacklist":[
+      "Symmetry Investments UK LLP"
+    ]
+  },
+  {
+    "id": "capstone",
+    "canonical": "Capstone Investment Advisors",
+    "aliases": [
+      "Capstone",
+      "Capstone Inv Advisors LLC",
+      "Capstone Investment Advisors HK Ltd",
+      "Capstone Investment Advisors LLC",
+      "Capstone Investment Advisors NL BV",
+      "Capstone Investment Advisors UK LLP",
+      "Capstone LLC"
+    ],
+    "blacklist":[
+		"Capstone Copper Corp",
+		"Capstone Infrastructure Corporation",
+		"Capstone Mining Corp",
+		"Capstone Partners Gestao de Rec Ltda",
+		"Capstone Research Limited",
+		"LMR Partners LLC",
+		"Morgan Meighen & Associates Limited",
+		"Orion Resource Partners USA LP",
+		"Capstone Capital Management Limited"
+    ]
+  },
+  {
+    "id": "soros",
+    "canonical": "Soros Fund Management",
+    "aliases": [
+      "Soros",
+      "SFM"
+    ]
+  },
+  {
+    "id": "hudson_bay",
+    "canonical": "Hudson Bay Capital Management",
+    "aliases": [
+      "Hudson Bay",
+      "HBCM"
+    ]
+  },
+  {
+    "id": "garda",
+    "canonical": "Garda Capital Partners",
+
+    "aliases": [
+      "Garda",
+      "Garda Capital Partners Cph Fondsm AS",
+      "Garda Capital Partners LP",
+      "Garda Capital Partners Sarl",
+      "Garda Capital Partners SP Pte Ltd"
+    ],
+
+    "blacklist":[
+      "Bank of Montreal",
+      "Bcc Del Garda",
+      "CR Alto Garda Bcc SC", 
+      "Groupe de Securite Garda Inc", 
+      "Varick Capital Management BV"
+    ]
+
+  },
+  {
+    "id": "alphadyne",
+    "canonical": "Alphadyne Asset Management",
+    "aliases": [
+      "Alphadyne",
+      "Alphadyne Asset Management LP",
+      "Alphadyne Asset Management Hldgs Ltd",
+      "Alphadyne Asset Management UK LLP",
+      "Alphadyne Asset Mgmt Europe APS",
+      "Alphadyne Singapore Pte Ltd",
+      "Alphadyne Asset Management HK Ltd"
+    ],
+    "blacklist":[
+      "Goldman Sachs Intl",
+      "Astignes Capital Asia Pte Ltd",
+      "Deutsche Bank Securities Inc"
+    ]
+  },
+
+{
+  "id": "astignes",
+  "canonical": "Astignes Capital Asia",
+  "aliases": [
+    "Astignes",
+    "Astignes Capital",
+    "Astignes Capital Asia Pte Ltd"
+  ],
+  "blacklist":[
+    "Dymon Asia Capital SP Pte Ltd"
+  ]
+},
+
+  {
+    "id": "bluemountain",
+    "canonical": "BlueMountain Capital Management",
+    "aliases": [
+      "BlueMountain"
+    ]
+  },
+  {
+    "id": "mariner",
+    "canonical": "Mariner Investment Group",
+    "aliases": [
+      "Mariner"
+    ]
+  },
+  {
+    "id": "pharo",
+    "canonical": "Pharo Management",
+    "aliases": [
+      "Pharo"
+    ]
+  },
+  {
+    "id": "hbk",
+    "canonical": "HBK Capital Management",
+    "aliases": [
+      "HBK"
+    ]
+  },
+  {
+    "id": "gsam",
+    "canonical": "Goldman Sachs Asset Management",
+    "aliases": [
+      "Goldman Sachs AM",
+      "GSAM"
+    ]
+  },
+  {
+    "id": "caxton",
+    "canonical": "Caxton Associates",
+    "aliases": [
+      "Caxton",
+      "Caxton Alternative Management LP",
+      "Caxton Asset Management Difc Ltd",
+      "Caxton Associates LLP",
+      "Caxton Associates USA LLC",
+      "Caxton Monaco Sam", 
+      "Caxton Singapore Pte Ltd"
+    ],
+    "blacklist":[
+      "Alphadyne Asset Management LP", 
+      "Caxton FX Ltd"
+    ]
+  },
+
+  {
+    "id": "graham",
+    "canonical": "Graham Capital Management",
+    "aliases": [
+      "Graham",
+      "GCM",
+      "Graham Capital LLP",
+      "Graham Capital Management",
+      "Graham Capital Management LP",
+      "Graham Partners L P"
+    ],
+    "blacklist": [
+      "BB Graham & Co",
+      "CFA Institute",
+      "Davis Selected Advisors LP",
+      "Graham Walsh",
+      "Hbc Acquisition Corp",
+      "Jain Global LLC",
+      "Mark Graham",
+      "Moody's Investors Service",
+      "WP Company LLC"
+    ]
+  },
+  {
+    "id": "cqs",
+    "canonical": "CQS",
+    "aliases": [
+      "CQS"
+    ]
+  },
+  {
+    "id": "bridgewater",
+    "canonical": "Bridgewater Associates",
+    "aliases": [
+      "Bridgewater",
+      "Bridgewater Associates LP",
+      "Bridgewater China Invmt Mgmt Co Ltd",
+      "Bridgewater Associates SG Mgt PT Ltd"
+    ],
+    "blacklist": [
+      "Arbuthnot Latham & Co Ltd",
+      "Bridgewater Bank",
+      "Bridgewater Bank Inc",
+      "State Street Global Advrs Trust Comp",
+      "PT Central Proteinaprima Tbk"
+    ]
+  },
+  {
+    "id": "sculptor",
+    "canonical": "Sculptor Capital Management",
+    "aliases": [
+      "Sculptor",
+      "Och-Ziff"
+    ]
+  },
+ 
+  {
+    "id": "polar_asset",
+    "canonical": "Polar Asset Management Partners",
+    "aliases": [
+      "Polar Asset"
+    ]
+  },
+  {
+    "id": "bracebridge",
+    "canonical": "Bracebridge Capital",
+    "aliases": [
+      "Bracebridge",
+      "Bracebridge Capital LLC"
+    ]
+  },
+  {
+    "id": "spx",
+    "canonical": "SPX Capital",
+    "aliases": [
+      "SPX"
+    ]
+  },
+  {
+    "id": "avm",
+    "canonical": "AVM Capital",
+    "aliases": [
+      "AVM"
+    ]
+  },
+  {
+    "id": "napier_park",
+    "canonical": "Napier Park Global Capital",
+    "aliases": [
+      "Napier Park"
+    ]
+  },
+  {
+    "id": "taula",
+    "canonical": "Taula Capital Management",
+    "aliases": [
+      "Taula",
+      "Taula Capital Management UK LLP",
+      "Taula Capital Switzerland GmbH",
+      "Taula Capital Management US LLC",
+      "Taula Capital Management Difc Ltd",
+      "Taula Capital Management Jersey Ltd",
+      "Taula Capital Management Italy Srl"
+    ]
+  },
+  {
+    "id": "ubs_am",
+    "canonical": "UBS Global Asset Management",
+    "aliases": [
+      "UBS Asset Management",
+      "UBS AM"
+    ]
+  },
+  {
+    "id": "citadel_securities",
+    "canonical": "Citadel Securities",
+    "aliases": [
+      "Citadel Securities"
+    ]
+  },
+  {
+    "id": "aqr",
+    "canonical": "AQR Capital Management",
+    "aliases": [
+      "AQR"
+    ]
+  },
+  {
+    "id": "jain_global",
+    "canonical": "Jain Global",
+    "aliases": [
+      "Jain Global"
+    ]
+  },
+  {
+    "id": "marshall_wace",
+    "canonical": "Marshall Wace",
+    "aliases": [
+      "Marshall Wace",
+      "MW"
+    ]
+  },
+  {
+    "id": "southern_ridges",
+    "canonical": "Southern Ridges Capital",
+    "aliases": [
+      "Southern Ridges"
+    ]
+  },
+  {
+    "id": "trafigura",
+    "canonical": "Trafigura",
+    "aliases": [
+      "Trafigura"
+    ]
+  },
+  {
+    "id": "axa_im",
+    "canonical": "AXA Investment Managers",
+    "aliases": [
+      "AXA IM"
+    ]
+  },
+  {
+    "id": "tower_research",
+    "canonical": "Tower Research Capital",
+    "aliases": [
+      "Tower",
+      "TRC"
+    ]
+  },
+  {
+    "id": "walleye",
+    "canonical": "Walleye Capital",
+    "aliases": [
+      "Walleye"
+    ]
+  },
+  {
+    "id": "pine_river",
+    "canonical": "Pine River Asset Management",
+    "aliases": [
+      "Pine River"
+    ]
+  },
+  {
+    "id": "gunvor",
+    "canonical": "Gunvor Group",
+    "aliases": [
+      "Gunvor"
+    ]
+  },
+  {
+    "id": "castleton",
+    "canonical": "Castleton Commodities",
+    "aliases": [
+      "Castleton"
+    ]
+  },
+  {
+    "id": "carlson",
+    "canonical": "Carlson Capital",
+    "aliases": [
+      "Carlson"
+    ]
+  },
+  {
+    "id": "elan",
+    "canonical": "Elan Capital Management",
+    "aliases": [
+      "Elan"
+    ]
+  },
+  {
+    "id": "neuberger_berman",
+    "canonical": "Neuberger Berman",
+    "aliases": [
+      "Neuberger"
+    ]
+  },
+  {
+    "id": "sound_point",
+    "canonical": "Sound Point Capital Management",
+    "aliases": [
+      "Sound Point"
+    ]
+  },
+  {
+    "id": "element",
+    "canonical": "Element Capital Management",
+    "aliases": [
+      "Element Capital",
+      "Element",
+      "Element Capital Management LLC",
+      "Element Capital Partners LLP"
+    ],
+    "blacklist":[
+      "Element Fleet Management Corporation",
+      "Element Alpha SA","Element Six Ltd","Element Solutions Inc","Polaris Capital LLC","Brevan Howard US Invst Mgmt LP"
+    ]
+  },
+  {
+    "id": "ubs_oconnor",
+    "canonical": "UBS O'Connor",
+    "aliases": [
+      "O'Connor",
+      "UBP O'Connor"
+    ]
+  },
+  {
+    "id": "winton",
+    "canonical": "Winton Group",
+    "aliases": [
+      "Winton"
+    ]
+  },
+  {
+    "id": "systematica",
+    "canonical": "Systematica Investments",
+    "aliases": [
+      "Systematica"
+    ]
+  },
+  {
+    "id": "bfam",
+    "canonical": "BFAM Partners",
+    "aliases": [
+      "BFAM"
+    ]
+  },
+  {
+    "id": "freepoint",
+    "canonical": "Freepoint Commodities",
+    "aliases": [
+      "Freepoint"
+    ]
+  },
+  {
+    "id": "ashler",
+    "canonical": "Ashler Capital",
+    "aliases": [
+      "Ashler"
+    ]
+  },
+  {
+    "id": "mkp",
+    "canonical": "MKP Capital Management",
+    "aliases": [
+      "MKP"
+    ]
+  },
+  {
+    "id": "third_point",
+    "canonical": "Third Point LLC",
+    "aliases": [
+      "Third Point"
+    ]
+  },
+  {
+    "id": "discovery",
+    "canonical": "Discovery Capital Management",
+    "aliases": [
+      "Discovery"
+    ]
+  },
+  {
+    "id": "cinctive",
+    "canonical": "Cinctive Capital",
+    "aliases": [
+      "Cinctive"
+    ]
+  },
+  {
+    "id": "wellington",
+    "canonical": "Wellington Management",
+    "aliases": [
+      "Wellington"
+    ]
+  },
+  {
+    "id": "glencore",
+    "canonical": "Glencore",
+    "aliases": [
+      "Glencore"
+    ]
+  },
+  {
+    "id": "kls",
+    "canonical": "KLS Diversified Asset Management",
+    "aliases": [
+      "KLS"
+    ]
+  },
+  {
+    "id": "laurion",
+    "canonical": "Laurion Capital Management",
+    "aliases": [
+      "Laurion"
+    ]
+  },
+  {
+    "id": "bnp_paribas_am",
+    "canonical": "BNP Paribas Asset Management",
+    "aliases": [
+      "BNP Paribas AM",
+      "BNP"
+    ]
+  },
+  {
+    "id": "finisterre",
+    "canonical": "Finisterre Capital",
+    "aliases": [
+      "Finisterre"
+    ]
+  },
+  {
+    "id": "pointstate",
+    "canonical": "PointState Capital",
+    "aliases": [
+      "PointState"
+    ]
+  },
+  {
+    "id": "saba",
+    "canonical": "Saba Capital Management",
+    "aliases": [
+      "Saba"
+    ]
+  },
+  {
+    "id": "mercuria",
+    "canonical": "Mercuria",
+    "aliases": [
+      "Mercuria"
+    ]
+  },
+    {
+    "id": "engineers_gate",
+    "canonical": "Engineers Gate",
+    "aliases": [
+      "EG Manager UK LLP",
+      "EG SG Pte Ltd",
+      "Engineers Gate LP",
+      "Engineers Gate Manager LP"
+    ]
+  },
+ {
+    "id": "d_e_shaw",
+    "canonical": "D E Shaw Group",
+    "aliases": [
+      "D E Shaw & Co London LLP",
+      "D E Shaw & Co LP",
+      "D E Shaw & Co., L.P.",
+      "D E Shaw India Private Limited",
+      "D E Shaw & Co Singapore Pte Ltd",
+      "D E Shaw & Co Asia Pacific Ltd",
+      "D.E. Shaw & Co.",
+      "D.E. Shaw Group"
+    ]
+  }
+]

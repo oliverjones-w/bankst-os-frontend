@@ -1,0 +1,410 @@
+[
+  {
+    "Function": "Chief Investment Officer",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 1.0
+  },
+  {
+    "Function": "Executive Committee",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 2.0
+  },
+  {
+    "Function": "Senior Portfolio Manager",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 3.0
+  },
+  {
+    "Function": "Portfolio Manager (Group Head)",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 4.0
+  },
+  {
+    "Function": "Portfolio Manager",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 5.0
+  },
+  {
+    "Function": "Junior Portfolio Manager",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 6.0
+  },
+  {
+    "Function": "Portfolio Analyst",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 7.0
+  },
+  {
+    "Function": "Investor",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 8.0
+  },
+  {
+    "Function": "Investment Analyst (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 9.0
+  },
+  {
+    "Function": "Investment Analyst",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 10.0
+  },
+  {
+    "Function": "Proprietary Trader",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 11.0
+  },
+  {
+    "Function": "Trader (Group Head)",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 12.0
+  },
+  {
+    "Function": "Trader",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 13.0
+  },
+  {
+    "Function": "Quant Trader (Group Head)",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 14.0
+  },
+  {
+    "Function": "Quant Trader",
+    "Risk Taker": true,
+    "Focus": true,
+    "Order": 15.0
+  },
+  {
+    "Function": "Execution Trader (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 16.0
+  },
+  {
+    "Function": "Execution Trader",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 17.0
+  },
+  {
+    "Function": "Trading Assistant (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 18.0
+  },
+  {
+    "Function": "Trading Assistant",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 19.0
+  },
+  {
+    "Function": "Repo Trader (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 20.0
+  },
+  {
+    "Function": "Repo Trader",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 21.0
+  },
+  {
+    "Function": "Quant Research (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 22.0
+  },
+  {
+    "Function": "Quant Research",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 23.0
+  },
+  {
+    "Function": "Quant Analyst (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 24.0
+  },
+  {
+    "Function": "Quant Analyst",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 25.0
+  },
+  {
+    "Function": "Strategist (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 26.0
+  },
+  {
+    "Function": "Strategist",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 27.0
+  },
+  {
+    "Function": "Economist (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 28.0
+  },
+  {
+    "Function": "Economist",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 29.0
+  },
+  {
+    "Function": "Business Development (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 30.0
+  },
+  {
+    "Function": "Business Development",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 31.0
+  },
+  {
+    "Function": "Investor Relations (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 32.0
+  },
+  {
+    "Function": "Investor Relations",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 33.0
+  },
+  {
+    "Function": "Sales (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 34.0
+  },
+  {
+    "Function": "Sales",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 35.0
+  },
+  {
+    "Function": "Product Specialist",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 36.0
+  },
+  {
+    "Function": "Business Manager (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 37.0
+  },
+  {
+    "Function": "Business Manager",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 38.0
+  },
+  {
+    "Function": "Capital Markets (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 39.0
+  },
+  {
+    "Function": "Capital Markets",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 40.0
+  },
+  {
+    "Function": "Portfolio Finance (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 41.0
+  },
+  {
+    "Function": "Portfolio Finance",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 42.0
+  },
+  {
+    "Function": "Product Control (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 43.0
+  },
+  {
+    "Function": "Product Control",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 44.0
+  },
+  {
+    "Function": "Treasury (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 45.0
+  },
+  {
+    "Function": "Treasury",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 46.0
+  },
+  {
+    "Function": "Risk Management (Group Head)",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 47.0
+  },
+  {
+    "Function": "Risk Management",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 48.0
+  },
+  {
+    "Function": "Quant Developer (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 49.0
+  },
+  {
+    "Function": "Quant Developer",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 50.0
+  },
+  {
+    "Function": "Developer (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 51.0
+  },
+  {
+    "Function": "Developer",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 52.0
+  },
+  {
+    "Function": "Data Science (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 53.0
+  },
+  {
+    "Function": "Data Science",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 54.0
+  },
+  {
+    "Function": "Valuation (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 55.0
+  },
+  {
+    "Function": "Valuation",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 56.0
+  },
+  {
+    "Function": "Technology (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 57.0
+  },
+  {
+    "Function": "Technology",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 58.0
+  },
+  {
+    "Function": "Middle Office (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 59.0
+  },
+  {
+    "Function": "Middle Office",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 60.0
+  },
+  {
+    "Function": "Operations (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 61.0
+  },
+  {
+    "Function": "Operations",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 62.0
+  },
+  {
+    "Function": "Compliance (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 63.0
+  },
+  {
+    "Function": "Compliance",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 64.0
+  },
+  {
+    "Function": "Counsel",
+    "Risk Taker": false,
+    "Focus": true,
+    "Order": 65.0
+  },
+  {
+    "Function": "Back Office (Group Head)",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 66.0
+  },
+  {
+    "Function": "Back Office",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 67.0
+  },
+  {
+    "Function": "--",
+    "Risk Taker": false,
+    "Focus": false,
+    "Order": 68.0
+  }
+]

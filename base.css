@@ -1,0 +1,505 @@
+:root {
+  color-scheme: dark;
+
+  /* =========================
+     Base palette (Obsidian-aligned, dark mode defaults)
+     Greyscale accent system
+     ========================= */
+
+  --color-base-00: #1e1e1e;
+  --color-base-05: #212121;
+  --color-base-10: #242424;
+  --color-base-20: #262626;
+  --color-base-25: #2a2a2a;
+  --color-base-30: #363636;
+  --color-base-35: #3f3f3f;
+  --color-base-40: #555555;
+  --color-base-50: #666666;
+  --color-base-60: #999999;
+  --color-base-70: #bababa;
+  --color-base-100: #dadada;
+
+  /* =========================
+     Accent system
+     Neutral / greyscale instead of purple
+     ========================= */
+
+  --accent-h: 212;
+  --accent-s: 42%;
+  --accent-l: 62%;
+
+  --interactive-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --interactive-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 6%));
+  --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
+
+  --text-accent: hsl(var(--accent-h), var(--accent-s), 68%);
+  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), 74%);
+
+  --background-accent-subtle: hsl(var(--accent-h), 28%, 22%);
+  --background-accent-faint: hsla(var(--accent-h), 42%, 62%, 0.12);
+  --border-accent: hsla(var(--accent-h), 42%, 62%, 0.36);
+
+  /* =========================
+     Extended colors
+     Kept available for status + system states
+     ========================= */
+
+  --color-red: #fb464c;
+  --color-orange: #e9973f;
+  --color-yellow: #e0de71;
+  --color-green: #44cf6e;
+  --color-cyan: #53dfdd;
+  --color-blue: #027aff;
+  --color-purple: #a882ff;
+  --color-pink: #fa99cd;
+
+  --color-red-rgb: 251, 70, 76;
+  --color-orange-rgb: 233, 151, 63;
+  --color-yellow-rgb: 224, 222, 113;
+  --color-green-rgb: 68, 207, 110;
+  --color-cyan-rgb: 83, 223, 221;
+  --color-blue-rgb: 2, 122, 255;
+  --color-purple-rgb: 168, 130, 255;
+  --color-pink-rgb: 250, 153, 205;
+
+  /* =========================
+     Mono helpers
+     ========================= */
+
+  --mono-rgb-0: 0, 0, 0;
+  --mono-rgb-100: 255, 255, 255;
+
+  /* =========================
+     Semantic surfaces
+     ========================= */
+
+  --background-primary: var(--color-base-00);
+  --background-primary-alt: var(--color-base-05);
+  --background-secondary: var(--color-base-10);
+  --background-secondary-alt: var(--color-base-20);
+
+  --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
+  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.1);
+
+  --background-modifier-border: rgba(var(--mono-rgb-100), 0.08);
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.14);
+  --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+
+  --background-modifier-error-rgb: var(--color-red-rgb);
+  --background-modifier-error: rgba(var(--color-red-rgb), 0.14);
+  --background-modifier-error-hover: rgba(var(--color-red-rgb), 0.2);
+
+  --background-modifier-success-rgb: var(--color-green-rgb);
+  --background-modifier-success: rgba(var(--color-green-rgb), 0.14);
+
+  --background-modifier-message: rgba(var(--color-blue-rgb), 0.12);
+  --background-modifier-form-field: var(--color-base-20);
+
+  /* =========================
+     Interactive colors
+     ========================= */
+
+  --interactive-normal: var(--color-base-20);
+  --interactive-hover: var(--color-base-25);
+
+  --interactive-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
+  --interactive-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 6%));
+
+  /* =========================
+     Text colors
+     ========================= */
+
+  --text-normal: var(--color-base-100);
+  --text-muted: var(--color-base-60);
+  --text-faint: var(--color-base-50);
+
+  --text-on-accent: #111111;
+  --text-on-accent-inverted: #ffffff;
+
+  --text-success: var(--color-green);
+  --text-warning: var(--color-yellow);
+  --text-error: var(--color-red);
+
+  --text-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) + 6%));
+
+  /* =========================
+     Text background / caret
+     ========================= */
+
+  --text-selection: rgba(var(--mono-rgb-100), 0.12);
+  --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.18);
+  --caret-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+
+  /* =========================
+     Shell / layout tokens
+     ========================= */
+
+  --left-rail-w: 250px;
+  --right-rail-w: 320px;
+  --topbar-h: 64px;
+
+  /* =========================
+     Radius
+     ========================= */
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* =========================
+     Spacing
+     ========================= */
+
+  --size-1-1: 4px;
+  --size-2-1: 8px;
+  --size-3-1: 12px;
+  --size-4-1: 16px;
+  --size-4-5: 20px;
+  --size-5-1: 24px;
+  --size-6-1: 32px;
+
+  /* Back-compat aliases for current components.css */
+  --space-1: var(--size-1-1);
+  --space-2: var(--size-2-1);
+  --space-3: var(--size-3-1);
+  --space-4: var(--size-4-1);
+  --space-5: var(--size-4-5);
+  --space-6: var(--size-5-1);
+  --space-8: var(--size-6-1);
+
+  /* =========================
+     Shadows
+     ========================= */
+
+  --shadow-xs: 0 1px 2px rgba(var(--mono-rgb-0), 0.18);
+  --shadow-sm: 0 4px 12px rgba(var(--mono-rgb-0), 0.24);
+  --shadow-md: 0 8px 24px rgba(var(--mono-rgb-0), 0.32);
+  --shadow-lg: 0 20px 50px rgba(var(--mono-rgb-0), 0.46);
+
+  /* =========================
+     Typography
+     ========================= */
+
+  --font-interface: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-text: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-monospace: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --font-ui-smaller: 11px;
+  --font-ui-small: 12px;
+  --font-ui-medium: 13px;
+  --font-ui-large: 15px;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.45;
+  --line-height-relaxed: 1.6;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --color-base-00: #ffffff;
+  --color-base-05: #fcfcfc;
+  --color-base-10: #fafafa;
+  --color-base-20: #f6f6f6;
+  --color-base-25: #e3e3e3;
+  --color-base-30: #e0e0e0;
+  --color-base-35: #d4d4d4;
+  --color-base-40: #bdbdbd;
+  --color-base-50: #ababab;
+  --color-base-60: #707070;
+  --color-base-70: #5a5a5a;
+  --color-base-100: #222222;
+
+  --mono-rgb-0: 255, 255, 255;
+  --mono-rgb-100: 0, 0, 0;
+
+  --background-primary: var(--color-base-00);
+  --background-primary-alt: var(--color-base-05);
+  --background-secondary: var(--color-base-10);
+  --background-secondary-alt: var(--color-base-20);
+
+  --background-modifier-hover: rgba(var(--mono-rgb-100), 0.04);
+  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
+
+  --background-modifier-border: rgba(var(--mono-rgb-100), 0.09);
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.16);
+  --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), 42%);
+
+  --background-modifier-error: rgba(var(--color-red-rgb), 0.12);
+  --background-modifier-error-hover: rgba(var(--color-red-rgb), 0.18);
+  --background-modifier-success: rgba(var(--color-green-rgb), 0.12);
+  --background-modifier-message: rgba(var(--color-blue-rgb), 0.1);
+  --background-modifier-form-field: var(--color-base-20);
+
+  --interactive-normal: var(--color-base-20);
+  --interactive-hover: var(--color-base-25);
+  --interactive-accent: hsl(var(--accent-h), var(--accent-s), 38%);
+  --interactive-accent-hover: hsl(var(--accent-h), var(--accent-s), 32%);
+
+  --text-normal: var(--color-base-100);
+  --text-muted: var(--color-base-60);
+  --text-faint: var(--color-base-50);
+
+  --text-on-accent: #ffffff;
+  --text-on-accent-inverted: #111111;
+  --text-accent: hsl(var(--accent-h), var(--accent-s), 34%);
+  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), 28%);
+
+  --text-selection: rgba(var(--mono-rgb-100), 0.12);
+  --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.22);
+  --caret-color: hsl(var(--accent-h), var(--accent-s), 38%);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.16);
+
+  --text-accent: hsl(var(--accent-h), 52%, 38%);
+  --text-accent-hover: hsl(var(--accent-h), 52%, 30%);
+  --background-accent-subtle: hsla(var(--accent-h), 52%, 45%, 0.10);
+  --background-accent-faint: hsla(var(--accent-h), 52%, 45%, 0.08);
+  --border-accent: hsla(var(--accent-h), 52%, 40%, 0.28);
+}
+
+/* =========================
+   Preload (suppress transitions on initial paint)
+   ========================= */
+
+.preload *,
+.preload *::before,
+.preload *::after {
+  transition: none !important;
+}
+
+/* =========================
+   Reset
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  line-height: var(--line-height-normal);
+}
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  background: var(--background-modifier-form-field);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
+}
+
+a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--text-accent-hover);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* =========================
+   App shell layout
+   ========================= */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--background-primary);
+}
+
+.left-rail {
+  min-width: 0;
+  border-right: 1px solid var(--background-modifier-border);
+  background: var(--background-primary-alt);
+}
+
+.main-frame {
+  display: grid;
+  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.topbar {
+  background: color-mix(in srgb, var(--background-primary) 92%, transparent);
+  border-bottom: 1px solid var(--background-modifier-border);
+  backdrop-filter: blur(10px);
+}
+
+.workspace-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--right-rail-w);
+  min-height: 0;
+}
+
+.workspace {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.right-rail {
+  min-width: 0;
+  border-left: 1px solid var(--background-modifier-border);
+  background: var(--background-primary-alt);
+}
+
+/* =========================
+   Overlay root
+   ========================= */
+
+.overlay-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+/* =========================
+   Small utilities
+   ========================= */
+
+.eyebrow {
+  font-size: var(--font-ui-smaller);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.is-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* =========================
+   Scrollbars
+   ========================= */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-base-40) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-base-35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-base-40);
+  background-clip: padding-box;
+}
+
+/* =========================
+   Responsive layout
+   ========================= */
+
+@media (max-width: 1180px) {
+  .workspace-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .right-rail {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .left-rail {
+    display: none;
+  }
+
+  .main-frame {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+}
