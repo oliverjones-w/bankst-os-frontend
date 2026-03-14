@@ -1,13 +1,15 @@
 """
 BankSt OS — Main API
-FastAPI on port 8002, connects to PostgreSQL via SSH tunnel on localhost:5432.
-Start with: uvicorn api:app --port 8002 --reload
+FastAPI on port 8765, connects to PostgreSQL via SSH tunnel on localhost:5432.
+Start with: python -m uvicorn api:app --port 8765 --reload
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import psycopg2.extras
+import json
+import os
 
 DB_URL = "postgresql://oliverjones:mac337@localhost:5432/bankst_os"
 
@@ -23,6 +25,49 @@ app.add_middleware(
 
 def get_conn():
     return psycopg2.connect(DB_URL)
+
+
+# ── Master names (read-only reference, never touches PostgreSQL) ───────────────
+
+_master_records: list = []
+
+@app.on_event("startup")
+async def load_master_names():
+    global _master_records
+    path = os.path.join(os.path.dirname(__file__), "master_names.json")
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            _master_records = json.load(f)
+        print(f"[master] loaded {len(_master_records):,} records")
+    except FileNotFoundError:
+        print("[master] master_names.json not found — reference search unavailable")
+
+_SEARCH_FIELDS = ["Name", "Firm", "Title", "Function", "Strategy", "Location"]
+
+@app.get("/master/search")
+def search_master(
+    q: str = Query(default="", description="Space-separated terms matched across all fields"),
+    firm: str = Query(default="", description="Exact firm filter"),
+    limit: int = Query(default=100, le=500),
+    offset: int = Query(default=0, ge=0),
+):
+    terms = [t.lower() for t in q.strip().split() if t]
+    firm_lower = firm.strip().lower()
+
+    def matches(r):
+        text = " ".join(str(r.get(f) or "") for f in _SEARCH_FIELDS).lower()
+        if firm_lower and firm_lower not in str(r.get("Firm") or "").lower():
+            return False
+        return all(t in text for t in terms)
+
+    if not terms and not firm_lower:
+        return {"total": 0, "results": []}
+
+    matched = [r for r in _master_records if matches(r)]
+    return {
+        "total": len(matched),
+        "results": matched[offset : offset + limit],
+    }
 
 
 # ── Firms ─────────────────────────────────────────────────────────────────────

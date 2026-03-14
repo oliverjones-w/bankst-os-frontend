@@ -17,7 +17,7 @@
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:  "http://127.0.0.1:8001",
-      BANKST_API_BASE: "http://127.0.0.1:8002"
+      BANKST_API_BASE: "http://127.0.0.1:8765"
     };
   </script>
 </head>
@@ -43,6 +43,7 @@
           <button class="nav-item">Documents</button>
           <button class="nav-item">Saved Searches</button>
           <button class="nav-item">Graph</button>
+          <button class="nav-item" data-open-nav-tab="master.search">Reference</button>
         </nav>
       </div>
 
@@ -187,6 +188,60 @@
 
     function escapeHtml(str) {
       return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function debounce(fn, ms) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    async function runMasterSearch(q) {
+      const resultsEl = document.getElementById("masterSearchResults");
+      const countEl   = document.getElementById("masterSearchCount");
+      if (!resultsEl) return;
+
+      if (!q.trim()) {
+        resultsEl.innerHTML = `<div class="master-empty">Type to search 24,427 reference records.</div>`;
+        if (countEl) countEl.textContent = "";
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({ q, limit: 100 });
+        const data = await bankstGet(`/master/search?${params}`);
+
+        if (countEl) countEl.textContent = data.total.toLocaleString() + " results";
+
+        if (!data.results.length) {
+          resultsEl.innerHTML = `<div class="master-empty">No matches for "${escapeHtml(q)}"</div>`;
+          return;
+        }
+
+        resultsEl.innerHTML = `
+          <div class="master-table-header-grid">
+            <div>Name</div><div>Firm</div><div>Title</div>
+            <div>Function</div><div>Strategy</div><div>Location</div><div></div>
+          </div>
+          ${data.results.map(r => `
+            <div class="master-table-row-grid">
+              <div class="text-normal">${escapeHtml(r.Name  || "—")}</div>
+              <div>${escapeHtml(r.Firm     || "—")}</div>
+              <div>${escapeHtml(r.Title    || "—")}</div>
+              <div>${escapeHtml(r.Function || "—")}</div>
+              <div>${escapeHtml(r.Strategy || "—")}</div>
+              <div>${escapeHtml(r.Location || "—")}</div>
+              <div>
+                <button class="toolbar-button master-import-btn"
+                  data-master-import="${escapeHtml(r.ID)}"
+                  title="Import ${escapeHtml(r.Name)} into BankSt OS">Import</button>
+              </div>
+            </div>
+          `).join("")}
+          ${data.total > 100 ? `<div class="master-empty">Showing 100 of ${data.total.toLocaleString()} — refine your search to narrow results.</div>` : ""}
+        `;
+      } catch (e) {
+        if (resultsEl) resultsEl.innerHTML = `<div class="master-empty text-error">Error: ${escapeHtml(e.message)}</div>`;
+      }
     }
 
     // Guards concurrent fetches — prevents onActivate re-render loops
@@ -370,6 +425,21 @@
 
     let paletteItems = [];
     let activePaletteIndex = 0;
+    let firmsIndex = []; // populated on boot from /firms
+
+    async function loadFirmsIndex() {
+      try {
+        const firms = await bankstGet("/firms");
+        firmsIndex = firms.map(f => ({
+          kind: "firm",
+          key: f.firm_id,
+          name: f.name,
+          firm_key: f.firm_key || ""
+        }));
+      } catch (e) {
+        console.warn("[palette] could not load firms index:", e.message);
+      }
+    }
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -729,6 +799,47 @@
       }
     });
 
+    // Master reference search
+    registerWorkspaceView({
+      id: "master.search",
+      match: (tab) => tab.type === "master.search",
+      toolbar: () => ({
+        left: [{ id: "master.search.mode", label: "Reference", active: true }],
+        right: []
+      }),
+      render: (tab) => `
+        <div class="master-search-shell">
+          <div class="master-search-bar">
+            <input
+              id="masterSearchInput"
+              class="master-search-input"
+              type="text"
+              placeholder="Search 24,427 reference records by name, firm, title, strategy…"
+              value="${escapeHtml(tab.state?.query || "")}"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <span id="masterSearchCount" class="master-search-count"></span>
+          </div>
+          <div id="masterSearchResults" class="master-search-results">
+            <div class="master-empty">Type to search 24,427 reference records.</div>
+          </div>
+        </div>
+      `,
+      onActivate: (tab) => {
+        const input = document.getElementById("masterSearchInput");
+        if (!input) return;
+        if (tab.state?.query) runMasterSearch(tab.state.query);
+        input.focus();
+        input.addEventListener("input", debounce((e) => {
+          const q = e.target.value;
+          const activeTab = getActiveTab();
+          if (activeTab) activeTab.state.query = q;
+          runMasterSearch(q);
+        }, 250));
+      }
+    });
+
     // ── FINRA views ───────────────────────────────────────────────
 
     function finraLoadingHTML(label) {
@@ -1003,6 +1114,31 @@
       });
     }
 
+    async function openFirmCard(firmId, firmName) {
+      const existing = findExistingCard("firm", firmId);
+      if (existing) { focusCard(existing); return; }
+      try {
+        const data = await bankstGet(`/firms/${firmId}`);
+        const entity = {
+          entityType: "firm",
+          entityId: firmId,
+          title: data.name,
+          subtitle: data.firm_key || "Firm",
+          meta: [
+            ["Aliases",   String(data.aliases.length)],
+            ["Platforms", String(data.platforms.length)],
+            ["Blacklist", String(data.blacklist.length)]
+          ],
+          notes: data.aliases.length
+            ? data.aliases.slice(0, 6).join(", ") + (data.aliases.length > 6 ? "…" : "")
+            : "No aliases recorded."
+        };
+        createCard(entity);
+      } catch (e) {
+        console.error("[openFirmCard] fetch failed:", e);
+      }
+    }
+
     function openFirmTab(entityId, firmName) {
       const entity = entityData[entityId];
       openTab({
@@ -1260,7 +1396,8 @@
       const activeTab = getActiveTab();
       if (!activeTab) return { type: "empty" };
       if (activeTab.type === "people.table") return { type: "people.table" };
-      if (activeTab.type === "firms.table")  return { type: "firms.table",  tab: activeTab };
+      if (activeTab.type === "firms.table")   return { type: "firms.table",  tab: activeTab };
+      if (activeTab.type === "master.search") return { type: "master.search", tab: activeTab };
       if (activeTab.type === "person.detail") return {
         type: "person",
         entityId: activeTab.entityId,
@@ -1586,7 +1723,8 @@
       if (context.type === "person") rightRailTitle.textContent = context.entity?.title || "Person";
       else if (context.type === "firm") rightRailTitle.textContent = context.entity?.title || "Firm";
       else if (context.type === "people.table") rightRailTitle.textContent = "People Table";
-      else if (context.type === "firms.table")  rightRailTitle.textContent = "Firms Table";
+      else if (context.type === "firms.table")   rightRailTitle.textContent = "Firms Table";
+      else if (context.type === "master.search") rightRailTitle.textContent = "Reference";
       else if (context.type === "finra") rightRailTitle.textContent = "FINRA Monitor";
       else rightRailTitle.textContent = "Context";
 
@@ -1795,6 +1933,18 @@
         }))
         .filter((item) => item.score > 0);
 
+      const firmItems = firmsIndex
+        .map(f => ({
+          kind: "firm",
+          key: f.key,
+          name: f.name,
+          group: "Firms",
+          title: f.name,
+          subtitle: f.firm_key || "Firm",
+          score: Math.max(scoreMatch(query, f.name), scoreMatch(query, f.firm_key))
+        }))
+        .filter(item => item.score > 0);
+
       const commandItems = commandData
         .map((cmd) => ({
           kind: "command",
@@ -1806,7 +1956,15 @@
         }))
         .filter((item) => item.score > 0);
 
-      paletteItems = [...entityItems, ...commandItems].sort((a, b) => b.score - a.score);
+      // Merge firm results — dedupe by name against mock entityData firms
+      const mockFirmNames = new Set(
+        Object.values(entityData)
+          .filter(e => e.entityType === "firm")
+          .map(e => e.title.toLowerCase())
+      );
+      const dedupedFirmItems = firmItems.filter(f => !mockFirmNames.has(f.title.toLowerCase()));
+
+      paletteItems = [...entityItems, ...dedupedFirmItems, ...commandItems].sort((a, b) => b.score - a.score);
       activePaletteIndex = 0;
 
       renderPaletteResults();
@@ -1876,6 +2034,12 @@
         return;
       }
 
+      if (item.kind === "firm") {
+        openFirmCard(item.key, item.name);
+        closePalette();
+        return;
+      }
+
       if (item.kind === "command") {
         runCommand(item.key);
         closePalette();
@@ -1941,7 +2105,7 @@
       }
 
       if (firmIdTrigger) {
-        openFirmTab(firmIdTrigger.dataset.openFirmId, firmIdTrigger.dataset.firmName);
+        openFirmCard(firmIdTrigger.dataset.openFirmId, firmIdTrigger.dataset.firmName);
         return;
       }
 
@@ -1951,6 +2115,8 @@
           openTab({ id: "tab-firms-table", type: "firms.table", title: "Firms Table", state: {} });
         } else if (tabType === "people.table") {
           openTab({ id: "tab-people-table", type: "people.table", title: "People Table", state: { mode: "table" } });
+        } else if (tabType === "master.search") {
+          openTab({ id: "tab-master-search", type: "master.search", title: "Reference", state: {} });
         }
         return;
       }
@@ -2079,6 +2245,7 @@
     }
 
     renderWorkspaceSnapshots();
+    loadFirmsIndex();
   })();
 </script>
 <script>
