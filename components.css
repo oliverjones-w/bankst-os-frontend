@@ -330,6 +330,114 @@
   background: var(--background-modifier-hover);
 }
 
+/* Firms table — 5-column variant */
+.firms-table-header-grid,
+.firms-table-row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 0.7fr 0.7fr 0.7fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.firms-table-header-grid {
+  padding: 12px 14px;
+  color: var(--text-faint);
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.firms-table-row-grid {
+  padding: 14px;
+  color: var(--text-muted);
+  border-bottom: 1px solid color-mix(in srgb, var(--background-modifier-border) 70%, transparent);
+  transition: background-color 120ms ease;
+}
+
+.firms-table-row-grid:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* Count badges — alias/platform/blacklist */
+.count-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.count-badge--platform {
+  background: color-mix(in srgb, var(--accent-color, #6b9bd1) 12%, transparent);
+  color: var(--text-accent);
+  border-color: color-mix(in srgb, var(--accent-color, #6b9bd1) 30%, transparent);
+}
+
+.count-badge--warn {
+  background: color-mix(in srgb, var(--color-red, #e05e5e) 12%, transparent);
+  color: var(--color-red, #e05e5e);
+  border-color: color-mix(in srgb, var(--color-red, #e05e5e) 30%, transparent);
+}
+
+/* Alias tag list — firm detail profile */
+.alias-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.alias-tag {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.alias-tag--platform {
+  background: color-mix(in srgb, var(--accent-color, #6b9bd1) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-color, #6b9bd1) 25%, transparent);
+  color: var(--text-accent);
+}
+
+.alias-tag--blacklist {
+  background: color-mix(in srgb, var(--color-red, #e05e5e) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-red, #e05e5e) 20%, transparent);
+  color: var(--color-red, #e05e5e);
+  opacity: 0.75;
+}
+
+/* Firm detail alias stats row */
+.alias-stats-row {
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-3) 0 var(--space-4);
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: var(--space-4);
+}
+
+.alias-stat {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+.alias-stat strong {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.text-mono {
+  font-family: var(--font-monospace);
+  font-size: 11.5px;
+}
+
 .cell-link {
   text-align: left;
   color: var(--text-normal);

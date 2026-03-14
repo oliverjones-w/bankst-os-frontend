@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="./components.css" />
   <script>
     window.APP_CONFIG = {
-      FINRA_API_BASE: "http://127.0.0.1:8001"
+      FINRA_API_BASE:  "http://127.0.0.1:8001",
+      BANKST_API_BASE: "http://127.0.0.1:8002"
     };
   </script>
 </head>
@@ -35,8 +36,8 @@
       <div class="rail-section">
         <div class="rail-label">Navigation</div>
         <nav class="nav-list">
-          <button class="nav-item is-active">People</button>
-          <button class="nav-item">Firms</button>
+          <button class="nav-item is-active" data-open-nav-tab="people.table">People</button>
+          <button class="nav-item" data-open-nav-tab="firms.table">Firms</button>
           <button class="nav-item">Mandates</button>
           <button class="nav-item">Pipeline</button>
           <button class="nav-item">Documents</button>
@@ -165,7 +166,8 @@
   (() => {
     const WORKSPACE_STORAGE_KEY = "bankst.workspace.v1";
     const WORKSPACE_SNAPSHOTS_KEY = "bankst.workspace.snapshots.v1";
-    const FINRA_API_BASE = window.APP_CONFIG?.FINRA_API_BASE || "http://127.0.0.1:8001";
+    const FINRA_API_BASE  = window.APP_CONFIG?.FINRA_API_BASE  || "http://127.0.0.1:8001";
+    const BANKST_API_BASE = window.APP_CONFIG?.BANKST_API_BASE || "http://127.0.0.1:8002";
 
     async function finraGet(path) {
       const res = await fetch(`${FINRA_API_BASE}${path}`, {
@@ -173,6 +175,18 @@
       });
       if (!res.ok) throw new Error(`FINRA API ${res.status}: ${path}`);
       return res.json();
+    }
+
+    async function bankstGet(path) {
+      const res = await fetch(`${BANKST_API_BASE}${path}`, {
+        headers: { Accept: "application/json" }
+      });
+      if (!res.ok) throw new Error(`BankSt API ${res.status}: ${path}`);
+      return res.json();
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
     // Guards concurrent fetches — prevents onActivate re-render loops
@@ -596,11 +610,44 @@
         ]
       }),
       render: (tab) => {
-        const entity = entityData[tab.entityId];
-        if (!entity) return `<div class="table-shell">Firm not found.</div>`;
         const mode = tab.state?.mode || "profile";
-        if (mode === "funds")   return `<div class="detail-view-shell view-placeholder"><span>${entity.title} · Funds</span><p>Fund structure and AUM view coming soon.</p></div>`;
-        if (mode === "related") return `<div class="detail-view-shell view-placeholder"><span>${entity.title} · Related</span><p>Related entities and network coming soon.</p></div>`;
+        const data = tab.state?.data;           // real API data
+        const entity = entityData[tab.entityId]; // mock fallback
+        const firmName = data?.name || entity?.title || tab.title || "Firm";
+
+        if (mode === "funds")   return `<div class="detail-view-shell view-placeholder"><span>${escapeHtml(firmName)} · Funds</span><p>Fund structure and AUM view coming soon.</p></div>`;
+        if (mode === "related") return `<div class="detail-view-shell view-placeholder"><span>${escapeHtml(firmName)} · Related</span><p>Related entities and network coming soon.</p></div>`;
+
+        if (data) {
+          const aliasGroup = (title, items, cls) => items.length === 0 ? "" : `
+            <div class="floating-section">
+              <div class="floating-section-title">${title}</div>
+              <div class="alias-tag-list">
+                ${items.map(a => `<span class="alias-tag ${cls}">${escapeHtml(a)}</span>`).join("")}
+              </div>
+            </div>
+          `;
+          return `
+            <div class="detail-view-shell">
+              <div class="detail-header">
+                <div>
+                  <div class="detail-title">${escapeHtml(data.name)}</div>
+                  <div class="detail-subtitle">${data.firm_key ? `Key: ${data.firm_key}` : ""}</div>
+                </div>
+              </div>
+              <div class="alias-stats-row">
+                <span class="alias-stat"><strong>${data.aliases.length}</strong> Aliases</span>
+                <span class="alias-stat"><strong>${data.platforms.length}</strong> Platforms</span>
+                <span class="alias-stat"><strong>${data.blacklist.length}</strong> Blacklist</span>
+              </div>
+              ${aliasGroup("Aliases", data.aliases, "")}
+              ${aliasGroup("Platforms", data.platforms, "alias-tag--platform")}
+              ${aliasGroup("Blacklist", data.blacklist, "alias-tag--blacklist")}
+            </div>
+          `;
+        }
+
+        if (!entity) return `<div class="table-shell view-placeholder"><span>Loading…</span></div>`;
         return `
           <div class="detail-view-shell">
             <div class="detail-header">
@@ -609,15 +656,76 @@
                 <div class="detail-subtitle">${entity.subtitle}</div>
               </div>
             </div>
-            <div class="meta-grid">
-              ${metaHTML(entity.meta)}
-            </div>
+            <div class="meta-grid">${metaHTML(entity.meta)}</div>
             <div class="floating-section">
               <div class="floating-section-title">Notes</div>
               <p class="floating-copy">${entity.notes}</p>
             </div>
           </div>
         `;
+      },
+      onActivate: async (tab) => {
+        if (fetchingTabs.has(tab.id)) return;
+        if (tab.state?.data) return;
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tab.entityId)) return;
+        fetchingTabs.add(tab.id);
+        try {
+          const data = await bankstGet(`/firms/${tab.entityId}`);
+          updateActiveTabState({ data });
+        } catch (e) {
+          console.error("[firm.detail] fetch failed:", e);
+        } finally {
+          fetchingTabs.delete(tab.id);
+        }
+      }
+    });
+
+    // Firms table
+    registerWorkspaceView({
+      id: "firms.table",
+      match: (tab) => tab.type === "firms.table",
+      toolbar: () => ({
+        left: [{ id: "firms.table.mode.table", label: "Table", active: true }],
+        right: [{ id: "firms.table.refresh", label: "Refresh" }]
+      }),
+      render: (tab) => {
+        if (tab.state?.error) return `<div class="table-shell view-placeholder"><span>Error</span><p class="text-error">${escapeHtml(tab.state.error)}</p></div>`;
+        const firms = tab.state?.firms;
+        if (!firms) return `<div class="table-shell view-placeholder"><span>Loading firms…</span></div>`;
+        if (!firms.length) return `<div class="table-shell view-placeholder"><span>No firms found.</span></div>`;
+        return `
+          <div class="table-shell">
+            <div class="firms-table-header-grid">
+              <div>Firm</div>
+              <div>Key</div>
+              <div>Aliases</div>
+              <div>Platforms</div>
+              <div>Blacklist</div>
+            </div>
+            ${firms.map(f => `
+              <div class="firms-table-row-grid">
+                <button class="cell-link" data-open-firm-id="${f.firm_id}" data-firm-name="${escapeHtml(f.name)}">${escapeHtml(f.name)}</button>
+                <div class="text-mono text-muted">${f.firm_key || "—"}</div>
+                <div>${f.alias_count > 0 ? `<span class="count-badge">${f.alias_count}</span>` : `<span class="text-faint">—</span>`}</div>
+                <div>${f.platform_count > 0 ? `<span class="count-badge count-badge--platform">${f.platform_count}</span>` : `<span class="text-faint">—</span>`}</div>
+                <div>${f.blacklist_count > 0 ? `<span class="count-badge count-badge--warn">${f.blacklist_count}</span>` : `<span class="text-faint">—</span>`}</div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      },
+      onActivate: async (tab) => {
+        if (fetchingTabs.has(tab.id)) return;
+        if (tab.state?.firms) return;
+        fetchingTabs.add(tab.id);
+        try {
+          const firms = await bankstGet("/firms");
+          updateActiveTabState({ firms });
+        } catch (e) {
+          updateActiveTabState({ error: e.message });
+        } finally {
+          fetchingTabs.delete(tab.id);
+        }
       }
     });
 
@@ -895,15 +1003,14 @@
       });
     }
 
-    function openFirmTab(entityId) {
+    function openFirmTab(entityId, firmName) {
       const entity = entityData[entityId];
-      if (!entity) return;
       openTab({
         id: `tab-firm-${entityId}`,
         type: "firm.detail",
         entityType: "firm",
         entityId,
-        title: entity.title,
+        title: entity?.title || firmName || "Firm",
         state: { mode: "profile" }
       });
     }
@@ -1111,6 +1218,9 @@
         // Firm detail — action stubs
         case "firm.detail.note":     console.log("[toolbar] add firm note");       break;
         case "firm.detail.reminder": console.log("[toolbar] create firm reminder"); break;
+        // Firms table
+        case "firms.table.mode.table": break; // only one mode, no-op
+        case "firms.table.refresh":    updateActiveTabState({ firms: undefined, error: null }); break;
         // FINRA — refresh clears loaded data so onActivate re-fetches
         case "finra.changes.refresh":
         case "finra.dashboard.refresh":
@@ -1150,6 +1260,7 @@
       const activeTab = getActiveTab();
       if (!activeTab) return { type: "empty" };
       if (activeTab.type === "people.table") return { type: "people.table" };
+      if (activeTab.type === "firms.table")  return { type: "firms.table",  tab: activeTab };
       if (activeTab.type === "person.detail") return {
         type: "person",
         entityId: activeTab.entityId,
@@ -1238,6 +1349,26 @@
         "Review extracted strategies",
         "Update firm mapping"
       ]))
+    });
+
+    // Firms table widgets
+    registerRightRailWidget({
+      id: "firms-table-stats",
+      order: 10,
+      when: (ctx) => ctx.type === "firms.table",
+      render: (ctx) => {
+        const firms = ctx.tab?.state?.firms;
+        if (!firms) return "";
+        const withPlatforms = firms.filter(f => f.platform_count > 0).length;
+        const withBlacklist = firms.filter(f => f.blacklist_count > 0).length;
+        return renderContextCard("Coverage", `
+          <div class="meta-grid">
+            <div class="meta-block"><div class="meta-label">Firms</div><div class="meta-value">${firms.length}</div></div>
+            <div class="meta-block"><div class="meta-label">w/ Platforms</div><div class="meta-value">${withPlatforms}</div></div>
+            <div class="meta-block"><div class="meta-label">w/ Blacklist</div><div class="meta-value">${withBlacklist}</div></div>
+          </div>
+        `);
+      }
     });
 
     // Person widgets
@@ -1455,6 +1586,7 @@
       if (context.type === "person") rightRailTitle.textContent = context.entity?.title || "Person";
       else if (context.type === "firm") rightRailTitle.textContent = context.entity?.title || "Firm";
       else if (context.type === "people.table") rightRailTitle.textContent = "People Table";
+      else if (context.type === "firms.table")  rightRailTitle.textContent = "Firms Table";
       else if (context.type === "finra") rightRailTitle.textContent = "FINRA Monitor";
       else rightRailTitle.textContent = "Context";
 
@@ -1623,9 +1755,11 @@
     function runCommand(commandId) {
       if (commandId === "toggle-right-rail") {
         const rail = document.querySelector(".right-rail");
-        if (rail) {
-          rail.style.display = rail.style.display === "none" ? "" : "none";
-        }
+        if (rail) rail.style.display = rail.style.display === "none" ? "" : "none";
+      } else if (commandId === "open-people") {
+        openTab({ id: "tab-people-table", type: "people.table", title: "People Table", state: { mode: "table" } });
+      } else if (commandId === "open-firms") {
+        openTab({ id: "tab-firms-table", type: "firms.table", title: "Firms Table", state: {} });
       } else {
         console.log("Run command:", commandId);
       }
@@ -1780,6 +1914,8 @@
       const closeTabTrigger = e.target.closest("[data-close-tab]");
       const personTrigger = e.target.closest("[data-open-person]");
       const firmTrigger = e.target.closest("[data-open-firm]");
+      const firmIdTrigger = e.target.closest("[data-open-firm-id]");
+      const navTabTrigger = e.target.closest("[data-open-nav-tab]");
       const actionTrigger = e.target.closest(".action-btn");
       const toolbarTrigger = e.target.closest("[data-toolbar-action]");
 
@@ -1801,6 +1937,21 @@
 
       if (firmTrigger) {
         openCard(firmTrigger.dataset.openFirm);
+        return;
+      }
+
+      if (firmIdTrigger) {
+        openFirmTab(firmIdTrigger.dataset.openFirmId, firmIdTrigger.dataset.firmName);
+        return;
+      }
+
+      if (navTabTrigger) {
+        const tabType = navTabTrigger.dataset.openNavTab;
+        if (tabType === "firms.table") {
+          openTab({ id: "tab-firms-table", type: "firms.table", title: "Firms Table", state: {} });
+        } else if (tabType === "people.table") {
+          openTab({ id: "tab-people-table", type: "people.table", title: "People Table", state: { mode: "table" } });
+        }
         return;
       }
 
