@@ -163,6 +163,44 @@
   --shell-topbar-border: var(--border-subtle);
 
   /* =========================
+     Navigation domain tokens
+     ========================= */
+
+  --nav-item-padding-x:        20px;
+  --nav-item-active-border-w:  3px;
+
+  --nav-item-bg:               transparent;
+  --nav-item-bg-hover:         var(--background-modifier-hover);
+  --nav-item-bg-active:        var(--background-accent-subtle);
+
+  --nav-item-text:             var(--text-faint);
+  --nav-item-text-hover:       var(--text-primary);
+  --nav-item-text-active:      var(--text-primary);
+
+  --nav-item-border-active:    var(--interactive-accent);
+
+  --nav-icon-color:            var(--text-faint);
+  --nav-icon-color-hover:      var(--text-primary);
+  --nav-icon-color-active:     var(--interactive-accent);
+
+  /* =========================
+     Control surface tokens
+     ========================= */
+
+  --control-surface-bg:           var(--background-secondary);
+  --control-surface-border:       var(--border-subtle);
+  --control-surface-border-hover: var(--border-strong);
+
+  /* =========================
+     Button — primary
+     ========================= */
+
+  --button-primary-bg:        var(--interactive-accent);
+  --button-primary-bg-hover:  var(--interactive-accent-hover);
+  --button-primary-bg-active: color-mix(in srgb, var(--interactive-accent) 75%, black);
+  --button-primary-text:      var(--text-on-accent);
+
+  /* =========================
      Radius
      ========================= */
 
