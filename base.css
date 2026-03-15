@@ -130,6 +130,7 @@
      ========================= */
 
   --text-normal: var(--text-norm);
+  --text-primary: var(--text-normal); /* canonical primary text — migrate consumers away from --text-norm */
   --text-muted: #a0a0a0;
   --text-faint: #606060;
 
@@ -156,6 +157,10 @@
   --left-rail-w: var(--left-rail-base-w);
   --right-rail-w: 17.5rem;   /* 280px */
   --topbar-h: 2.75rem;       /* 44px */
+
+  /* Shell domain tokens */
+  --shell-topbar-bg:     rgba(var(--mono-rgb-0), 0.85); /* inverts correctly per theme */
+  --shell-topbar-border: var(--border-subtle);
 
   /* =========================
      Radius
