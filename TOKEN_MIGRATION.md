@@ -9,9 +9,9 @@
 ## Consumer files
 - [x] shell.css
 - [x] navigation.css
-- [ ] components.css
-- [ ] workspace.css
-- [ ] surfaces.css
+- [x] components.css
+- [x] workspace.css
+- [x] surfaces.css
 - [ ] css/data-views.css
 
 ## Legacy aliases to remove later

@@ -67,8 +67,8 @@
 
 .tab.is-active {
   background: var(--bg-stage);
-  color: var(--text-norm);
-  border-top-color: var(--primary);
+  color: var(--text-primary);
+  border-top-color: var(--interactive-accent);
   box-shadow: none;
 }
 
@@ -100,7 +100,7 @@
   position: absolute;
   inset: 0;
   background: rgba(0, 115, 255, 0.05);
-  border: 1px solid var(--primary);
+  border: 1px solid var(--interactive-accent);
   pointer-events: none;
   z-index: 10;
   animation: fadeIn 120ms ease-out;
@@ -109,7 +109,7 @@
 .pane.drop-target-right::after {
   left: 50%;
   background: rgba(0, 115, 255, 0.08);
-  border-left: 2px solid var(--primary);
+  border-left: 2px solid var(--interactive-accent);
   border-top: none;
   border-right: none;
   border-bottom: none;
@@ -152,7 +152,7 @@
 
 .toolbar-button:hover {
   background: var(--bg-elevated);
-  color: var(--text-norm);
+  color: var(--text-primary);
 }
 
 .toolbar-button.is-active {
@@ -206,7 +206,7 @@
 
 .tab-close:hover {
   background: var(--background-modifier-hover);
-  color: var(--text-norm);
+  color: var(--text-primary);
 }
 
 /* =========================
