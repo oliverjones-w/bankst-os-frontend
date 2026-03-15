@@ -99,6 +99,7 @@
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.1);
 
+  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.04);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.14);
   --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
@@ -302,6 +303,7 @@
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.04);
   --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
 
+  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.09);
   --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.16);
   --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), 42%);
