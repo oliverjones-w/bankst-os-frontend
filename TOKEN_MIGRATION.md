@@ -12,7 +12,7 @@
 - [x] components.css
 - [x] workspace.css
 - [x] surfaces.css
-- [ ] css/data-views.css
+- [x] css/data-views.css
 
 ## Legacy aliases to remove later
 - [ ] --text-norm
