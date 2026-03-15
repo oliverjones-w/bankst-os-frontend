@@ -7,8 +7,8 @@
 - [x] Font authority documented
 
 ## Consumer files
-- [ ] shell.css
-- [ ] navigation.css
+- [x] shell.css
+- [x] navigation.css
 - [ ] components.css
 - [ ] workspace.css
 - [ ] surfaces.css

@@ -172,8 +172,8 @@
 /* Proton-style active marker: 3px left border, elevated background */
 .nav-item.is-active {
   background: var(--navigation-current-item-background-color);
-  color: var(--text-norm);
-  border-left: 3px solid var(--primary);
+  color: var(--text-primary);
+  border-left: 3px solid var(--interactive-accent);
   padding-left: calc(var(--space-3) - 3px); /* compensate for border width */
 }
 
@@ -237,7 +237,7 @@
 }
 
 .nav-item.is-active .nav-icon {
-  color: var(--primary);
+  color: var(--interactive-accent);
 }
 
 /* =========================
@@ -252,7 +252,7 @@
   gap: var(--space-2);
   width: 100%;
   padding: 10px 16px;
-  background: var(--primary);
+  background: var(--interactive-accent);
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -265,11 +265,11 @@
 }
 
 .button-solid-norm:hover {
-  background: color-mix(in srgb, var(--primary) 85%, white);
+  background: color-mix(in srgb, var(--interactive-accent) 85%, white);
 }
 
 .button-solid-norm:active {
-  background: color-mix(in srgb, var(--primary) 75%, black);
+  background: color-mix(in srgb, var(--interactive-accent) 75%, black);
 }
 
 /* =========================
@@ -357,7 +357,7 @@
 
 .rail-collapse-btn:hover {
   background: var(--background-modifier-hover);
-  color: var(--text-norm);
+  color: var(--text-primary);
 }
 
 .chevron-icon {
