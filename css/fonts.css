@@ -1,0 +1,93 @@
+/* === fonts.css ===
+   Local font declarations — loaded first so variables in base.css resolve correctly.
+   Weights: only the ones actively used in the UI (400/500/600).
+*/
+
+/* ── SF Pro Display (interface font) ── */
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../typography/SF-Pro-Display-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../typography/SF-Pro-Display-RegularItalic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../typography/SF-Pro-Display-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../typography/SF-Pro-Display-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../typography/SF-Pro-Display-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── SF Mono (data font) ── */
+
+@font-face {
+  font-family: "SF Mono";
+  src: url("../typography/SF-Mono-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Mono";
+  src: url("../typography/SF-Mono-RegularItalic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Mono";
+  src: url("../typography/SF-Mono-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Mono";
+  src: url("../typography/SF-Mono-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Override font stack variables to prioritise local files ──
+   base.css defines these with system fonts first. Redefining here
+   (loaded before base.css) puts the local files at the front.
+   On macOS the system SF Pro would win anyway, but this ensures
+   consistent rendering on Windows/Linux servers and in Electron.
+*/
+:root {
+  --font-interface: "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-data:      "SF Mono", ui-monospace, "Menlo", "Consolas", monospace;
+  --font-monospace: var(--font-data);
+}
