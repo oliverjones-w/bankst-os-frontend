@@ -11,7 +11,7 @@ export const fetchingTabs = new Set();
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
 const workspaceContainer = document.querySelector(".workspace");
-const workspaceRow       = document.querySelector(".workspace-row");
+const workspaceRow       = document.querySelector(".workspace-shell");
 const topbarTitleGroup   = document.getElementById("topbarTitleGroup");
 
 // ── View registry ──────────────────────────────────────────────────────────────

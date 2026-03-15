@@ -1,6 +1,6 @@
 // ── Imports ────────────────────────────────────────────────────────────────────
 import { toggleTheme } from "./theme.js";
-import { initShell, toggleLeftRail, toggleRightRail, toggleZenMode, zoomIn, zoomOut, resetZoom } from "./shell.js";
+import { initShellState, toggleLeftRail, toggleRightRail, toggleZenMode } from "./shell.js";
 import {
   workspaceState, openTab, closeTab, focusTab, renderWorkspace,
   restoreWorkspaceState, loadWorkspaceState,
@@ -29,6 +29,7 @@ setNavHandlers({ openPersonTab, openFirmTab });
 
 // ── Shell: rail toggles ────────────────────────────────────────────────────────
 document.getElementById("leftRailToggle")?.addEventListener("click", toggleLeftRail);
+document.getElementById("railCollapseBtn")?.addEventListener("click", toggleLeftRail);
 document.getElementById("rightRailToggle")?.addEventListener("click", toggleRightRail);
 document.getElementById("rightRailClose")?.addEventListener("click", toggleRightRail);
 document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
@@ -132,27 +133,12 @@ document.addEventListener("pointerdown", (e) => {
 
 document.getElementById("commandTrigger")?.addEventListener("click", togglePalette);
 
-// ── Ctrl+scroll zoom interception ─────────────────────────────────────────────
-// Must be { passive: false } to call preventDefault on a wheel event.
-// Without this, Ctrl+scroll bypasses keydown entirely and zooms the whole page.
-document.addEventListener("wheel", (e) => {
-  if (!e.ctrlKey && !e.metaKey) return;
-  e.preventDefault();
-  if (e.deltaY < 0) zoomIn();
-  else              zoomOut();
-}, { passive: false });
-
 // ── Global keyboard ────────────────────────────────────────────────────────────
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); togglePalette(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") { e.preventDefault(); toggleLeftRail(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key === "\\")              { e.preventDefault(); toggleRightRail(); return; }
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") { e.preventDefault(); toggleZenMode(); return; }
-
-  // Workspace zoom — intercepts browser zoom shortcuts
-  if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+")) { e.preventDefault(); zoomIn();    return; }
-  if ((e.ctrlKey || e.metaKey) &&  e.key === "-")                   { e.preventDefault(); zoomOut();   return; }
-  if ((e.ctrlKey || e.metaKey) &&  e.key === "0")                   { e.preventDefault(); resetZoom(); return; }
 
   if (e.altKey && e.key.toLowerCase() === "w") {
     e.preventDefault();
@@ -211,7 +197,7 @@ if (window.electron) {
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
-initShell();
+initShellState();
 const restored = restoreWorkspaceState(loadWorkspaceState());
 
 if (restored && workspaceState.panes.length) {

@@ -29,7 +29,37 @@
 <body>
   <div class="app-shell" data-right-rail="open" data-left-rail="open">
 
-    <!-- Left rail -->
+    <!-- Topbar — spans full grid width (grid-area: topbar) -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="leftRailToggle" class="icon-button" aria-label="Toggle navigation" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 5H4a1 1 0 000 2h16a1 1 0 100-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Z"/>
+          </svg>
+        </button>
+        <div id="topbarTitleGroup" class="topbar-title-group">
+          <div class="eyebrow">Workspace</div>
+          <h1 class="topbar-title">People</h1>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <button id="commandTrigger" class="command-trigger">
+          <span class="command-trigger-label">Search people, firms, commands…</span>
+          <span class="command-trigger-kbd">Ctrl+P</span>
+        </button>
+      </div>
+
+      <div class="topbar-right">
+        <button class="icon-button">+</button>
+        <button class="icon-button">⟲</button>
+        <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
+        <button id="rightRailToggle" class="icon-button" aria-label="Toggle right rail" title="Toggle context panel (Ctrl+\)">⊟</button>
+        <button class="icon-button">⚙</button>
+      </div>
+    </header>
+
+    <!-- Left rail — grid-area: rail -->
     <aside class="left-rail">
       <div class="rail-section brand-section">
         <div class="brand-mark">B</div>
@@ -46,14 +76,14 @@
         </div>
         <div class="rail-group-content">
           <nav class="nav-list">
-            <button class="nav-item is-active" data-open-nav-tab="people.table">People</button>
-            <button class="nav-item" data-open-nav-tab="firms.table">Firms</button>
-            <button class="nav-item">Mandates</button>
-            <button class="nav-item">Pipeline</button>
-            <button class="nav-item">Documents</button>
-            <button class="nav-item">Saved Searches</button>
-            <button class="nav-item">Graph</button>
-            <button class="nav-item" data-open-nav-tab="master.search">Reference</button>
+            <button class="nav-item is-active" data-open-nav-tab="people.table"><span class="nav-icon">◎</span><span class="nav-label">People</span></button>
+            <button class="nav-item" data-open-nav-tab="firms.table"><span class="nav-icon">⬡</span><span class="nav-label">Firms</span></button>
+            <button class="nav-item"><span class="nav-icon">≡</span><span class="nav-label">Mandates</span></button>
+            <button class="nav-item"><span class="nav-icon">◈</span><span class="nav-label">Pipeline</span></button>
+            <button class="nav-item"><span class="nav-icon">▤</span><span class="nav-label">Documents</span></button>
+            <button class="nav-item"><span class="nav-icon">★</span><span class="nav-label">Saved Searches</span></button>
+            <button class="nav-item"><span class="nav-icon">⬡</span><span class="nav-label">Graph</span></button>
+            <button class="nav-item" data-open-nav-tab="master.search"><span class="nav-icon">⊹</span><span class="nav-label">Reference</span></button>
           </nav>
         </div>
       </div>
@@ -80,7 +110,7 @@
         </div>
         <div class="rail-group-content">
           <nav class="nav-list">
-            <button class="nav-item" data-open-finra-tab="finra.monitor">Monitor</button>
+            <button class="nav-item" data-open-finra-tab="finra.monitor"><span class="nav-icon">⊙</span><span class="nav-label">Monitor</span></button>
           </nav>
         </div>
       </div>
@@ -105,49 +135,31 @@
           <div id="recentList" class="recent-list"></div>
         </div>
       </div>
+
+      <div class="rail-footer">
+        <div class="rail-footer-meta">
+          <div class="version-tag">v2.4.12-beta</div>
+        </div>
+        <button id="railCollapseBtn" class="rail-collapse-btn" aria-label="Collapse sidebar">
+          <span class="chevron-icon">«</span>
+        </button>
+      </div>
     </aside>
 
-    <!-- Main column -->
-    <div class="main-frame">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button id="leftRailToggle" class="icon-button" aria-label="Toggle left rail">☰</button>
-          <div id="topbarTitleGroup" class="topbar-title-group">
-            <div class="eyebrow">Workspace</div>
-            <h1 class="topbar-title">People</h1>
+    <!-- Main — grid-area: main -->
+    <div class="workspace-shell">
+      <main class="workspace"></main>
+
+      <aside class="right-rail">
+        <div class="right-rail-header">
+          <div>
+            <div class="eyebrow">Context</div>
+            <div id="rightRailTitle" class="right-rail-title">Context</div>
           </div>
+          <button id="rightRailClose" class="icon-button" aria-label="Close right rail">×</button>
         </div>
-
-        <div class="topbar-center">
-          <button id="commandTrigger" class="command-trigger">
-            <span class="command-trigger-label">Search people, firms, commands…</span>
-            <span class="command-trigger-kbd">Ctrl+P</span>
-          </button>
-        </div>
-
-        <div class="topbar-right">
-          <button class="icon-button">+</button>
-          <button class="icon-button">⟲</button>
-          <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
-          <button id="rightRailToggle" class="icon-button" aria-label="Toggle right rail" title="Toggle context panel (Ctrl+\)">⊟</button>
-          <button class="icon-button">⚙</button>
-        </div>
-      </header>
-
-      <div class="workspace-row">
-        <main class="workspace"></main>
-
-        <aside class="right-rail">
-          <div class="right-rail-header">
-            <div>
-              <div class="eyebrow">Context</div>
-              <div id="rightRailTitle" class="right-rail-title">Context</div>
-            </div>
-            <button id="rightRailClose" class="icon-button" aria-label="Close right rail">×</button>
-          </div>
-          <section id="rightRailContent" class="context-panel"></section>
-        </aside>
-      </div>
+        <section id="rightRailContent" class="context-panel"></section>
+      </aside>
     </div>
 
     <!-- Overlay root -->

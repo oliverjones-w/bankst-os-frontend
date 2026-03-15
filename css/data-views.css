@@ -5,7 +5,7 @@
    ========================= */
 
 .table-shell {
-  padding: var(--space-4);
+  padding: 0;
 }
 
 .table-header-grid,
@@ -23,26 +23,26 @@
 }
 
 .table-header-grid {
-  padding: var(--row-padding-v) 14px;
+  padding: 10px 24px;
   color: var(--text-faint);
   font-family: var(--font-interface);
-  font-size: var(--font-size-label);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   background: transparent;
-  border-bottom: var(--divider-anchor);
+  border-bottom: 1px solid var(--border-strong);
 }
 
 .table-row-grid {
-  padding: var(--row-padding-v) 14px;
+  padding: 8px 24px;
   padding-right: 90px; /* clearance for .row-actions ghost buttons */
   font-size: var(--font-size-data);
   font-family: var(--font-data);
   letter-spacing: -0.01em;
   color: var(--text-muted);
-  border-bottom: var(--divider-subtle);
-  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.1s ease;
 }
 
 .table-row-wrap {
@@ -50,12 +50,12 @@
 }
 
 .table-row-wrap:hover .table-row-grid {
-  background: var(--background-modifier-hover);
-  box-shadow: inset 2px 0 0 hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.45);
+  background: var(--bg-elevated);
 }
 
 .table-row-grid:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-elevated);
+  box-shadow: none !important;
 }
 
 .row-actions {
@@ -122,7 +122,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .firms-table-row-grid {
@@ -131,15 +131,13 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
-  border-bottom: 1px solid color-mix(in srgb, var(--background-modifier-border) 70%, transparent);
-  transition:
-    background-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background-color var(--transition-fast);
 }
 
 .firms-table-row-grid:hover {
-  background: var(--background-modifier-hover);
-  box-shadow: inset 2px 0 0 hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.45);
+  background: var(--bg-elevated);
+  box-shadow: none !important;
 }
 
 /* Count badges — alias/platform/blacklist */
@@ -152,7 +150,7 @@
   font-weight: 500;
   background: var(--background-secondary);
   color: var(--text-muted);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
 }
 
 .count-badge--platform {
@@ -177,7 +175,7 @@
 
 .alias-tag {
   background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 3px 9px;
   font-size: 11.5px;
@@ -202,7 +200,7 @@
   display: flex;
   gap: var(--space-5);
   padding: var(--space-3) 0 var(--space-4);
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: var(--space-4);
 }
 
@@ -250,7 +248,7 @@
 .master-search-input {
   flex: 1;
   background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 7px 12px;
   font-size: 13px;
@@ -375,7 +373,7 @@
 
 .pill {
   background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 2px 8px;
   font-size: 11px;
@@ -439,7 +437,7 @@
   justify-content: center;
   padding: 8px 4px;
   background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease;
@@ -526,7 +524,7 @@
   display: flex;
   gap: 48px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
 
@@ -583,7 +581,7 @@
   text-transform: uppercase;
   letter-spacing: 0.07em;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 2px;
 }
 
@@ -674,7 +672,7 @@
 .finra-stat-card {
   padding: 16px;
   background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   text-align: center;
 }
@@ -730,14 +728,10 @@
   flex-shrink: 0;
 }
 
-.dot--active {
-  background: var(--color-green);
-  box-shadow: 0 0 6px var(--color-green);
-}
-
-.dot--inactive { background: var(--color-yellow); }
+.dot--active   { background: var(--success); }
+.dot--inactive { background: var(--warning); }
 .dot--null     { background: var(--text-faint); }
-.dot--error    { background: var(--color-red); }
+.dot--error    { background: var(--danger); }
 
 /* Status badges (used for numeric counts in run history) */
 
@@ -824,8 +818,7 @@
 
 .skeleton-block {
   background: var(--background-modifier-hover);
-  border: 1px solid var(--background-modifier-border);
-  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--border-subtle);
   height: 60px;
   border-radius: var(--radius-md);
   position: relative;
