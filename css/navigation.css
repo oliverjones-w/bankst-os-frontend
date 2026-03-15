@@ -234,7 +234,8 @@
 
 .nav-item:hover .nav-icon,
 .saved-item:hover .nav-icon,
-.recent-item:hover .nav-icon {
+.recent-item:hover .nav-icon,
+.stack-item:hover .nav-icon {
   color: var(--nav-icon-color-hover);
 }
 
@@ -257,7 +258,7 @@
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-family: var(--font-interface);
   font-size: 13px;
   font-weight: 600;
