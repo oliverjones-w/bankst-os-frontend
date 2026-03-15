@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "audit:tokens": "node scripts/audit-tokens.js"
+    "audit:tokens": "node scripts/audit-tokens.js",
+    "check:no-legacy-tokens": "node scripts/check-no-legacy-tokens.js"
   },
   "devDependencies": {
     "electron": "^33.0.0",
