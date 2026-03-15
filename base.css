@@ -239,6 +239,8 @@
 
   /* =========================
      Typography
+     Font-family tokens are defined here as fallbacks.
+     css/fonts.css is the final authority when custom fonts are loaded.
      ========================= */
 
   --font-interface: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

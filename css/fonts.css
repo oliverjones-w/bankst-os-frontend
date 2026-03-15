@@ -85,6 +85,7 @@
    On macOS the system SF Pro would win anyway, but this ensures
    consistent rendering on Windows/Linux servers and in Electron.
 */
+/* Final font-family assignments. These intentionally override base.css fallbacks. */
 :root {
   --font-interface: "SF Pro Display", -apple-system, BlinkMacSystemFont,
     Inter, ui-sans-serif, system-ui, sans-serif;
