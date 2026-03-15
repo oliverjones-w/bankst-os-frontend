@@ -46,12 +46,16 @@
   --accent-s: 42%;
   --accent-l: 62%;
 
+  /* =========================
+     Accent semantics
+     ========================= */
+
   --interactive-accent: var(--primary);
   --interactive-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
   --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
 
-  --text-accent: var(--primary);
-  --text-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
+  --text-accent: var(--interactive-accent);
+  --text-accent-hover: var(--interactive-accent-hover);
 
   --background-accent-subtle: rgba(0, 115, 255, 0.12);
   --background-accent-faint: rgba(0, 115, 255, 0.10);
@@ -121,10 +125,6 @@
   --interactive-normal: var(--color-base-20);
   --interactive-hover: var(--color-base-25);
 
-  --interactive-accent: var(--primary);
-  --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
-  --interactive-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
-
   /* =========================
      Text colors
      ========================= */
@@ -139,9 +139,6 @@
   --text-success: var(--color-green);
   --text-warning: var(--color-yellow);
   --text-error: var(--color-red);
-
-  --text-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
-  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) + 6%));
 
   /* =========================
      Text background / caret
