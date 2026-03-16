@@ -184,6 +184,8 @@ function updateBreadcrumbs(activeTab) {
     html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">HF Map</h1>`;
   } else if (activeTab.type === "ir.table") {
     html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">IR Map</h1>`;
+  } else if (activeTab.type === "perf.dashboard") {
+    html = `<div class="eyebrow">System</div><h1 class="topbar-title">Performance</h1>`;
   } else if (activeTab.type.startsWith("finra.")) {
     html = `
       <div class="eyebrow">FINRA Monitor</div>
@@ -201,11 +203,12 @@ function updateBreadcrumbs(activeTab) {
 export function getActiveContext() {
   const activeTab = getActiveTab();
   if (!activeTab) return { type: "empty" };
-  if (activeTab.type === "people.table")  return { type: "people.table",  tab: activeTab };
-  if (activeTab.type === "firms.table")   return { type: "firms.table",   tab: activeTab };
-  if (activeTab.type === "master.search") return { type: "master.search", tab: activeTab };
-  if (activeTab.type === "hf.table")      return { type: "hf.table",      tab: activeTab };
-  if (activeTab.type === "ir.table")      return { type: "ir.table",      tab: activeTab };
+  if (activeTab.type === "people.table")   return { type: "people.table",   tab: activeTab };
+  if (activeTab.type === "firms.table")    return { type: "firms.table",    tab: activeTab };
+  if (activeTab.type === "master.search")  return { type: "master.search",  tab: activeTab };
+  if (activeTab.type === "hf.table")       return { type: "hf.table",       tab: activeTab };
+  if (activeTab.type === "ir.table")       return { type: "ir.table",       tab: activeTab };
+  if (activeTab.type === "perf.dashboard") return { type: "perf.dashboard", tab: activeTab };
   if (activeTab.type === "person.detail") return {
     type:     "person",
     entityId: activeTab.entityId,
@@ -365,6 +368,13 @@ export function handleToolbarAction(actionId) {
     case "finra.dashboard.refresh":
     case "finra.individuals.refresh":
       updateActiveTabState({ data: undefined, error: null, _fetching: false });
+      break;
+    case "perf-refresh":
+      updateActiveTabState({ tick: Date.now() });
+      break;
+    case "perf-clear-log":
+      window.perf_log = [];
+      updateActiveTabState({ tick: Date.now() });
       break;
     default: console.log("[toolbar] unhandled action:", actionId);
   }
