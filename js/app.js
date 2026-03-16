@@ -1,4 +1,5 @@
 // ── Imports ────────────────────────────────────────────────────────────────────
+import { startFrameMonitor } from "./utils.js";
 import { toggleTheme } from "./theme.js";
 import { initShellState, toggleLeftRail, toggleRightRail, toggleZenMode } from "./shell.js";
 import {
@@ -92,8 +93,9 @@ document.addEventListener("click", (e) => {
     if (t === "firms.table")   openTab({ id: "tab-firms-table",   type: "firms.table",   title: "Firms Table",   state: {} });
     if (t === "people.table")  openTab({ id: "tab-people-table",  type: "people.table",  title: "People Table",  state: { mode: "table" } });
     if (t === "master.search") openTab({ id: "tab-master-search", type: "master.search", title: "Reference",     state: {} });
-    if (t === "hf.table")      openTab({ id: "tab-hf-table",      type: "hf.table",      title: "HF Map",        state: {} });
-    if (t === "ir.table")      openTab({ id: "tab-ir-table",      type: "ir.table",      title: "IR Map",         state: {} });
+    if (t === "hf.table")       openTab({ id: "tab-hf-table",       type: "hf.table",       title: "HF Map",     state: {} });
+    if (t === "ir.table")       openTab({ id: "tab-ir-table",       type: "ir.table",       title: "IR Map",     state: {} });
+    if (t === "perf.dashboard") openTab({ id: "tab-perf-dashboard", type: "perf.dashboard", title: "Performance", state: {} });
     return;
   }
 
@@ -258,3 +260,4 @@ renderWorkspaceSnapshots();
 loadFirmsIndex();
 loadRecentlyViewed();
 loadTrending();
+startFrameMonitor();

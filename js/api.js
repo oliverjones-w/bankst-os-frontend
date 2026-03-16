@@ -1,30 +1,33 @@
 import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE } from "./config.js";
-import { escapeHtml } from "./utils.js";
+import { escapeHtml, Timer } from "./utils.js";
 
 // ── Core fetch helpers ────────────────────────────────────────────────────────
 
 export async function finraGet(path) {
-  const res = await fetch(`${FINRA_API_BASE}${path}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`FINRA API ${res.status}: ${path}`);
-  return res.json();
+  const timer = new Timer("api", `finra:${path}`);
+  const res = await fetch(`${FINRA_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`FINRA API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
 }
 
 export async function mappingGet(path) {
-  const res = await fetch(`${MAPPING_API_BASE}${path}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Mapping API ${res.status}: ${path}`);
-  return res.json();
+  const timer = new Timer("api", `mapping:${path}`);
+  const res = await fetch(`${MAPPING_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Mapping API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
 }
 
 export async function bankstGet(path) {
-  const res = await fetch(`${BANKST_API_BASE}${path}`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`BankSt API ${res.status}: ${path}`);
-  return res.json();
+  const timer = new Timer("api", `bankst:${path}`);
+  const res = await fetch(`${BANKST_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`BankSt API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
 }
 
 // ── Injected rail renderer (breaks api ↔ widgets cycle) ──────────────────────

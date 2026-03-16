@@ -3,6 +3,67 @@ import { finraGet, bankstGet, mappingGet, setFinraChangesCache } from "./api.js"
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
 
+// ── Perf dashboard helpers ─────────────────────────────────────────────────────
+function perfFrameBars(frames) {
+  if (!frames.length) return `<div class="perf-empty-hint">No frame data yet — rendering activity populates this chart.</div>`;
+  const last60 = frames.slice(-60);
+  const maxMs  = Math.max(...last60.map(f => f.ms), 33);
+  return last60.map(f => {
+    const pct   = Math.min((f.ms / maxMs) * 100, 100).toFixed(1);
+    const cls   = f.ms > 33 ? "perf-bar--slow" : f.ms > 16 ? "perf-bar--warn" : "perf-bar--ok";
+    const label = `${f.ms}ms`;
+    return `<div class="perf-frame-bar ${cls}" style="height:${pct}%" title="${label}"></div>`;
+  }).join("");
+}
+
+function perfApiRows(apiEntries) {
+  if (!apiEntries.length) return `<div class="perf-empty-hint">No API calls recorded yet.</div>`;
+  return apiEntries.slice(-50).reverse().map(e => {
+    const t   = new Date(e.t).toLocaleTimeString("en-GB", { hour12: false });
+    const ms  = e.ms;
+    const cls = ms > 500 ? "perf-ms--slow" : ms > 200 ? "perf-ms--warn" : "perf-ms--ok";
+    const ok  = e.ok === false ? `<span class="perf-badge perf-badge--error">${e.status}</span>` : `<span class="perf-badge perf-badge--ok">${e.status ?? "—"}</span>`;
+    const endpoint = e.label.replace(/^(finra|mapping|bankst):/, "");
+    const src  = e.label.split(":")[0];
+    return `
+      <div class="perf-api-row">
+        <div class="perf-api-time">${t}</div>
+        <div class="perf-api-src">${src}</div>
+        <div class="perf-api-endpoint truncate">${escapeHtml(endpoint)}</div>
+        <div class="perf-api-ms ${cls}">${ms}ms</div>
+        <div>${ok}</div>
+      </div>`;
+  }).join("");
+}
+
+// Declared OTF files and sizes pulled from the typography/ audit
+const FONT_AUDIT = [
+  { file: "SF-Pro-Display-Regular.otf",      sizeKb: 5800, used: true  },
+  { file: "SF-Pro-Display-RegularItalic.otf", sizeKb: 5800, used: true  },
+  { file: "SF-Pro-Display-Medium.otf",        sizeKb: 6000, used: true  },
+  { file: "SF-Pro-Display-Semibold.otf",      sizeKb: 6000, used: true  },
+  { file: "SF-Pro-Display-Bold.otf",          sizeKb: 6000, used: true  },
+  { file: "SF-Mono-Regular.otf",              sizeKb: 108,  used: true  },
+  { file: "SF-Mono-RegularItalic.otf",        sizeKb: 100,  used: true  },
+  { file: "SF-Mono-Medium.otf",               sizeKb: 109,  used: true  },
+  { file: "SF-Mono-Semibold.otf",             sizeKb: 108,  used: true  },
+];
+const TOTAL_FONT_KB = FONT_AUDIT.reduce((s, f) => s + f.sizeKb, 0);
+const WOFF2_EST_KB  = Math.round(TOTAL_FONT_KB * 0.35); // ~65% savings typical
+
+function perfAssetRows() {
+  return FONT_AUDIT.map(f => {
+    const mb   = f.sizeKb >= 1000 ? `${(f.sizeKb / 1024).toFixed(1)} MB` : `${f.sizeKb} KB`;
+    const flag = f.sizeKb >= 1000 ? `<span class="perf-badge perf-badge--warn">OTF</span>` : `<span class="perf-badge perf-badge--ok">OTF</span>`;
+    return `
+      <div class="perf-asset-row">
+        <div class="perf-asset-name truncate">${f.file}</div>
+        <div class="perf-asset-size">${mb}</div>
+        <div>${flag}</div>
+      </div>`;
+  }).join("");
+}
+
 // ── FINRA helpers ──────────────────────────────────────────────────────────────
 function finraLoadingHTML() {
   return `
@@ -747,6 +808,103 @@ registerWorkspaceView({
             <div><span class="finra-badge finra-badge--active">${item.view_count}</span></div>
           </div>
         `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── Performance Dashboard ─────────────────────────────────────────────────────
+registerWorkspaceView({
+  id:         "perf.dashboard",
+  hasContext: false,
+  match:      (tab) => tab.type === "perf.dashboard",
+  toolbar:    () => ({
+    left:  [{ id: "perf-refresh",   label: "Refresh" }],
+    right: [{ id: "perf-clear-log", label: "Clear Log" }],
+  }),
+  render(tab) {
+    const log     = window.perf_log || [];
+    const frames  = log.filter(e => e.category === "renderer");
+    const apiCalls = log.filter(e => e.category === "api");
+
+    // Stats
+    const last60f   = frames.slice(-60);
+    const slowFrames = last60f.filter(f => f.ms > 16).length;
+    const avgFrame   = last60f.length
+      ? (last60f.reduce((s, f) => s + f.ms, 0) / last60f.length).toFixed(1)
+      : "—";
+    const avgApi = apiCalls.length
+      ? (apiCalls.reduce((s, e) => s + e.ms, 0) / apiCalls.length).toFixed(0)
+      : "—";
+    const frameColor = slowFrames > 10 ? "var(--status-inactive)" : slowFrames > 3 ? "var(--status-warning, #d4a017)" : "var(--status-active)";
+
+    return `
+      <div class="perf-view">
+
+        <div class="perf-stat-strip">
+          <div class="perf-stat">
+            <div class="perf-stat-label">Avg Frame</div>
+            <div class="perf-stat-value">${avgFrame}<span class="perf-unit">ms</span></div>
+          </div>
+          <div class="perf-stat">
+            <div class="perf-stat-label">Slow Frames</div>
+            <div class="perf-stat-value" style="color:${frameColor}">${slowFrames}<span class="perf-unit">/60</span></div>
+          </div>
+          <div class="perf-stat">
+            <div class="perf-stat-label">API Calls</div>
+            <div class="perf-stat-value">${apiCalls.length}</div>
+          </div>
+          <div class="perf-stat">
+            <div class="perf-stat-label">Avg API</div>
+            <div class="perf-stat-value">${avgApi}<span class="perf-unit">ms</span></div>
+          </div>
+          <div class="perf-stat">
+            <div class="perf-stat-label">Log Entries</div>
+            <div class="perf-stat-value">${log.length}</div>
+          </div>
+        </div>
+
+        <div class="perf-section">
+          <div class="perf-section-title">Frame Timeline <span class="perf-section-hint">last 60 frames — red &gt;33ms, yellow 16–33ms</span></div>
+          <div class="perf-frame-chart">
+            ${perfFrameBars(frames)}
+          </div>
+        </div>
+
+        <div class="perf-section">
+          <div class="perf-section-title">API Calls <span class="perf-section-hint">last 50, newest first</span></div>
+          <div class="perf-api-header">
+            <div>Time</div><div>Source</div><div>Endpoint</div><div>Duration</div><div>Status</div>
+          </div>
+          <div class="perf-api-list">
+            ${perfApiRows(apiCalls)}
+          </div>
+        </div>
+
+        <div class="perf-section">
+          <div class="perf-section-title">Asset Audit — Fonts <span class="perf-section-hint">declared in css/fonts.css</span></div>
+          <div class="perf-asset-summary">
+            Total declared: <strong>${(TOTAL_FONT_KB / 1024).toFixed(1)} MB</strong> (OTF) —
+            Est. WOFF2 savings: <strong>~${((TOTAL_FONT_KB - WOFF2_EST_KB) / 1024).toFixed(1)} MB</strong>
+            → target <strong>${(WOFF2_EST_KB / 1024).toFixed(1)} MB</strong>
+          </div>
+          <div class="perf-asset-header">
+            <div>File</div><div>Size</div><div>Format</div>
+          </div>
+          <div class="perf-asset-list">
+            ${perfAssetRows()}
+          </div>
+        </div>
+
+        <div class="perf-section">
+          <div class="perf-section-title">JS Modules <span class="perf-section-hint">no bundler — ES module waterfall</span></div>
+          <div class="perf-asset-summary">
+            15 modules loaded sequentially via browser ES module resolution.
+            No bundler, no tree-shaking. Total JS payload ≈ 130 KB unminified.
+            Primary bottleneck is network waterfall on first load, not file size.
+          </div>
+        </div>
+
       </div>
     `;
   },

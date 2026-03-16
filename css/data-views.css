@@ -852,3 +852,203 @@
 /* Utility */
 .text-error { color: var(--text-error); }
 .text-muted { color: var(--text-muted); font-size: var(--font-ui-small); }
+
+/* =========================
+   Performance Dashboard
+   ========================= */
+
+.perf-view {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Stat strip */
+.perf-stat-strip {
+  display: flex;
+  gap: 48px;
+  padding-bottom: 16px;
+  border-bottom: var(--divider-anchor);
+}
+
+.perf-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.perf-stat-label {
+  font-family: var(--font-interface);
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.perf-stat-value {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.perf-unit {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+/* Section */
+.perf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.perf-section-title {
+  font-family: var(--font-interface);
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.perf-section-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 10px;
+  color: var(--text-faint, var(--text-muted));
+  opacity: 0.65;
+}
+
+/* Frame chart */
+.perf-frame-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  padding: 4px 0;
+  border-bottom: var(--divider-subtle);
+}
+
+.perf-frame-bar {
+  flex: 1;
+  min-width: 3px;
+  border-radius: 1px 1px 0 0;
+  transition: opacity 0.1s;
+}
+
+.perf-frame-bar:hover { opacity: 0.7; }
+
+.perf-bar--ok   { background: var(--status-active, #4ade80); }
+.perf-bar--warn { background: #d4a017; }
+.perf-bar--slow { background: var(--status-inactive, #ef4444); }
+
+.perf-empty-hint {
+  font-size: var(--font-size-data);
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* API calls table */
+.perf-api-header,
+.perf-api-row {
+  display: grid;
+  grid-template-columns: 72px 64px 1fr 72px 56px;
+  gap: 16px;
+  padding: 6px 0;
+  align-items: center;
+}
+
+.perf-api-header {
+  font-family: var(--font-interface);
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: var(--divider-anchor);
+  padding-bottom: 8px;
+}
+
+.perf-api-row {
+  border-bottom: var(--divider-subtle);
+  font-size: var(--font-size-data);
+}
+
+.perf-api-time,
+.perf-api-src,
+.perf-api-ms {
+  font-family: var(--font-data);
+  font-size: var(--font-size-data);
+}
+
+.perf-api-time { color: var(--text-muted); }
+.perf-api-src  { color: var(--text-muted); text-transform: uppercase; font-size: 9px; }
+
+.perf-ms--ok   { color: var(--status-active, #4ade80); }
+.perf-ms--warn { color: #d4a017; }
+.perf-ms--slow { color: var(--status-inactive, #ef4444); }
+
+/* Badges */
+.perf-badge {
+  font-family: var(--font-data);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.perf-badge--ok    { background: rgba(74, 222, 128, 0.12); color: var(--status-active, #4ade80); }
+.perf-badge--warn  { background: rgba(212, 160, 23, 0.12); color: #d4a017; }
+.perf-badge--error { background: rgba(239, 68, 68, 0.12);  color: var(--status-inactive, #ef4444); }
+
+/* Asset audit */
+.perf-asset-summary {
+  font-size: var(--font-size-data);
+  color: var(--text-muted);
+  line-height: 1.6;
+  padding: 8px 0 4px;
+}
+
+.perf-asset-summary strong {
+  color: var(--text-primary);
+  font-family: var(--font-data);
+}
+
+.perf-asset-header,
+.perf-asset-row {
+  display: grid;
+  grid-template-columns: 1fr 72px 56px;
+  gap: 16px;
+  padding: 6px 0;
+  align-items: center;
+}
+
+.perf-asset-header {
+  font-family: var(--font-interface);
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: var(--divider-anchor);
+  padding-bottom: 8px;
+}
+
+.perf-asset-row {
+  border-bottom: var(--divider-subtle);
+  font-size: var(--font-size-data);
+}
+
+.perf-asset-name { font-family: var(--font-data); }
+.perf-asset-size { font-family: var(--font-data); color: var(--text-muted); }
