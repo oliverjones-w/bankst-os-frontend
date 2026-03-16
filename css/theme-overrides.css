@@ -1,0 +1,7 @@
+/* === theme-overrides.css ===
+   Intentionally empty by default.
+   Populated at runtime by Theme Lab or saved presets.
+   Loaded last — overrides win by cascade order. */
+
+:root {
+}

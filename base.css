@@ -301,6 +301,23 @@
 
   --divider-subtle: 1px solid var(--border-subtle);
   --divider-anchor: 1px solid var(--border-strong);
+
+  /* =========================
+     Category semantic colors
+     Data taxonomy — function / strategy / product
+     ========================= */
+
+  --category-function:        #ff8a3d;
+  --category-function-bg:     rgba(255, 138, 61, 0.12);
+  --category-function-border: rgba(255, 138, 61, 0.28);
+
+  --category-strategy:        #8b7dff;
+  --category-strategy-bg:     rgba(139, 125, 255, 0.12);
+  --category-strategy-border: rgba(139, 125, 255, 0.28);
+
+  --category-product:         #21b3ff;
+  --category-product-bg:      rgba(33, 179, 255, 0.12);
+  --category-product-border:  rgba(33, 179, 255, 0.28);
 }
 
 [data-theme="light"] {

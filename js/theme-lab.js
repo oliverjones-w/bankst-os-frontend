@@ -1,0 +1,271 @@
+// === theme-lab.js ===
+
+const STORAGE_KEY = "bankst.themeLab.overrides";
+
+const TOKEN_GROUPS = [
+  {
+    label: "Core surfaces",
+    tokens: [
+      "--background-primary",
+      "--background-primary-alt",
+      "--background-secondary",
+      "--bg-deep",
+      "--bg-stage",
+      "--bg-elevated",
+      "--border-subtle",
+      "--border-strong",
+    ],
+  },
+  {
+    label: "Text",
+    tokens: [
+      "--text-normal",
+      "--text-primary",
+      "--text-muted",
+      "--text-faint",
+      "--text-accent",
+    ],
+  },
+  {
+    label: "Accent",
+    tokens: [
+      "--interactive-accent",
+      "--interactive-accent-hover",
+      "--background-accent-subtle",
+      "--background-accent-faint",
+      "--border-accent",
+    ],
+  },
+  {
+    label: "Navigation",
+    tokens: [
+      "--nav-item-bg",
+      "--nav-item-bg-hover",
+      "--nav-item-bg-active",
+      "--nav-item-text",
+      "--nav-item-text-hover",
+      "--nav-item-text-active",
+      "--nav-item-border-active",
+      "--nav-icon-color",
+      "--nav-icon-color-hover",
+      "--nav-icon-color-active",
+    ],
+  },
+  {
+    label: "Controls",
+    tokens: [
+      "--button-primary-bg",
+      "--button-primary-bg-hover",
+      "--button-primary-bg-active",
+      "--button-primary-text",
+      "--control-surface-bg",
+      "--control-surface-border",
+      "--control-surface-border-hover",
+    ],
+  },
+  {
+    label: "Categories",
+    tokens: [
+      "--category-function",
+      "--category-function-bg",
+      "--category-function-border",
+      "--category-strategy",
+      "--category-strategy-bg",
+      "--category-strategy-border",
+      "--category-product",
+      "--category-product-bg",
+      "--category-product-border",
+    ],
+  },
+  {
+    label: "Typography",
+    tokens: [
+      "--font-interface",
+      "--font-data",
+      "--font-ui-small",
+      "--font-ui-medium",
+      "--font-ui-large",
+    ],
+  },
+];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+
+const overrides = {};
+
+// ── Token helpers ──────────────────────────────────────────────────────────────
+
+function getTokenValue(tokenName) {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(tokenName)
+    .trim();
+}
+
+function looksLikeColor(value) {
+  return (
+    value.startsWith("#") ||
+    value.startsWith("rgb") ||
+    value.startsWith("hsl") ||
+    value.startsWith("rgba") ||
+    value.startsWith("hsla") ||
+    value.startsWith("color-mix") ||
+    value.startsWith("oklch") ||
+    value.startsWith("lch")
+  );
+}
+
+// ── Override engine ────────────────────────────────────────────────────────────
+
+function applyOverride(tokenName, value) {
+  if (value.trim() === "") {
+    delete overrides[tokenName];
+  } else {
+    overrides[tokenName] = value.trim();
+  }
+  renderOverrides();
+}
+
+function renderOverrides() {
+  const styleEl = document.getElementById("themeLabOverrides");
+  const lines = Object.entries(overrides).map(
+    ([token, value]) => `  ${token}: ${value};`
+  );
+  styleEl.textContent = lines.length
+    ? `:root {\n${lines.join("\n")}\n}`
+    : "";
+}
+
+// ── Persistence ────────────────────────────────────────────────────────────────
+
+function saveOverrides() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+}
+
+function loadOverrides() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    Object.assign(overrides, parsed);
+    renderOverrides();
+  } catch (err) {
+    console.error("Failed to load theme overrides:", err);
+  }
+}
+
+function resetOverrides() {
+  Object.keys(overrides).forEach((key) => delete overrides[key]);
+  localStorage.removeItem(STORAGE_KEY);
+  renderOverrides();
+  location.reload();
+}
+
+// ── Export / import ────────────────────────────────────────────────────────────
+
+function exportOverrides() {
+  const text = JSON.stringify(overrides, null, 2);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("exportThemeBtn");
+    const original = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => (btn.textContent = original), 1500);
+  });
+}
+
+function importOverrides(jsonText) {
+  try {
+    const parsed = JSON.parse(jsonText);
+    Object.assign(overrides, parsed);
+    renderOverrides();
+    saveOverrides();
+    location.reload();
+  } catch (err) {
+    console.error("Import failed:", err);
+  }
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────────
+
+function updateSwatch(el, value) {
+  if (looksLikeColor(value)) {
+    el.style.background = value;
+    el.dataset.empty = "false";
+  } else {
+    el.style.background = "";
+    el.dataset.empty = "true";
+  }
+}
+
+function createTokenControl(tokenName) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "token-control";
+
+  const label = document.createElement("div");
+  label.className = "token-label";
+  label.textContent = tokenName;
+  label.title = tokenName;
+
+  const input = document.createElement("input");
+  input.className = "token-input";
+  input.type = "text";
+  input.spellcheck = false;
+
+  const swatch = document.createElement("div");
+  swatch.className = "token-swatch";
+
+  // Populate after overrides are loaded so we reflect the live computed value
+  const computedValue = getTokenValue(tokenName);
+  input.value = overrides[tokenName] ?? computedValue;
+  updateSwatch(swatch, input.value);
+
+  if (overrides[tokenName]) {
+    input.classList.add("is-overridden");
+    label.classList.add("is-overridden");
+  }
+
+  input.addEventListener("input", () => {
+    applyOverride(tokenName, input.value);
+    updateSwatch(swatch, input.value);
+    saveOverrides();
+
+    const isOverridden = !!overrides[tokenName];
+    input.classList.toggle("is-overridden", isOverridden);
+    label.classList.toggle("is-overridden", isOverridden);
+  });
+
+  wrapper.append(label, input, swatch);
+  return wrapper;
+}
+
+// ── Render token groups ────────────────────────────────────────────────────────
+
+function renderTokenGroups() {
+  const root = document.getElementById("tokenGroups");
+  root.innerHTML = "";
+
+  for (const group of TOKEN_GROUPS) {
+    const section = document.createElement("section");
+    section.className = "token-group";
+
+    const title = document.createElement("div");
+    title.className = "token-group-title";
+    title.textContent = group.label;
+    section.appendChild(title);
+
+    for (const token of group.tokens) {
+      section.appendChild(createTokenControl(token));
+    }
+
+    root.appendChild(section);
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadOverrides();
+  renderTokenGroups();
+
+  document.getElementById("resetThemeBtn").addEventListener("click", resetOverrides);
+  document.getElementById("exportThemeBtn").addEventListener("click", exportOverrides);
+});
