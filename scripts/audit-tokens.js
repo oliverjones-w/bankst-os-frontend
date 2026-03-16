@@ -18,6 +18,7 @@ function getFiles(dir, out = []) {
     if (entry.isDirectory()) {
       getFiles(full, out);
     } else if (/\.(css|html|js)$/.test(entry.name)) {
+      if (entry.name === "finra-dashboard-mockup.html") continue;
       out.push(full);
     }
   }
@@ -51,18 +52,30 @@ const unusedDefs = [...defs.entries()].filter(([token]) => !uses.has(token));
 
 console.log("=== Duplicate Definitions ===");
 for (const [token, files] of duplicateDefs) {
+  const uniqueFiles = [...new Set(files)];
+  const sameFileMultiple = uniqueFiles.length < files.length;
+
   console.log(`${token}`);
-  for (const file of files) console.log(`  - ${file}`);
+  console.log(`  total defs: ${files.length}`);
+  console.log(`  unique files: ${uniqueFiles.length}`);
+  console.log(`  same-file multiple defs: ${sameFileMultiple ? "yes" : "no"}`);
+  for (const file of uniqueFiles) {
+    console.log(`  - ${file}`);
+  }
 }
 
 console.log("\n=== Used But Not Defined ===");
 for (const [token, files] of undefinedUses) {
   console.log(`${token}`);
-  for (const file of files) console.log(`  - ${file}`);
+  for (const file of [...new Set(files)]) {
+    console.log(`  - ${file}`);
+  }
 }
 
 console.log("\n=== Defined But Not Used ===");
 for (const [token, files] of unusedDefs) {
-  console.log(`${token}`);
-  for (const file of files) console.log(`  - ${file}`);
+  for (const file of [...new Set(files)]) {
+    console.log(`${token}`);
+    console.log(`  - ${file}`);
+  }
 }

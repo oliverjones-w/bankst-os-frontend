@@ -180,6 +180,10 @@ function updateBreadcrumbs(activeTab) {
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-leaf">${activeTab.title}</span>
       </div>`;
+  } else if (activeTab.type === "hf.table") {
+    html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">HF Map</h1>`;
+  } else if (activeTab.type === "ir.table") {
+    html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">IR Map</h1>`;
   } else if (activeTab.type.startsWith("finra.")) {
     html = `
       <div class="eyebrow">FINRA Monitor</div>
@@ -200,6 +204,8 @@ export function getActiveContext() {
   if (activeTab.type === "people.table")  return { type: "people.table",  tab: activeTab };
   if (activeTab.type === "firms.table")   return { type: "firms.table",   tab: activeTab };
   if (activeTab.type === "master.search") return { type: "master.search", tab: activeTab };
+  if (activeTab.type === "hf.table")      return { type: "hf.table",      tab: activeTab };
+  if (activeTab.type === "ir.table")      return { type: "ir.table",      tab: activeTab };
   if (activeTab.type === "person.detail") return {
     type:     "person",
     entityId: activeTab.entityId,
@@ -348,6 +354,8 @@ export function handleToolbarAction(actionId) {
     case "firm.detail.reminder": console.log("[toolbar] create firm reminder"); break;
     case "firms.table.mode.table": break;
     case "firms.table.refresh":    updateActiveTabState({ firms: undefined, error: null }); break;
+    case "hf.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
+    case "ir.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
     case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
     case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;
     case "finra.monitor.mode.individuals": updateActiveTabState({ mode: "individuals" }); break;

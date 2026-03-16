@@ -60,6 +60,10 @@ export function openFinraTab() {
   openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
 }
 
+export function openHfTab() {
+  openTab({ id: "tab-hf-table", type: "hf.table", title: "HF Map", state: {} });
+}
+
 export function runCommand(commandId) {
   if (commandId === "toggle-right-rail") {
     document.dispatchEvent(new CustomEvent("bankst:toggleRightRail"));
@@ -69,6 +73,8 @@ export function runCommand(commandId) {
     openTab({ id: "tab-firms-table",  type: "firms.table",  title: "Firms Table",  state: {} });
   } else if (commandId === "open-finra") {
     openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
+  } else if (commandId === "open-hf-map") {
+    openHfTab();
   } else if (commandId === "open-trending") {
     openTab({ id: "tab-trending", type: "trending", title: "Trending", state: {} });
   } else {

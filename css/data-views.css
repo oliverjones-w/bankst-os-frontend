@@ -315,6 +315,16 @@
   background: var(--row-hover-bg);
 }
 
+.master-table-row-grid.is-selected {
+  background: var(--background-accent-faint);
+  border-left: 2px solid var(--border-accent);
+}
+
+.master-table-row-grid.is-selected .master-import-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .master-import-btn {
   font-size: 10px;
   font-family: var(--font-interface);

@@ -7,12 +7,12 @@ import {
   renderWorkspaceSnapshots, loadWorkspaceSnapshotById,
   applyWorkspaceSnapshot, deleteWorkspaceSnapshot,
   createWorkspaceSnapshot, handleToolbarAction, setRailRenderer,
-  getActivePane, splitPane,
+  getActivePane, splitPane, getActiveTab,
 } from "./workspace.js";
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
 import { openPersonTab, openFirmTab, openFirmCard, openFinraTab } from "./nav.js";
-import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer } from "./api.js";
+import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
 import { initTabDragHandlers } from "./drag.js";
@@ -60,6 +60,8 @@ document.addEventListener("click", (e) => {
   const loadSnapshotTrigger = e.target.closest("[data-load-workspace-snapshot]");
   const delSnapshotTrigger  = e.target.closest("[data-delete-workspace-snapshot]");
   const actionTrigger       = e.target.closest(".action-btn");
+  const importTrigger       = e.target.closest("[data-master-import]");
+  const mapRowTrigger       = e.target.closest("[data-select-map-record]");
 
   if (railGroupHeader) {
     const group = railGroupHeader.closest(".rail-group[data-group-id]");
@@ -90,6 +92,8 @@ document.addEventListener("click", (e) => {
     if (t === "firms.table")   openTab({ id: "tab-firms-table",   type: "firms.table",   title: "Firms Table",   state: {} });
     if (t === "people.table")  openTab({ id: "tab-people-table",  type: "people.table",  title: "People Table",  state: { mode: "table" } });
     if (t === "master.search") openTab({ id: "tab-master-search", type: "master.search", title: "Reference",     state: {} });
+    if (t === "hf.table")      openTab({ id: "tab-hf-table",      type: "hf.table",      title: "HF Map",        state: {} });
+    if (t === "ir.table")      openTab({ id: "tab-ir-table",      type: "ir.table",      title: "IR Map",         state: {} });
     return;
   }
 
@@ -112,6 +116,43 @@ document.addEventListener("click", (e) => {
   if (delSnapshotTrigger) {
     deleteWorkspaceSnapshot(delSnapshotTrigger.dataset.deleteWorkspaceSnapshot);
     renderWorkspaceSnapshots();
+    return;
+  }
+
+  if (mapRowTrigger && !e.target.closest("[data-master-import]")) {
+    const { selectMapRecord: id, mapSource: source } = mapRowTrigger.dataset;
+    const tab = getActiveTab();
+    if (!tab) return;
+
+    // Visual selection
+    document.querySelectorAll("[data-select-map-record].is-selected")
+      .forEach(el => el.classList.remove("is-selected"));
+    mapRowTrigger.classList.add("is-selected");
+
+    // Update tab state and show loading in right rail immediately
+    tab.state.selectedRecord = { id, source };
+    tab.state.recordHistory  = undefined; // undefined = loading
+    tab.state.recordName     = undefined;
+    renderRightRail();
+
+    // Fetch history async
+    mappingGet(`/api/${source}/records/${id}`)
+      .then(data => {
+        tab.state.recordHistory = data.history || [];
+        tab.state.recordName    = data.name || data.current_name || id;
+        renderRightRail();
+      })
+      .catch(() => {
+        tab.state.recordHistory = null; // null = error
+        renderRightRail();
+      });
+    return;
+  }
+
+  if (importTrigger) {
+    const { masterImport: id, mapSource: source } = importTrigger.dataset;
+    const name = importTrigger.title.replace("Import ", "").replace(" into BankSt OS", "");
+    actions.execute("master-import", { id, source, name });
     return;
   }
 

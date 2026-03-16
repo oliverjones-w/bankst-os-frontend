@@ -21,8 +21,9 @@
   <link rel="stylesheet" href="./css/data-views.css" />
   <script>
     window.APP_CONFIG = {
-      FINRA_API_BASE:  "http://127.0.0.1:8001",
-      BANKST_API_BASE: "http://127.0.0.1:8765"
+      FINRA_API_BASE:   "http://127.0.0.1:8001",
+      BANKST_API_BASE:  "http://127.0.0.1:8765",
+      MAPPING_API_BASE: "http://127.0.0.1:8003"
     };
   </script>
 </head>
@@ -84,6 +85,8 @@
             <button class="nav-item"><span class="nav-icon">★</span><span class="nav-label">Saved Searches</span></button>
             <button class="nav-item"><span class="nav-icon">⬡</span><span class="nav-label">Graph</span></button>
             <button class="nav-item" data-open-nav-tab="master.search"><span class="nav-icon">⊹</span><span class="nav-label">Reference</span></button>
+            <button class="nav-item" data-open-nav-tab="hf.table"><span class="nav-icon">◈</span><span class="nav-label">HF Map</span></button>
+            <button class="nav-item" data-open-nav-tab="ir.table"><span class="nav-icon">◈</span><span class="nav-label">IR Map</span></button>
           </nav>
         </div>
       </div>

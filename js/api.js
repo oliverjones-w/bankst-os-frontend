@@ -1,4 +1,4 @@
-import { FINRA_API_BASE, BANKST_API_BASE } from "./config.js";
+import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE } from "./config.js";
 import { escapeHtml } from "./utils.js";
 
 // ── Core fetch helpers ────────────────────────────────────────────────────────
@@ -8,6 +8,14 @@ export async function finraGet(path) {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`FINRA API ${res.status}: ${path}`);
+  return res.json();
+}
+
+export async function mappingGet(path) {
+  const res = await fetch(`${MAPPING_API_BASE}${path}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Mapping API ${res.status}: ${path}`);
   return res.json();
 }
 

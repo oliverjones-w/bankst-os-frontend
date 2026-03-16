@@ -1,5 +1,5 @@
 import { registerWorkspaceView, updateActiveTabState, getActiveTab, fetchingTabs } from "./workspace.js";
-import { finraGet, bankstGet, setFinraChangesCache } from "./api.js";
+import { finraGet, bankstGet, mappingGet, setFinraChangesCache } from "./api.js";
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
 
@@ -452,6 +452,220 @@ registerWorkspaceView({
           </div>
         </div>
 
+      </div>
+    `;
+  },
+});
+
+// ── View: hf.table ─────────────────────────────────────────────────────────────
+
+function hfRows(records, query) {
+  const q = (query || "").toLowerCase();
+  const filtered = q
+    ? records.filter(r => [r.name, r.firm, r.title, r.function, r.strategy, r.location]
+        .some(v => (v || "").toLowerCase().includes(q)))
+    : records;
+  if (!filtered.length)
+    return `<div class="master-empty">No matches${q ? ` for "${escapeHtml(query)}"` : ""}.</div>`;
+  return filtered.map(r => `
+    <div class="master-table-row-grid" data-select-map-record="${escapeHtml(r.id)}" data-map-source="hf" style="cursor:pointer;">
+      <div style="color:var(--text-normal);font-weight:500;">${escapeHtml(r.name || "—")}</div>
+      <div class="truncate">${escapeHtml(r.firm || "—")}</div>
+      <div class="truncate">${escapeHtml(r.title || "—")}</div>
+      <div>${escapeHtml(r.function || "—")}</div>
+      <div>${escapeHtml(r.strategy || "—")}</div>
+      <div>${escapeHtml(r.location || "—")}</div>
+      <div>
+        <button class="master-import-btn"
+          data-master-import="${escapeHtml(r.id)}"
+          data-map-source="hf"
+          title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+registerWorkspaceView({
+  id: "hf.table",
+  hasContext: true,
+  match: (tab) => tab.type === "hf.table",
+  toolbar: () => ({
+    left:  [{ id: "hf.table.mode.table", label: "HF Map", active: true }],
+    right: [{ id: "hf.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    // Fetch if needed
+    if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
+      fetchingTabs.add(tab.id);
+      try {
+        const [records, allChanges, dailyChanges] = await Promise.all([
+          mappingGet("/api/hf/records"),
+          mappingGet("/api/hf/changes?limit=200"),
+          mappingGet("/api/hf/daily-changes?days=60"),
+        ]);
+        updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
+      } catch (e) {
+        updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
+      } finally {
+        fetchingTabs.delete(tab.id);
+      }
+    }
+    // Wire search input
+    const input = document.getElementById("hfSearchInput");
+    if (!input || input._wired) return;
+    input._wired = true;
+    input.focus();
+    input.addEventListener("input", debounce((e) => {
+      const q = e.target.value;
+      const activeTab = getActiveTab();
+      if (activeTab) activeTab.state.query = q;
+      const results = document.getElementById("hfSearchResults");
+      const count   = document.getElementById("hfSearchCount");
+      if (!results) return;
+      const recs = activeTab?.state?.records || [];
+      results.innerHTML = hfRows(recs, q);
+      if (count) count.textContent = q ? `${results.querySelectorAll(".master-table-row-grid").length} results` : `${recs.length} records`;
+    }, 200));
+  },
+  render: (tab) => {
+    if (tab.state?.error)
+      return `<div class="table-shell view-placeholder"><span>HF Map</span><p class="text-error">Error: ${escapeHtml(tab.state.error)}</p></div>`;
+
+    const records = tab.state?.records;
+    const query   = tab.state?.query || "";
+
+    const skeletonRows = Array(14).fill(0).map(() => `
+      <div class="master-table-row-grid">
+        ${Array(7).fill(`<div class="skeleton skeleton-text"></div>`).join("")}
+      </div>
+    `).join("");
+
+    const bodyHTML = records
+      ? hfRows(records, query)
+      : skeletonRows;
+
+    return `
+      <div class="master-search-shell">
+        <div class="master-search-bar">
+          <input id="hfSearchInput" class="master-search-input" type="text"
+            placeholder="Search ${records ? records.length.toLocaleString() : "…"} HF records by name, firm, title, strategy…"
+            value="${escapeHtml(query)}" autocomplete="off" spellcheck="false" />
+          <span id="hfSearchCount" class="master-search-count">${records && !query ? `${records.length} records` : ""}</span>
+        </div>
+        <div id="hfSearchResults" class="master-search-results">
+          <div class="master-table-header-grid">
+            <div>Name</div><div>Firm</div><div>Title</div>
+            <div>Function</div><div>Strategy</div><div>Location</div><div></div>
+          </div>
+          ${bodyHTML}
+        </div>
+      </div>
+    `;
+  },
+});
+
+// ── View: ir.table ─────────────────────────────────────────────────────────────
+
+function irRows(records, query) {
+  const q = (query || "").toLowerCase();
+  const filtered = q
+    ? records.filter(r => [r.name, r.current_firm, r.current_title, r.function, r.group, r.current_location]
+        .some(v => (v || "").toLowerCase().includes(q)))
+    : records;
+  if (!filtered.length)
+    return `<div class="master-empty">No matches${q ? ` for "${escapeHtml(query)}"` : ""}.</div>`;
+  return filtered.map(r => `
+    <div class="master-table-row-grid" data-select-map-record="${escapeHtml(r.id)}" data-map-source="ir" style="cursor:pointer;">
+      <div style="color:var(--text-normal);font-weight:500;">${escapeHtml(r.name || "—")}</div>
+      <div class="truncate">${escapeHtml(r.current_firm || "—")}</div>
+      <div class="truncate">${escapeHtml(r.current_title || "—")}</div>
+      <div>${escapeHtml(r.function || "—")}</div>
+      <div>${escapeHtml(r.group || "—")}</div>
+      <div>${escapeHtml(r.current_location || "—")}</div>
+      <div>
+        <button class="master-import-btn"
+          data-master-import="${escapeHtml(r.id)}"
+          data-map-source="ir"
+          title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+registerWorkspaceView({
+  id: "ir.table",
+  hasContext: true,
+  match: (tab) => tab.type === "ir.table",
+  toolbar: () => ({
+    left:  [{ id: "ir.table.mode.table", label: "IR Map", active: true }],
+    right: [{ id: "ir.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    // Fetch if needed
+    if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
+      fetchingTabs.add(tab.id);
+      try {
+        const [records, allChanges, dailyChanges] = await Promise.all([
+          mappingGet("/api/ir/records"),
+          mappingGet("/api/ir/changes?limit=200"),
+          mappingGet("/api/ir/daily-changes?days=60"),
+        ]);
+        updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
+      } catch (e) {
+        updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
+      } finally {
+        fetchingTabs.delete(tab.id);
+      }
+    }
+    // Wire search input
+    const input = document.getElementById("irSearchInput");
+    if (!input || input._wired) return;
+    input._wired = true;
+    input.focus();
+    input.addEventListener("input", debounce((e) => {
+      const q = e.target.value;
+      const activeTab = getActiveTab();
+      if (activeTab) activeTab.state.query = q;
+      const results = document.getElementById("irSearchResults");
+      const count   = document.getElementById("irSearchCount");
+      if (!results) return;
+      const recs = activeTab?.state?.records || [];
+      results.innerHTML = irRows(recs, q);
+      if (count) count.textContent = q ? `${results.querySelectorAll(".master-table-row-grid").length} results` : `${recs.length} records`;
+    }, 200));
+  },
+  render: (tab) => {
+    if (tab.state?.error)
+      return `<div class="table-shell view-placeholder"><span>IR Map</span><p class="text-error">Error: ${escapeHtml(tab.state.error)}</p></div>`;
+
+    const records = tab.state?.records;
+    const query   = tab.state?.query || "";
+
+    const skeletonRows = Array(14).fill(0).map(() => `
+      <div class="master-table-row-grid">
+        ${Array(7).fill(`<div class="skeleton skeleton-text"></div>`).join("")}
+      </div>
+    `).join("");
+
+    const bodyHTML = records
+      ? irRows(records, query)
+      : skeletonRows;
+
+    return `
+      <div class="master-search-shell">
+        <div class="master-search-bar">
+          <input id="irSearchInput" class="master-search-input" type="text"
+            placeholder="Search ${records ? records.length.toLocaleString() : "…"} IR records by name, firm, title, group…"
+            value="${escapeHtml(query)}" autocomplete="off" spellcheck="false" />
+          <span id="irSearchCount" class="master-search-count">${records && !query ? `${records.length} records` : ""}</span>
+        </div>
+        <div id="irSearchResults" class="master-search-results">
+          <div class="master-table-header-grid">
+            <div>Name</div><div>Current Firm</div><div>Title</div>
+            <div>Function</div><div>Group</div><div>Location</div><div></div>
+          </div>
+          ${bodyHTML}
+        </div>
       </div>
     `;
   },
