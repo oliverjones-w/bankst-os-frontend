@@ -4,7 +4,9 @@
   "description": "BankSt OS — Workspace shell",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "audit:tokens": "node scripts/audit-tokens.js",
+    "check:no-legacy-tokens": "node scripts/check-no-legacy-tokens.js"
   },
   "devDependencies": {
     "electron": "^33.0.0",

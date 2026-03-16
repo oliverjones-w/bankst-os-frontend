@@ -13,8 +13,8 @@
   padding: 0 var(--space-4);
   position: relative;
   z-index: var(--z-topbar);
-  background: rgba(10, 10, 10, 0.85);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--shell-topbar-bg);
+  border-bottom: 1px solid var(--shell-topbar-border);
   backdrop-filter: blur(12px);
 }
 
@@ -60,7 +60,7 @@
   line-height: 1;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--text-norm);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -91,5 +91,5 @@
 .icon-button:hover {
   background: var(--background-modifier-hover);
   border-color: var(--border-subtle);
-  color: var(--text-normal);
+  color: var(--text-primary);
 }

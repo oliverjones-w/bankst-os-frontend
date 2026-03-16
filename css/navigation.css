@@ -145,36 +145,38 @@
   width: 100%;
   text-align: left;
   height: 2.5rem;
-  padding: 0 20px;
+  padding: 0 var(--nav-item-padding-x);
   font-size: var(--font-ui-medium);
   font-weight: 500;
   letter-spacing: -0.01em;
   border-radius: 0;
-  color: var(--text-faint);
-  background: transparent;
+  color: var(--nav-item-text);
+  background: var(--nav-item-bg);
   display: flex;
   align-items: center;
   gap: var(--space-2);
   line-height: var(--line-height-workstation);
+  border-left: var(--nav-item-active-border-w) solid transparent;
   transition:
     background-color var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .nav-item:hover,
 .saved-item:hover,
 .recent-item:hover,
 .stack-item:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
+  background: var(--nav-item-bg-hover);
+  color: var(--nav-item-text-hover);
 }
 
 /* Proton-style active marker: 3px left border, elevated background */
 .nav-item.is-active {
-  background: var(--navigation-current-item-background-color);
-  color: var(--text-norm);
-  border-left: 3px solid var(--primary);
-  padding-left: calc(var(--space-3) - 3px); /* compensate for border width */
+  background: var(--nav-item-bg-active);
+  color: var(--nav-item-text-active);
+  border-left-color: var(--nav-item-border-active);
+  padding-left: calc(var(--nav-item-padding-x) - var(--nav-item-active-border-w));
 }
 
 .breadcrumb-trail {
@@ -222,7 +224,7 @@
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  color: var(--text-faint);
+  color: var(--nav-icon-color);
   transition: color var(--transition-fast);
   display: grid;
   place-items: center;
@@ -232,12 +234,13 @@
 
 .nav-item:hover .nav-icon,
 .saved-item:hover .nav-icon,
-.recent-item:hover .nav-icon {
-  color: var(--text-normal);
+.recent-item:hover .nav-icon,
+.stack-item:hover .nav-icon {
+  color: var(--nav-icon-color-hover);
 }
 
 .nav-item.is-active .nav-icon {
-  color: var(--primary);
+  color: var(--nav-icon-color-active);
 }
 
 /* =========================
@@ -252,10 +255,10 @@
   gap: var(--space-2);
   width: 100%;
   padding: 10px 16px;
-  background: var(--primary);
-  color: #fff;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-family: var(--font-interface);
   font-size: 13px;
   font-weight: 600;
@@ -265,11 +268,11 @@
 }
 
 .button-solid-norm:hover {
-  background: color-mix(in srgb, var(--primary) 85%, white);
+  background: var(--button-primary-bg-hover);
 }
 
 .button-solid-norm:active {
-  background: color-mix(in srgb, var(--primary) 75%, black);
+  background: var(--button-primary-bg-active);
 }
 
 /* =========================
@@ -285,9 +288,9 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: 0 var(--space-3);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--control-surface-border);
   border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
+  background: var(--control-surface-bg);
   color: var(--text-muted);
   font-size: var(--font-ui-medium);
   transition:
@@ -297,9 +300,9 @@
 }
 
 .command-trigger:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-strong);
-  color: var(--text-normal);
+  background: var(--control-surface-bg);
+  border-color: var(--control-surface-border-hover);
+  color: var(--text-primary);
 }
 
 .command-trigger-label {
@@ -357,7 +360,7 @@
 
 .rail-collapse-btn:hover {
   background: var(--background-modifier-hover);
-  color: var(--text-norm);
+  color: var(--text-primary);
 }
 
 .chevron-icon {

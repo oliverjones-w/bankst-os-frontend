@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BankSt OS — Pro Workstation Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #141414;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --text-main: #e0e0e0;
+            --text-dim: #888888;
+            --text-faint: #444444;
+            --accent: #6b9bd1;
+            --green: #4ade80;
+            --yellow: #facc15;
+            --font-ui: 'Inter', sans-serif;
+            --font-data: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Context --- */
+        .sidebar {
+            width: 280px;
+            border-left: 1px solid var(--border-subtle);
+            padding: 24px;
+            order: 2;
+            background: var(--bg-primary);
+        }
+
+        .sidebar-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+            margin-bottom: 20px;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            padding: 24px 40px;
+            overflow-y: auto;
+        }
+
+        /* --- Dashboard Header (Flattened) --- */
+        .dashboard-header {
+            display: flex;
+            gap: 48px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+        }
+
+        .stat-value {
+            font-family: var(--font-data);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* --- Table Styling --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 2fr 100px 1.5fr 1.5fr 100px;
+            gap: 24px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--text-faint);
+            margin-bottom: 8px;
+        }
+
+        .header-item {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            letter-spacing: 0.05em;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 100px 1.5fr 1.5fr 100px;
+            gap: 24px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            align-items: center;
+            transition: background 0.1s;
+        }
+
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .cell-name { font-weight: 500; font-size: 13px; color: #fff; }
+        .cell-firm { color: var(--text-dim); font-size: 12px; }
+        .cell-data { font-family: var(--font-data); font-size: 11px; color: var(--text-dim); }
+
+        /* --- Minimalist Status Indicator --- */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .dot-active { background-color: var(--green); box-shadow: 0 0 8px var(--green); }
+        .dot-inactive { background-color: var(--yellow); }
+
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div class="stat-group">
+                <span class="stat-label">Tracked</span>
+                <span class="stat-value">615</span>
+            </div>
+            <div class="stat-group" style="color: var(--green)">
+                <span class="stat-label">Active</span>
+                <span class="stat-value">498</span>
+            </div>
+            <div class="stat-group" style="color: var(--yellow)">
+                <span class="stat-label">Inactive</span>
+                <span class="stat-value">114</span>
+            </div>
+            <div class="stat-group" style="color: var(--accent)">
+                <span class="stat-label">Changes</span>
+                <span class="stat-value">1</span>
+            </div>
+        </header>
+
+        <section>
+            <div class="table-header">
+                <div class="header-item">Name</div>
+                <div class="header-item">Firm</div>
+                <div class="header-item">Status</div>
+                <div class="header-item">Function</div>
+                <div class="header-item">Group</div>
+                <div class="header-item">Checked</div>
+            </div>
+
+            <div class="table-row">
+                <div class="cell-name">Andre Leger</div>
+                <div class="cell-firm truncate">ANZ Bank</div>
+                <div class="status-pill"><span class="dot dot-inactive"></span>Inactive</div>
+                <div class="cell-data truncate">Trader</div>
+                <div class="cell-data truncate">Interest Rate Swaps</div>
+                <div class="cell-data">2026-03-13</div>
+            </div>
+
+            <div class="table-row">
+                <div class="cell-name">David Isaac</div>
+                <div class="cell-firm truncate">Academy Securities</div>
+                <div class="status-pill" style="color: var(--green)"><span class="dot dot-active"></span>Active</div>
+                <div class="cell-data truncate">Trader</div>
+                <div class="cell-data truncate">Agency MBS</div>
+                <div class="cell-data">2026-03-13</div>
+            </div>
+
+            <div class="table-row">
+                <div class="cell-name">Aaron Reback</div>
+                <div class="cell-firm truncate">BMO Capital Markets</div>
+                <div class="status-pill" style="color: var(--green)"><span class="dot dot-active"></span>Active</div>
+                <div class="cell-data truncate">Trader</div>
+                <div class="cell-data truncate">Agency MBS</div>
+                <div class="cell-data">2026-03-13</div>
+            </div>
+            
+            </section>
+    </main>
+
+    <aside class="sidebar">
+        <div class="sidebar-title">Context</div>
+        <div style="margin-bottom: 32px;">
+            <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 12px;">Coverage</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div style="background: var(--bg-secondary); padding: 12px; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 9px; color: var(--text-faint);">TRACKED</div>
+                    <div style="font-family: var(--font-data); font-size: 14px;">615</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 12px; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                    <div style="font-size: 9px; color: var(--text-faint);">ACTIVE</div>
+                    <div style="font-family: var(--font-data); font-size: 14px; color: var(--green);">498</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+</body>
+</html>

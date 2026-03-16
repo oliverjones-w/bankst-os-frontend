@@ -237,8 +237,8 @@
 /* Proton active marker — 2px left bar */
 .command-result.is-selected {
   background: var(--bg-elevated);
-  color: var(--text-norm);
-  box-shadow: inset 2px 0 0 0 var(--primary);
+  color: var(--text-primary);
+  box-shadow: inset 2px 0 0 0 var(--interactive-accent);
 }
 
 .command-result-meta {

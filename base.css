@@ -9,7 +9,6 @@
   --bg-stage:    #161616;       /* Main Content Workspace */
   --bg-elevated: #1f1f1f;       /* Row Hovers / Secondary Cards */
 
-  --primary: #0073ff;
   --success: #00a87e;
   --warning: #db5f00;
   --danger:  #d50027;
@@ -17,7 +16,6 @@
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.12);
 
-  --text-norm: #f0f0f0;
   --navigation-current-item-background-color: rgba(0, 115, 255, 0.08);
 
   /* =========================
@@ -46,12 +44,16 @@
   --accent-s: 42%;
   --accent-l: 62%;
 
-  --interactive-accent: var(--primary);
-  --interactive-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
+  /* =========================
+     Accent semantics
+     ========================= */
+
+  --interactive-accent: #0073ff;
+  --interactive-accent-hover: color-mix(in srgb, #0073ff 80%, white);
   --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
 
-  --text-accent: var(--primary);
-  --text-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
+  --text-accent: var(--interactive-accent);
+  --text-accent-hover: var(--interactive-accent-hover);
 
   --background-accent-subtle: rgba(0, 115, 255, 0.12);
   --background-accent-faint: rgba(0, 115, 255, 0.10);
@@ -99,6 +101,7 @@
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.1);
 
+  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.04);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.14);
   --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
@@ -120,15 +123,12 @@
   --interactive-normal: var(--color-base-20);
   --interactive-hover: var(--color-base-25);
 
-  --interactive-accent: var(--primary);
-  --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
-  --interactive-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
-
   /* =========================
      Text colors
      ========================= */
 
-  --text-normal: var(--text-norm);
+  --text-normal: #f0f0f0;
+  --text-primary: var(--text-normal);
   --text-muted: #a0a0a0;
   --text-faint: #606060;
 
@@ -138,9 +138,6 @@
   --text-success: var(--color-green);
   --text-warning: var(--color-yellow);
   --text-error: var(--color-red);
-
-  --text-accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
-  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) + 6%));
 
   /* =========================
      Text background / caret
@@ -159,6 +156,48 @@
   --right-rail-w: 17.5rem;   /* 280px */
   --topbar-h: 2.75rem;       /* 44px */
 
+  /* Shell domain tokens */
+  --shell-topbar-bg:     rgba(var(--mono-rgb-0), 0.85); /* inverts correctly per theme */
+  --shell-topbar-border: var(--border-subtle);
+
+  /* =========================
+     Navigation domain tokens
+     ========================= */
+
+  --nav-item-padding-x:        20px;
+  --nav-item-active-border-w:  3px;
+
+  --nav-item-bg:               transparent;
+  --nav-item-bg-hover:         var(--background-modifier-hover);
+  --nav-item-bg-active:        var(--background-accent-subtle);
+
+  --nav-item-text:             var(--text-faint);
+  --nav-item-text-hover:       var(--text-primary);
+  --nav-item-text-active:      var(--text-primary);
+
+  --nav-item-border-active:    var(--interactive-accent);
+
+  --nav-icon-color:            var(--text-faint);
+  --nav-icon-color-hover:      var(--text-primary);
+  --nav-icon-color-active:     var(--interactive-accent);
+
+  /* =========================
+     Control surface tokens
+     ========================= */
+
+  --control-surface-bg:           var(--background-secondary);
+  --control-surface-border:       var(--border-subtle);
+  --control-surface-border-hover: var(--border-strong);
+
+  /* =========================
+     Button — primary
+     ========================= */
+
+  --button-primary-bg:        var(--interactive-accent);
+  --button-primary-bg-hover:  var(--interactive-accent-hover);
+  --button-primary-bg-active: color-mix(in srgb, var(--interactive-accent) 75%, black);
+  --button-primary-text:      var(--text-on-accent);
+
   /* =========================
      Radius
      ========================= */
@@ -173,7 +212,6 @@
      Z-index hierarchy
      ========================= */
 
-  --z-rail:     10;
   --z-topbar:   20;
   --z-cards:   100;
   --z-dragging: 200;
@@ -184,14 +222,6 @@
      Spacing
      ========================= */
 
-  --size-1-1: 4px;
-  --size-2-1: 8px;
-  --size-3-1: 12px;
-  --size-4-1: 16px;
-  --size-4-5: 20px;
-  --size-5-1: 24px;
-  --size-6-1: 32px;
-
   /* Spacing scale — rem for proportional harmony */
   --space-1: 0.25rem;   /* 4px */
   --space-2: 0.5rem;    /* 8px */
@@ -199,7 +229,6 @@
   --space-4: 1rem;      /* 16px */
   --space-5: 1.25rem;   /* 20px */
   --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
 
   /* =========================
      Shadows
@@ -207,8 +236,6 @@
 
   --shadow-xs: 0 1px 2px rgba(var(--mono-rgb-0), 0.18);
   --shadow-sm: 0 4px 12px rgba(var(--mono-rgb-0), 0.24);
-  --shadow-md: 0 8px 24px rgba(var(--mono-rgb-0), 0.32);
-  --shadow-lg: 0 20px 50px rgba(var(--mono-rgb-0), 0.46);
   --shadow-floating:
     0 0 0 1px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -241,10 +268,11 @@
 
   /* =========================
      Typography
+     Font-family tokens are defined here as fallbacks.
+     css/fonts.css is the final authority when custom fonts are loaded.
      ========================= */
 
   --font-interface: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-text: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   /* Data font: used for table cells, timestamps, counts, FINRA values */
   --font-data: "SF Mono", "JetBrains Mono", "Menlo", "Fira Code",
     "SFMono-Regular", Consolas, monospace;
@@ -302,6 +330,7 @@
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.04);
   --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
 
+  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.09);
   --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.16);
   --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), 42%);
@@ -314,8 +343,8 @@
 
   --interactive-normal: var(--color-base-20);
   --interactive-hover: var(--color-base-25);
-  --interactive-accent: hsl(var(--accent-h), var(--accent-s), 38%);
-  --interactive-accent-hover: hsl(var(--accent-h), var(--accent-s), 32%);
+  --interactive-accent: hsl(var(--accent-h), 52%, 38%);
+  --interactive-accent-hover: hsl(var(--accent-h), 52%, 32%);
 
   --text-normal: var(--color-base-100);
   --text-muted: var(--color-base-60);
@@ -323,8 +352,8 @@
 
   --text-on-accent: #ffffff;
   --text-on-accent-inverted: #111111;
-  --text-accent: hsl(var(--accent-h), var(--accent-s), 34%);
-  --text-accent-hover: hsl(var(--accent-h), var(--accent-s), 28%);
+  --text-accent: hsl(var(--accent-h), 52%, 38%);
+  --text-accent-hover: hsl(var(--accent-h), 52%, 30%);
 
   --text-selection: rgba(var(--mono-rgb-100), 0.12);
   --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.22);
@@ -332,11 +361,7 @@
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.16);
 
-  --text-accent: hsl(var(--accent-h), 52%, 38%);
-  --text-accent-hover: hsl(var(--accent-h), 52%, 30%);
   --background-accent-subtle: hsla(var(--accent-h), 52%, 45%, 0.10);
   --background-accent-faint: hsla(var(--accent-h), 52%, 45%, 0.08);
   --border-accent: hsla(var(--accent-h), 52%, 40%, 0.28);
