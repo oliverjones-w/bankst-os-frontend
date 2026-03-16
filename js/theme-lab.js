@@ -78,16 +78,53 @@ const TOKEN_GROUPS = [
     ],
   },
   {
-    label: "Typography",
+    label: "Typography — sizes",
     tokens: [
-      "--font-interface",
-      "--font-data",
+      "--font-ui-smaller",
       "--font-ui-small",
       "--font-ui-medium",
       "--font-ui-large",
     ],
   },
+  {
+    label: "Typography — fonts",
+    fonts: [
+      { token: "--font-interface", preview: "The quick brown fox" },
+      { token: "--font-data",      preview: "0123456789 AaBbCc" },
+      { token: "--font-monospace", preview: "fn() => { return; }" },
+    ],
+  },
 ];
+
+// ── Font presets ───────────────────────────────────────────────────────────────
+
+const FONT_PRESETS = {
+  "--font-interface": [
+    { label: "SF Pro Display",  value: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" },
+    { label: "Inter",           value: "'InterVariable', 'Inter', sans-serif" },
+    { label: "System UI",       value: "system-ui, -apple-system, sans-serif" },
+    { label: "Geist",           value: "'Geist', 'Inter', sans-serif" },
+    { label: "DM Sans",         value: "'DM Sans', sans-serif" },
+    { label: "IBM Plex Sans",   value: "'IBM Plex Sans', sans-serif" },
+    { label: "Custom…",         value: "" },
+  ],
+  "--font-data": [
+    { label: "SF Mono",         value: "'SF Mono', 'SFMono-Regular', monospace" },
+    { label: "JetBrains Mono",  value: "'JetBrains Mono', monospace" },
+    { label: "Fira Code",       value: "'Fira Code', monospace" },
+    { label: "IBM Plex Mono",   value: "'IBM Plex Mono', monospace" },
+    { label: "Cascadia Code",   value: "'Cascadia Code', monospace" },
+    { label: "Menlo",           value: "Menlo, Consolas, monospace" },
+    { label: "Custom…",         value: "" },
+  ],
+  "--font-monospace": [
+    { label: "SF Mono",         value: "'SF Mono', 'SFMono-Regular', monospace" },
+    { label: "JetBrains Mono",  value: "'JetBrains Mono', monospace" },
+    { label: "Fira Code",       value: "'Fira Code', monospace" },
+    { label: "IBM Plex Mono",   value: "'IBM Plex Mono', monospace" },
+    { label: "Custom…",         value: "" },
+  ],
+};
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
@@ -237,6 +274,81 @@ function createTokenControl(tokenName) {
   return wrapper;
 }
 
+// ── Font control ──────────────────────────────────────────────────────────────
+
+function createFontControl({ token, preview: previewText }) {
+  const presets = FONT_PRESETS[token] || [];
+  const computedValue = getTokenValue(token);
+  const currentValue  = overrides[token] ?? computedValue;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "font-control";
+
+  // Label
+  const label = document.createElement("div");
+  label.className = "font-control-label" + (overrides[token] ? " is-overridden" : "");
+  label.textContent = token;
+
+  // Select row
+  const row = document.createElement("div");
+  row.className = "font-control-row";
+
+  const select = document.createElement("select");
+  select.className = "font-preset-select";
+
+  // Build options — mark active if value matches
+  presets.forEach(({ label: optLabel, value }) => {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = optLabel;
+    if (currentValue === value) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  // Custom input
+  const input = document.createElement("input");
+  input.className = "font-custom-input" + (overrides[token] ? " is-overridden" : "");
+  input.type = "text";
+  input.spellcheck = false;
+  input.value = currentValue;
+  input.placeholder = "Custom font stack…";
+
+  // Preview swatch
+  const fontPreview = document.createElement("div");
+  fontPreview.className = "font-preview";
+  fontPreview.textContent = previewText;
+  fontPreview.style.fontFamily = currentValue;
+
+  function applyFont(value) {
+    applyOverride(token, value);
+    saveOverrides();
+    fontPreview.style.fontFamily = value;
+    const isOverridden = !!overrides[token];
+    input.classList.toggle("is-overridden", isOverridden);
+    label.classList.toggle("is-overridden", isOverridden);
+  }
+
+  select.addEventListener("change", () => {
+    if (select.value === "") return; // "Custom…" — let user type
+    input.value = select.value;
+    applyFont(select.value);
+  });
+
+  input.addEventListener("input", () => {
+    applyFont(input.value);
+    // Sync select to "Custom…" if value doesn't match any preset
+    const match = presets.find(p => p.value === input.value);
+    if (!match) {
+      const customOpt = select.querySelector('option[value=""]');
+      if (customOpt) customOpt.selected = true;
+    }
+  });
+
+  row.append(select);
+  wrapper.append(label, row, input, fontPreview);
+  return wrapper;
+}
+
 // ── Render token groups ────────────────────────────────────────────────────────
 
 function renderTokenGroups() {
@@ -252,8 +364,14 @@ function renderTokenGroups() {
     title.textContent = group.label;
     section.appendChild(title);
 
-    for (const token of group.tokens) {
-      section.appendChild(createTokenControl(token));
+    if (group.fonts) {
+      for (const fontDef of group.fonts) {
+        section.appendChild(createFontControl(fontDef));
+      }
+    } else {
+      for (const token of group.tokens) {
+        section.appendChild(createTokenControl(token));
+      }
     }
 
     root.appendChild(section);

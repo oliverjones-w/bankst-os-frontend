@@ -2,6 +2,12 @@
 
 * { box-sizing: border-box; }
 
+/* Override base.css viewport lock — theme-lab needs page-level scroll */
+html, body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   font-family: var(--font-interface);
@@ -17,7 +23,8 @@ body {
 .theme-lab-shell {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .theme-lab-sidebar {
@@ -163,6 +170,7 @@ body {
 
 .theme-lab-preview {
   padding: 32px;
+  height: 100vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -230,6 +238,85 @@ body {
 .type-stack .text-muted   { color: var(--text-muted);   font-size: 13px; }
 .type-stack .text-faint   { color: var(--text-faint);   font-size: 12px; }
 .type-stack .text-accent  { color: var(--text-accent);  font-size: 13px; font-weight: 600; }
+
+/* =========================
+   Font controls
+   ========================= */
+
+.font-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.font-control:last-child {
+  border-bottom: none;
+}
+
+.font-control-label {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.font-control-label.is-overridden {
+  color: var(--interactive-accent);
+}
+
+.font-control-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.font-preset-select {
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.font-preset-select:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.font-custom-input {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-data);
+  font-size: 11px;
+}
+
+.font-custom-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.font-custom-input.is-overridden {
+  border-color: var(--interactive-accent);
+}
+
+.font-preview {
+  padding: 6px 8px;
+  background: var(--background-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-normal);
+  line-height: 1.4;
+  min-height: 28px;
+}
 
 /* =========================
    Category tags
