@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankSt OS — Theme Lab</title>
+
+  <script>
+    (() => {
+      const saved = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      document.documentElement.style.colorScheme = saved;
+    })();
+  </script>
+
+  <link rel="stylesheet" href="./css/fonts.css" />
+  <link rel="stylesheet" href="./base.css" />
+  <link rel="stylesheet" href="./css/navigation.css" />
+  <link rel="stylesheet" href="./css/shell.css" />
+  <link rel="stylesheet" href="./components.css" />
+  <link rel="stylesheet" href="./css/workspace.css" />
+  <link rel="stylesheet" href="./css/surfaces.css" />
+  <link rel="stylesheet" href="./css/data-views.css" />
+  <link rel="stylesheet" href="./css/theme-lab.css" />
+
+  <style id="themeLabOverrides"></style>
+</head>
+<body>
+  <div class="theme-lab-shell">
+
+    <!-- ── Sidebar: token controls ── -->
+    <aside class="theme-lab-sidebar">
+      <div class="theme-lab-header">
+        <h1>Theme Lab</h1>
+        <div class="theme-lab-actions">
+          <button id="resetThemeBtn">Reset</button>
+          <button id="exportThemeBtn">Copy JSON</button>
+        </div>
+      </div>
+      <div id="tokenGroups"></div>
+
+      <div style="margin-top:auto;padding:12px 0;border-top:1px solid var(--border-subtle);">
+        <a href="./component-lab.html"
+          style="font-size:11px;color:var(--text-faint);text-decoration:none;display:flex;align-items:center;gap:6px;">
+          → Component Lab
+        </a>
+      </div>
+    </aside>
+
+    <!-- ── Preview panel ── -->
+    <main class="theme-lab-preview">
+
+      <section class="preview-block">
+        <h2>Shell — Topbar</h2>
+        <div class="topbar" style="position:relative;z-index:1;">
+          <div class="topbar-left">
+            <div class="topbar-title-group">
+              <span class="eyebrow">BankSt OS</span>
+              <h1 class="topbar-title">Workspace Shell</h1>
+            </div>
+          </div>
+          <div class="topbar-right">
+            <button class="icon-button">⌕</button>
+            <button class="icon-button">⚙</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Navigation</h2>
+        <div class="theme-lab-rail">
+          <nav class="nav-list" style="padding: 4px 0;">
+            <button class="nav-item is-active">
+              <span class="nav-icon">◉</span>
+              <span class="nav-label">Dashboard</span>
+            </button>
+            <button class="nav-item">
+              <span class="nav-icon">◎</span>
+              <span class="nav-label">People</span>
+            </button>
+            <button class="nav-item">
+              <span class="nav-icon">◌</span>
+              <span class="nav-label">Firms</span>
+            </button>
+            <button class="nav-item">
+              <span class="nav-icon">⊹</span>
+              <span class="nav-label">Reference</span>
+            </button>
+          </nav>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Controls</h2>
+        <div class="preview-row">
+          <button class="button-solid-norm">Primary Action</button>
+          <button class="command-trigger" style="max-width:220px;">
+            <span class="command-trigger-label">Open Command Palette</span>
+            <span>⌘K</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Surfaces</h2>
+        <div class="preview-row">
+          <div class="theme-card">Primary surface<br><small style="color:var(--text-faint);">--background-primary</small></div>
+          <div class="theme-card elevated">Elevated surface<br><small style="color:var(--text-faint);">--background-secondary</small></div>
+          <div class="theme-card" style="background:var(--bg-deep);">Deep surface<br><small style="color:var(--text-faint);">--bg-deep</small></div>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Typography — Interface</h2>
+        <div class="type-stack">
+          <div class="text-normal" style="font-family:var(--font-interface);">Normal — primary reading text</div>
+          <div class="text-muted"  style="font-family:var(--font-interface);">Muted — secondary / supporting</div>
+          <div class="text-faint"  style="font-family:var(--font-interface);">Faint — labels, tertiary</div>
+          <div class="text-accent" style="font-family:var(--font-interface);">Accent — links, highlights</div>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Typography — Data / Mono</h2>
+        <div class="type-stack">
+          <div style="font-family:var(--font-data);color:var(--text-normal);font-size:13px;">0123456789  •  AaBbCcDd</div>
+          <div style="font-family:var(--font-data);color:var(--text-muted);font-size:11px;">CRD# 1234567  •  2024-03-15T09:41:00Z  •  $4,200,000</div>
+          <div style="font-family:var(--font-monospace);color:var(--text-faint);font-size:11px;">fn(x) =&gt; x * 2  •  const rate = 0.042;</div>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Category Tags</h2>
+        <div class="preview-row">
+          <span class="lab-tag" data-category="function">Execution</span>
+          <span class="lab-tag" data-category="strategy">Long/Short</span>
+          <span class="lab-tag" data-category="product">Equities</span>
+        </div>
+      </section>
+
+      <section class="preview-block">
+        <h2>Accent States</h2>
+        <div class="preview-row">
+          <div style="padding:10px 14px;background:var(--background-accent-subtle);border:1px solid var(--border-accent);border-radius:var(--radius-md);font-size:12px;color:var(--text-accent);">Accent subtle</div>
+          <div style="padding:10px 14px;background:var(--background-accent-faint);border:1px solid var(--border-accent);border-radius:var(--radius-md);font-size:12px;color:var(--text-accent);">Accent faint</div>
+          <div style="padding:10px 14px;background:var(--interactive-accent);border-radius:var(--radius-md);font-size:12px;color:var(--button-primary-text);">Accent fill</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="./js/theme-lab.js"></script>
+</body>
+</html>

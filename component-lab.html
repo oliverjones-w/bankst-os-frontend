@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankSt OS — Component Lab</title>
+
+  <script>
+    (() => {
+      const saved = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      document.documentElement.style.colorScheme = saved;
+    })();
+  </script>
+
+  <link rel="stylesheet" href="./css/fonts.css" />
+  <link rel="stylesheet" href="./base.css" />
+  <link rel="stylesheet" href="./css/navigation.css" />
+  <link rel="stylesheet" href="./css/shell.css" />
+  <link rel="stylesheet" href="./components.css" />
+  <link rel="stylesheet" href="./css/workspace.css" />
+  <link rel="stylesheet" href="./css/surfaces.css" />
+  <link rel="stylesheet" href="./css/data-views.css" />
+  <link rel="stylesheet" href="./css/theme-lab.css" />
+  <link rel="stylesheet" href="./css/component-lab.css" />
+  <link rel="stylesheet" href="./css/theme-overrides.css" />
+</head>
+<body>
+  <div class="cl-shell">
+
+    <aside class="cl-nav">
+      <div class="cl-nav-header">
+        <h1>Component Lab</h1>
+        <p>Visual truth table for UI states</p>
+      </div>
+      <div class="cl-nav-section-label">Components</div>
+      <div id="clNav"></div>
+
+      <div style="margin-top:auto;padding:12px 16px;border-top:1px solid var(--border-subtle);">
+        <a href="./theme-lab.html"
+          style="font-size:11px;color:var(--text-faint);text-decoration:none;display:flex;align-items:center;gap:6px;">
+          ← Theme Lab
+        </a>
+      </div>
+    </aside>
+
+    <main class="cl-preview" id="clPreview">
+      <!-- Rendered by component-lab.js -->
+    </main>
+
+  </div>
+
+  <script src="./js/component-lab.js"></script>
+</body>
+</html>
