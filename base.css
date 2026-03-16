@@ -212,7 +212,6 @@
      Z-index hierarchy
      ========================= */
 
-  --z-rail:     10;
   --z-topbar:   20;
   --z-cards:   100;
   --z-dragging: 200;
@@ -223,14 +222,6 @@
      Spacing
      ========================= */
 
-  --size-1-1: 4px;
-  --size-2-1: 8px;
-  --size-3-1: 12px;
-  --size-4-1: 16px;
-  --size-4-5: 20px;
-  --size-5-1: 24px;
-  --size-6-1: 32px;
-
   /* Spacing scale — rem for proportional harmony */
   --space-1: 0.25rem;   /* 4px */
   --space-2: 0.5rem;    /* 8px */
@@ -238,7 +229,6 @@
   --space-4: 1rem;      /* 16px */
   --space-5: 1.25rem;   /* 20px */
   --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
 
   /* =========================
      Shadows
@@ -246,8 +236,6 @@
 
   --shadow-xs: 0 1px 2px rgba(var(--mono-rgb-0), 0.18);
   --shadow-sm: 0 4px 12px rgba(var(--mono-rgb-0), 0.24);
-  --shadow-md: 0 8px 24px rgba(var(--mono-rgb-0), 0.32);
-  --shadow-lg: 0 20px 50px rgba(var(--mono-rgb-0), 0.46);
   --shadow-floating:
     0 0 0 1px rgba(0, 0, 0, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -285,7 +273,6 @@
      ========================= */
 
   --font-interface: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-text: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   /* Data font: used for table cells, timestamps, counts, FINRA values */
   --font-data: "SF Mono", "JetBrains Mono", "Menlo", "Fira Code",
     "SFMono-Regular", Consolas, monospace;
@@ -374,8 +361,6 @@
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.16);
 
   --background-accent-subtle: hsla(var(--accent-h), 52%, 45%, 0.10);
   --background-accent-faint: hsla(var(--accent-h), 52%, 45%, 0.08);
