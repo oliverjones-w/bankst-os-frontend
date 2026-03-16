@@ -9,7 +9,6 @@
   --bg-stage:    #161616;       /* Main Content Workspace */
   --bg-elevated: #1f1f1f;       /* Row Hovers / Secondary Cards */
 
-  --primary: #0073ff;
   --success: #00a87e;
   --warning: #db5f00;
   --danger:  #d50027;
@@ -17,7 +16,6 @@
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.12);
 
-  --text-norm: #f0f0f0;
   --navigation-current-item-background-color: rgba(0, 115, 255, 0.08);
 
   /* =========================
@@ -50,8 +48,8 @@
      Accent semantics
      ========================= */
 
-  --interactive-accent: var(--primary);
-  --interactive-accent-hover: color-mix(in srgb, var(--primary) 80%, white);
+  --interactive-accent: #0073ff;
+  --interactive-accent-hover: color-mix(in srgb, #0073ff 80%, white);
   --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
 
   --text-accent: var(--interactive-accent);
@@ -129,8 +127,8 @@
      Text colors
      ========================= */
 
-  --text-normal: var(--text-norm);
-  --text-primary: var(--text-normal); /* canonical primary text — migrate consumers away from --text-norm */
+  --text-normal: #f0f0f0;
+  --text-primary: var(--text-normal);
   --text-muted: #a0a0a0;
   --text-faint: #606060;
 
