@@ -15,25 +15,19 @@
 - [x] css/data-views.css
 
 ## Legacy aliases to remove later
-- [ ] --text-norm
-- [ ] --primary
-- [ ] --interactive-accent
-- [ ] --accent-color
-- [ ] --bg-deep
-- [ ] --bg-stage
-- [ ] --bg-elevated
-- [ ] --font-monospace (maybe)
+- [x] --text-norm
+- [x] --primary
+- [ ] --interactive-accent (canonical — kept, widely consumed)
+- [ ] --accent-color (live consumers in components.css, data-views.css)
+- [ ] --bg-deep (live consumers across navigation, workspace, surfaces)
+- [ ] --bg-stage (live consumers in workspace.css, surfaces.css)
+- [ ] --bg-elevated (live consumers in data-views, navigation, workspace, surfaces)
+- [ ] --font-monospace (live consumers in components.css, navigation.css, data-views.css)
 
-## Dead tokens to evaluate later
-- [ ] --size-1-1
-- [ ] --size-2-1
-- [ ] --size-3-1
-- [ ] --size-4-1
-- [ ] --size-4-5
-- [ ] --size-5-1
-- [ ] --size-6-1
-- [ ] --space-8
-- [ ] --font-text
-- [ ] --z-rail
-- [ ] --shadow-md
-- [ ] --shadow-lg
+## Dead tokens
+- [x] --size-1-1 through --size-6-1
+- [x] --space-8
+- [x] --font-text
+- [x] --z-rail
+- [x] --shadow-md
+- [x] --shadow-lg
