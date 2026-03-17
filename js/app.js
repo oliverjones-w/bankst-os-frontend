@@ -138,7 +138,7 @@ document.addEventListener("click", (e) => {
     renderRightRail();
 
     // Fetch history async
-    mappingGet(`/api/${source}/records/${id}`)
+    mappingGet(`/${source}/records/${id}`)
       .then(data => {
         tab.state.recordHistory = data.history || [];
         tab.state.recordName    = data.name || data.current_name || id;

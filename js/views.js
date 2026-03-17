@@ -407,12 +407,12 @@ registerWorkspaceView({
     fetchingTabs.add(tab.id);
     try {
       const [summary, arrivals, departures, runs, changes, individuals] = await Promise.all([
-        finraGet("/api/summary"),
-        finraGet("/api/firms/arrivals?limit=12"),
-        finraGet("/api/firms/departures?limit=12"),
-        finraGet("/api/runs"),
-        finraGet("/api/changes?limit=100"),
-        finraGet("/api/individuals"),
+        finraGet("/summary"),
+        finraGet("/firms/arrivals?limit=12"),
+        finraGet("/firms/departures?limit=12"),
+        finraGet("/runs"),
+        finraGet("/changes?limit=100"),
+        finraGet("/individuals"),
       ]);
       setFinraChangesCache(changes);
       fetchingTabs.delete(tab.id);
@@ -560,9 +560,9 @@ registerWorkspaceView({
       fetchingTabs.add(tab.id);
       try {
         const [records, allChanges, dailyChanges] = await Promise.all([
-          mappingGet("/api/hf/records"),
-          mappingGet("/api/hf/changes?limit=200"),
-          mappingGet("/api/hf/daily-changes?days=60"),
+          mappingGet("/hf/records"),
+          mappingGet("/hf/changes?limit=200"),
+          mappingGet("/hf/daily-changes?days=60"),
         ]);
         updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
       } catch (e) {
@@ -667,9 +667,9 @@ registerWorkspaceView({
       fetchingTabs.add(tab.id);
       try {
         const [records, allChanges, dailyChanges] = await Promise.all([
-          mappingGet("/api/ir/records"),
-          mappingGet("/api/ir/changes?limit=200"),
-          mappingGet("/api/ir/daily-changes?days=60"),
+          mappingGet("/ir/records"),
+          mappingGet("/ir/changes?limit=200"),
+          mappingGet("/ir/daily-changes?days=60"),
         ]);
         updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
       } catch (e) {
