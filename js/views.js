@@ -1,5 +1,5 @@
 import { registerWorkspaceView, updateActiveTabState, getActiveTab, fetchingTabs, workspaceState } from "./workspace.js";
-import { finraGet, bankstGet, mappingGet, setFinraChangesCache } from "./api.js";
+import { finraGet, bankstGet, mappingGet, mappingUpload, setFinraChangesCache } from "./api.js";
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
 
@@ -1309,14 +1309,59 @@ registerWorkspaceView({
     right: [{ id: "bbg.firms.refresh", label: "Refresh" }],
   }),
   render: (tab) => {
-    const firms = tab.state?.data;
+    const firms       = tab.state?.data;
+    const uploadState = tab.state?.uploadState || "idle";
+    const uploadMsg   = tab.state?.uploadMessage || "";
+
+    // Upload zone — state-driven appearance
+    const zoneStyles = {
+      idle:      "border-color:var(--border-subtle);background:transparent;",
+      dragging:  "border-color:var(--border-accent);background:var(--background-accent-faint);",
+      uploading: "border-color:var(--border-subtle);background:transparent;opacity:.7;",
+      success:   "border-color:hsla(133,49%,49%,.5);background:hsla(133,49%,49%,.06);",
+      error:     "border-color:hsla(0,72%,60%,.5);background:hsla(0,72%,60%,.06);",
+    };
+    const zoneText = {
+      idle:      "⊛ Drop a BBG CSV here to run extraction",
+      dragging:  "⊛ Release to upload",
+      uploading: "⟳ Processing…",
+      success:   `✓ ${uploadMsg}`,
+      error:     `✗ ${uploadMsg}`,
+    };
+    const zoneTextColor = {
+      idle:      "var(--text-faint)",
+      dragging:  "var(--text-accent)",
+      uploading: "var(--text-muted)",
+      success:   "var(--color-green,#4ade80)",
+      error:     "var(--color-red,#ef4444)",
+    };
+
+    const uploadZone = `
+      <div class="bbg-upload-zone" data-tab-id="${escapeHtml(tab.id)}"
+        style="margin-bottom:16px;padding:12px 16px;border:1px dashed;border-radius:6px;
+               cursor:default;transition:all 120ms ease;${zoneStyles[uploadState]}">
+        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                    color:${zoneTextColor[uploadState]};">
+          ${zoneText[uploadState]}
+        </div>
+      </div>
+    `;
+
     if (!firms) {
-      return `<div class="table-shell view-placeholder"><span>BBG Extraction</span><p>Loading firms…</p></div>`;
+      return `
+        <div class="table-shell" style="padding:16px 24px;">
+          ${uploadZone}
+          <div class="view-placeholder" style="padding:32px 0;">
+            <span>BBG Extraction</span><p>Loading firms…</p>
+          </div>
+        </div>
+      `;
     }
 
-    const totalConfirmed    = firms.reduce((s, f) => s + (f.confirmed_count    || 0), 0);
-    const totalDiscrepancies = firms.reduce((s, f) => s + (f.discrepancy_count || 0), 0);
-    const totalAdditions    = firms.reduce((s, f) => s + (f.addition_count     || 0), 0);
+    const totalConfirmed     = firms.reduce((s, f) => s + (f.confirmed_count    || 0), 0);
+    const totalDiscrepancies = firms.reduce((s, f) => s + (f.discrepancy_count  || 0), 0);
+    const totalAdditions     = firms.reduce((s, f) => s + (f.addition_count     || 0), 0);
 
     const statTiles = `
       <div class="meta-grid" style="margin-bottom:16px;">
@@ -1328,7 +1373,7 @@ registerWorkspaceView({
     `;
 
     const firmRow = (f) => {
-      const pct = (f.tracking_pct || 0).toFixed(1);
+      const pct     = (f.tracking_pct || 0).toFixed(1);
       const runDate = f.run_at ? new Date(f.run_at).toLocaleDateString() : "—";
       return `
         <div class="table-row-wrap">
@@ -1354,7 +1399,10 @@ registerWorkspaceView({
     const sorted = [...firms].sort((a, b) => (b.tracking_pct || 0) - (a.tracking_pct || 0));
 
     return `
-      <div class="table-shell">
+      <div class="table-shell" style="padding-top:16px;">
+        <div style="padding:0 24px;">
+          ${uploadZone}
+        </div>
         ${statTiles}
         <div class="table-header-grid bbg-firms-grid">
           <div>Firm</div>

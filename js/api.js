@@ -21,6 +21,15 @@ export async function mappingGet(path) {
   return data;
 }
 
+export async function mappingUpload(path, formData) {
+  const timer = new Timer("api", `mapping:${path}`);
+  const res = await fetch(`${MAPPING_API_BASE}${path}`, { method: "POST", body: formData });
+  const data = await res.json();
+  timer.done({ status: res.status, ok: res.ok });
+  if (!res.ok) throw Object.assign(new Error(data?.detail || `Mapping API ${res.status}`), { detail: data?.detail });
+  return data;
+}
+
 export async function bankstGet(path) {
   const timer = new Timer("api", `bankst:${path}`);
   const res = await fetch(`${BANKST_API_BASE}${path}`, { headers: { Accept: "application/json" } });

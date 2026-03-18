@@ -13,7 +13,7 @@ import {
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
 import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab } from "./nav.js";
-import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet } from "./api.js";
+import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
 import { initTabDragHandlers } from "./drag.js";
@@ -53,6 +53,59 @@ document.addEventListener("input", (e) => {
   if (!inp) return;
   const tabId = inp.dataset.tabId;
   updateActiveTabState({ searchQuery: inp.value }, tabId);
+});
+
+// ── BBG CSV drag-and-drop upload ───────────────────────────────────────────────
+document.addEventListener("dragover", (e) => {
+  const zone = e.target.closest(".bbg-upload-zone");
+  if (!zone) return;
+  e.preventDefault();
+  const tabId = zone.dataset.tabId;
+  updateActiveTabState({ uploadState: "dragging" }, tabId);
+});
+
+document.addEventListener("dragleave", (e) => {
+  const zone = e.target.closest(".bbg-upload-zone");
+  if (!zone) return;
+  // Only reset if leaving the zone entirely (not moving to a child)
+  if (zone.contains(e.relatedTarget)) return;
+  const tabId = zone.dataset.tabId;
+  updateActiveTabState({ uploadState: "idle" }, tabId);
+});
+
+document.addEventListener("drop", async (e) => {
+  const zone = e.target.closest(".bbg-upload-zone");
+  if (!zone) return;
+  e.preventDefault();
+
+  const tabId = zone.dataset.tabId;
+  const file  = e.dataTransfer?.files?.[0];
+
+  if (!file) {
+    updateActiveTabState({ uploadState: "error", uploadMessage: "No file detected." }, tabId);
+    return;
+  }
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    updateActiveTabState({ uploadState: "error", uploadMessage: "Only CSV files are accepted." }, tabId);
+    return;
+  }
+
+  updateActiveTabState({ uploadState: "uploading", uploadMessage: "" }, tabId);
+
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    const result = await mappingUpload("/bbg/upload", form);
+
+    const msg = `${result.firm_name} — ${result.confirmed_count} confirmed, `
+      + `${result.discrepancy_count} discrepancies, ${result.addition_count} additions`;
+
+    // Bust the firms cache so the view re-fetches with updated data
+    updateActiveTabState({ uploadState: "success", uploadMessage: msg, data: undefined }, tabId);
+  } catch (err) {
+    const detail = err.detail || err.message || "Upload failed.";
+    updateActiveTabState({ uploadState: "error", uploadMessage: detail }, tabId);
+  }
 });
 
 // ── BBG run change ─────────────────────────────────────────────────────────────
