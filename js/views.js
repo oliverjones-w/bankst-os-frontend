@@ -1479,17 +1479,101 @@ registerWorkspaceView({
 // ---------------------------------------------------------------------------
 // BBG Extraction — Firm Detail
 // ---------------------------------------------------------------------------
+// BBG inline SVG chart helpers
+// ---------------------------------------------------------------------------
+
+function _bbgTrendChart(runs) {
+  if (!runs || runs.length < 2) {
+    return `<p style="opacity:.5;font-size:11px;padding:4px 0 12px;">Need at least 2 runs to show trends.</p>`;
+  }
+  const data = [...runs].reverse(); // oldest → newest
+  const W = 480, H = 150, PL = 42, PR = 12, PT = 10, PB = 32;
+  const iW = W - PL - PR, iH = H - PT - PB;
+  const n = data.length;
+  const xOf = i => PL + (i / Math.max(n - 1, 1)) * iW;
+  const series = [
+    { key: "confirmed_count",   color: "#4ade80", label: "Confirmed" },
+    { key: "discrepancy_count", color: "#f87171", label: "Discrepancies" },
+    { key: "addition_count",    color: "#60a5fa", label: "Additions" },
+  ];
+  const maxVal = Math.max(...series.flatMap(s => data.map(d => d[s.key] || 0)), 1);
+  const yOf = v => PT + (1 - v / maxVal) * iH;
+
+  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    const y = PT + f * iH, v = Math.round(maxVal * (1 - f));
+    return `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W - PR}" y2="${y.toFixed(1)}" stroke="var(--border-subtle)" stroke-width="1"/>` +
+           `<text x="${PL - 5}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--text-faint)">${v}</text>`;
+  }).join("");
+
+  const paths = series.map(s => {
+    const d = data.map((row, i) =>
+      `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(row[s.key] || 0).toFixed(1)}`
+    ).join(" ");
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
+  }).join("");
+
+  const dots = series.map(s => {
+    const last = data[n - 1];
+    return `<circle cx="${xOf(n - 1).toFixed(1)}" cy="${yOf(last[s.key] || 0).toFixed(1)}" r="2.5" fill="${s.color}"/>`;
+  }).join("");
+
+  const step = Math.max(1, Math.ceil(n / 5));
+  const xLabels = data.filter((_, i) => i % step === 0 || i === n - 1).map(row => {
+    const i = data.indexOf(row);
+    const dt = new Date(row.run_at);
+    return `<text x="${xOf(i).toFixed(1)}" y="${H - 2}" text-anchor="middle" font-size="9" fill="var(--text-faint)">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
+  }).join("");
+
+  const legend = series.map((s, i) =>
+    `<g transform="translate(${PL + i * 110},${H + 6})">` +
+    `<rect x="0" y="0" width="8" height="8" rx="1" fill="${s.color}" opacity=".9"/>` +
+    `<text x="12" y="7.5" font-size="9" fill="var(--text-muted)">${s.label}</text></g>`
+  ).join("");
+
+  return `<svg viewBox="0 0 ${W} ${H + 20}" style="width:100%;max-width:${W}px;display:block;overflow:visible;">${gridLines}${paths}${dots}${xLabels}${legend}</svg>`;
+}
+
+function _bbgLocationChart(confirmed) {
+  if (!confirmed?.length) return `<p style="opacity:.5;font-size:11px;padding:4px 0 12px;">No confirmed records to chart.</p>`;
+  const counts = {};
+  for (const r of confirmed) {
+    const loc = (r.location || "Unknown").trim() || "Unknown";
+    counts[loc] = (counts[loc] || 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (!sorted.length) return "";
+  const maxCount = sorted[0][1];
+  const BAR_H = 16, GAP = 5, LABEL_W = 120, BAR_MAX = 220, NUM_W = 34;
+  const W = LABEL_W + BAR_MAX + NUM_W;
+  const H = sorted.length * (BAR_H + GAP) - GAP;
+  const bars = sorted.map(([loc, count], i) => {
+    const y  = i * (BAR_H + GAP);
+    const bw = Math.max(2, (count / maxCount) * BAR_MAX);
+    const lbl = loc.length > 18 ? loc.slice(0, 17) + "…" : loc;
+    return `<text x="${LABEL_W - 6}" y="${y + BAR_H - 3}" text-anchor="end" font-size="10" fill="var(--text-muted)">${escapeHtml(lbl)}</text>` +
+           `<rect x="${LABEL_W}" y="${y}" width="${bw.toFixed(1)}" height="${BAR_H}" rx="2" fill="var(--interactive-accent)" opacity=".65"/>` +
+           `<text x="${(LABEL_W + bw + 5).toFixed(1)}" y="${y + BAR_H - 3}" font-size="10" fill="var(--text-faint)">${count}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block;">${bars}</svg>`;
+}
+
+// ---------------------------------------------------------------------------
 registerWorkspaceView({
   id: "bbg.firm",
   match: (tab) => tab.type === "bbg.firm",
-  toolbar: (tab) => ({
-    left: [
-      { id: "bbg.firm.confirmed",     label: `Confirmed${tab.state?.runData ? ` (${tab.state.runData.confirmed?.length ?? 0})` : ""}`,     active: (tab.state?.mode || "confirmed") === "confirmed" },
-      { id: "bbg.firm.discrepancies", label: `Discrepancies${tab.state?.runData ? ` (${tab.state.runData.discrepancies?.length ?? 0})` : ""}`, active: tab.state?.mode === "discrepancies" },
-      { id: "bbg.firm.additions",     label: `Additions${tab.state?.runData ? ` (${tab.state.runData.additions?.length ?? 0})` : ""}`,     active: tab.state?.mode === "additions" },
-    ],
-    right: [],
-  }),
+  toolbar: (tab) => {
+    const mode    = tab.state?.mode || "confirmed";
+    const runData = tab.state?.runData;
+    return {
+      left: [
+        { id: "bbg.firm.confirmed",     label: `Confirmed${runData ? ` (${runData.confirmed?.length ?? 0})` : ""}`,     active: mode === "confirmed" },
+        { id: "bbg.firm.discrepancies", label: `Discrepancies${runData ? ` (${runData.discrepancies?.length ?? 0})` : ""}`, active: mode === "discrepancies" },
+        { id: "bbg.firm.additions",     label: `Additions${runData ? ` (${runData.additions?.length ?? 0})` : ""}`,     active: mode === "additions" },
+        { id: "bbg.firm.analytics",     label: "Analytics",                                                              active: mode === "analytics" },
+      ],
+      right: [],
+    };
+  },
   render: (tab) => {
     const mode    = tab.state?.mode || "confirmed";
     const runs    = tab.state?.runs;
@@ -1609,6 +1693,24 @@ registerWorkspaceView({
           </div>
         `).join("")}
         ${rows.length === 0 ? `<div style="padding:16px;opacity:.5;">No additions match filter.</div>` : ""}
+      `;
+    }
+
+    if (mode === "analytics") {
+      const chartLabel = (text) =>
+        `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:8px;">${text}</div>`;
+      return `
+        <div class="detail-view-shell">
+          ${runSelector}
+          <div style="margin-bottom:20px;">
+            ${chartLabel("Extraction Trends — All Runs")}
+            ${_bbgTrendChart(runs)}
+          </div>
+          <div style="margin-bottom:16px;">
+            ${chartLabel("Location Distribution — Current Run")}
+            ${runData ? _bbgLocationChart(runData.confirmed) : `<p style="opacity:.5;font-size:11px;">Loading run data…</p>`}
+          </div>
+        </div>
       `;
     }
 

@@ -1,4 +1,4 @@
-import { splitPane, moveTab } from "./workspace.js";
+import { splitPane, moveTab, getActiveTab } from "./workspace.js";
 
 let draggedTabId = null;
 let sourcePaneId = null;
@@ -43,8 +43,8 @@ export function initTabDragHandlers() {
     const tabWrap = e.target.closest(".tab-wrap");
     if (tabWrap) tabWrap.classList.remove("is-dragging");
     // Clean up any lingering drop indicators
-    workspace.querySelectorAll(".drop-target, .drop-target-right").forEach((el) => {
-      el.classList.remove("drop-target", "drop-target-right");
+    workspace.querySelectorAll(".drop-target, .drop-target-right, .bbg-file-drop").forEach((el) => {
+      el.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
     });
     draggedTabId = null;
     sourcePaneId = null;
@@ -54,6 +54,16 @@ export function initTabDragHandlers() {
     e.preventDefault();
     const pane = e.target.closest(".pane");
     if (!pane) return;
+
+    // OS file drag (not a tab drag) — highlight pane if a BBG view is active
+    if (draggedTabId === null && e.dataTransfer.types.includes("Files")) {
+      const activeTab = getActiveTab();
+      if (activeTab?.type?.startsWith("bbg.")) {
+        e.dataTransfer.dropEffect = "copy";
+        pane.classList.add("bbg-file-drop");
+      }
+      return;
+    }
 
     const rect = pane.getBoundingClientRect();
     const isRightEdge = e.clientX > rect.right - 80;
@@ -66,16 +76,28 @@ export function initTabDragHandlers() {
     const pane = e.target.closest(".pane");
     // Only clear if leaving the pane entirely (not moving to a child)
     if (pane && !pane.contains(e.relatedTarget)) {
-      pane.classList.remove("drop-target", "drop-target-right");
+      pane.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
     }
   });
 
   workspace.addEventListener("drop", (e) => {
     e.preventDefault();
     const targetPane = e.target.closest(".pane");
-    if (!targetPane || !draggedTabId) return;
+    if (!targetPane) return;
 
-    targetPane.classList.remove("drop-target", "drop-target-right");
+    targetPane.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
+
+    // OS file drop — dispatch to BBG upload handler if a BBG view is active
+    if (draggedTabId === null) {
+      const files     = e.dataTransfer?.files;
+      const activeTab = getActiveTab();
+      if (files?.length && activeTab?.type?.startsWith("bbg.")) {
+        document.dispatchEvent(new CustomEvent("bankst:bbgCsvDrop", {
+          detail: { file: files[0], tabId: activeTab.id },
+        }));
+      }
+      return;
+    }
 
     const targetPaneId = targetPane.dataset.paneId;
     const rect         = targetPane.getBoundingClientRect();

@@ -229,6 +229,8 @@ export function getActiveContext() {
     finraType: activeTab.type,
     tab:       activeTab,
   };
+  if (activeTab.type === "bbg.firms") return { type: "bbg.firms", tab: activeTab };
+  if (activeTab.type === "bbg.firm")  return { type: "bbg.firm",  tab: activeTab, firmId: activeTab.entityId, firmName: activeTab.title };
   return { type: "unknown", tab: activeTab };
 }
 
@@ -384,6 +386,7 @@ export function handleToolbarAction(actionId) {
     case "bbg.firm.confirmed":     updateActiveTabState({ mode: "confirmed",     searchQuery: "" }); break;
     case "bbg.firm.discrepancies": updateActiveTabState({ mode: "discrepancies", searchQuery: "" }); break;
     case "bbg.firm.additions":     updateActiveTabState({ mode: "additions",     searchQuery: "" }); break;
+    case "bbg.firm.analytics":     updateActiveTabState({ mode: "analytics" });                      break;
     case "bbg.firms.refresh":      updateActiveTabState({ data: undefined }); break;
     case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
     case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;

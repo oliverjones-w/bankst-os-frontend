@@ -118,6 +118,34 @@ document.addEventListener("drop", async (e) => {
   }
 });
 
+// ── BBG full-pane CSV drop (dispatched by drag.js) ────────────────────────────
+document.addEventListener("bankst:bbgCsvDrop", async (e) => {
+  const { file, tabId } = e.detail;
+
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    updateActiveTabState({ uploadState: "error", uploadMessage: "Only CSV files are accepted." }, tabId);
+    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId), 12000);
+    return;
+  }
+
+  updateActiveTabState({ uploadState: "uploading", uploadMessage: "" }, tabId);
+
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    const result = await mappingUpload("/bbg/upload", form);
+
+    updateActiveTabState({ uploadState: "success", uploadResult: result, data: undefined }, tabId);
+    openBbgFirmTab(result.firm_id, result.firm_name);
+
+    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadResult: null }, tabId), 8000);
+  } catch (err) {
+    const detail = err.detail || err.message || "Upload failed.";
+    updateActiveTabState({ uploadState: "error", uploadMessage: detail }, tabId);
+    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId), 12000);
+  }
+});
+
 // ── BBG run change ─────────────────────────────────────────────────────────────
 document.addEventListener("bankst:bbgRunChange", async (e) => {
   const { tabId, runId } = e.detail;
@@ -225,6 +253,14 @@ document.addEventListener("click", (e) => {
     const firmId   = bbgFirmBtn.dataset.openBbgFirm;
     const firmName = bbgFirmBtn.dataset.firmName || firmId;
     openBbgFirmTab(firmId, firmName);
+    return;
+  }
+
+  const bbgRunBtn = e.target.closest("[data-select-bbg-run]");
+  if (bbgRunBtn) {
+    const runId = parseInt(bbgRunBtn.dataset.selectBbgRun, 10);
+    const tabId = bbgRunBtn.dataset.tabId;
+    document.dispatchEvent(new CustomEvent("bankst:bbgRunChange", { detail: { tabId, runId } }));
     return;
   }
 

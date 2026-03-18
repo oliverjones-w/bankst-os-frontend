@@ -620,6 +620,8 @@ export function renderRightRail() {
   else if (context.type === "ir.table")     rightRailTitle.textContent = "IR Map";
   else if (context.type === "ir.firm")      rightRailTitle.textContent = context.firmName || "IR Firm";
   else if (context.type === "finra")        rightRailTitle.textContent = "FINRA Monitor";
+  else if (context.type === "bbg.firms")    rightRailTitle.textContent = "BBG Extraction";
+  else if (context.type === "bbg.firm")     rightRailTitle.textContent = context.firmName || "BBG Firm";
   else rightRailTitle.textContent = "Context";
 
   const widgets = rightRailWidgets
@@ -633,3 +635,62 @@ export function renderRightRail() {
         <p style="font-size:11px;color:var(--text-faint);font-style:italic;margin:0;">No active signals for this context.</p>
       </div>`;
 }
+
+// ── Widget: BBG firm run history ───────────────────────────────────────────────
+
+registerRightRailWidget({
+  id: "bbg-firm-run-history",
+  order: 10,
+  when: (context) => context.type === "bbg.firm",
+  render: (context) => {
+    const tab      = context.tab;
+    const runs     = tab.state?.runs;
+    const selRunId = tab.state?.selectedRunId;
+
+    if (!runs) {
+      return `<div class="context-card">
+        <div class="context-card-title">Run History</div>
+        <p style="font-size:11px;color:var(--text-faint);margin:0;">Loading…</p>
+      </div>`;
+    }
+    if (!runs.length) {
+      return `<div class="context-card">
+        <div class="context-card-title">Run History</div>
+        <p style="font-size:11px;color:var(--text-faint);margin:0;">No runs recorded yet.</p>
+      </div>`;
+    }
+
+    const items = runs.map(r => {
+      const dt       = new Date(r.run_at);
+      const isActive = r.run_id === selRunId;
+      const tracking = r.rows_processed > 0
+        ? Math.round((r.confirmed_count / r.rows_processed) * 100) : 0;
+      const dateStr = dt.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+      const timeStr = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return `
+        <button class="bbg-run-history-item${isActive ? " is-active" : ""}"
+          data-select-bbg-run="${r.run_id}" data-tab-id="${escapeHtml(tab.id)}">
+          <div class="rh-header">
+            <span class="rh-date">${escapeHtml(dateStr)}</span>
+            <span class="rh-time">${escapeHtml(timeStr)}</span>
+            <span class="rh-tracking">${tracking}%</span>
+          </div>
+          <div class="rh-filename">${escapeHtml(r.csv_filename)}</div>
+          <div class="rh-stats">
+            <span class="rh-conf">${r.confirmed_count} conf</span>
+            <span class="rh-disc">${r.discrepancy_count} disc</span>
+            <span class="rh-add">${r.addition_count} add</span>
+            <span class="rh-rows">${r.rows_processed} rows</span>
+          </div>
+        </button>
+      `;
+    }).join("");
+
+    return `
+      <div class="context-card" style="padding-bottom:4px;">
+        <div class="context-card-title">Run History (${runs.length})</div>
+        <div class="bbg-run-history-list">${items}</div>
+      </div>
+    `;
+  },
+});
