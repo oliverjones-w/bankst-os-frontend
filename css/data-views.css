@@ -1376,3 +1376,9 @@
 
 .perf-asset-name { font-family: var(--font-data); }
 .perf-asset-size { font-family: var(--font-data); color: var(--text-muted); }
+
+/* ── BBG Extraction views ─────────────────────────────────── */
+.bbg-firms-grid     { grid-template-columns: 2fr 80px 100px 80px 140px 90px; }
+.bbg-confirmed-grid { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 1fr 1fr; }
+.bbg-disc-grid      { grid-template-columns: 1.5fr 100px 1fr 1fr 1fr 80px 90px; }
+.bbg-add-grid       { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 90px; }

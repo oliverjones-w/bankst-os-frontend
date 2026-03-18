@@ -1297,3 +1297,267 @@ registerWorkspaceView({
     `;
   },
 });
+
+// ---------------------------------------------------------------------------
+// BBG Extraction — Firms Summary
+// ---------------------------------------------------------------------------
+registerWorkspaceView({
+  id: "bbg.firms",
+  match: (tab) => tab.type === "bbg.firms",
+  toolbar: (_tab) => ({
+    left:  [{ id: "bbg.firms.summary", label: "Summary", active: true }],
+    right: [{ id: "bbg.firms.refresh", label: "Refresh" }],
+  }),
+  render: (tab) => {
+    const firms = tab.state?.data;
+    if (!firms) {
+      return `<div class="table-shell view-placeholder"><span>BBG Extraction</span><p>Loading firms…</p></div>`;
+    }
+
+    const totalConfirmed    = firms.reduce((s, f) => s + (f.confirmed_count    || 0), 0);
+    const totalDiscrepancies = firms.reduce((s, f) => s + (f.discrepancy_count || 0), 0);
+    const totalAdditions    = firms.reduce((s, f) => s + (f.addition_count     || 0), 0);
+
+    const statTiles = `
+      <div class="meta-grid" style="margin-bottom:16px;">
+        <div class="meta-item"><div class="meta-label">Firms</div><div class="meta-value">${firms.length}</div></div>
+        <div class="meta-item"><div class="meta-label">Confirmed</div><div class="meta-value">${totalConfirmed.toLocaleString()}</div></div>
+        <div class="meta-item"><div class="meta-label">Discrepancies</div><div class="meta-value">${totalDiscrepancies.toLocaleString()}</div></div>
+        <div class="meta-item"><div class="meta-label">Additions</div><div class="meta-value">${totalAdditions.toLocaleString()}</div></div>
+      </div>
+    `;
+
+    const firmRow = (f) => {
+      const pct = (f.tracking_pct || 0).toFixed(1);
+      const runDate = f.run_at ? new Date(f.run_at).toLocaleDateString() : "—";
+      return `
+        <div class="table-row-wrap">
+          <div class="table-row-grid bbg-firms-grid">
+            <button class="cell-link" data-open-bbg-firm="${escapeHtml(f.firm_id)}" data-firm-name="${escapeHtml(f.firm_name)}">${escapeHtml(f.firm_name)}</button>
+            <div class="cell-mono">${(f.confirmed_count || 0).toLocaleString()}</div>
+            <div class="cell-mono">${(f.discrepancy_count || 0).toLocaleString()}</div>
+            <div class="cell-mono">${(f.addition_count || 0).toLocaleString()}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="flex:1;height:4px;background:var(--surface-2,rgba(255,255,255,.08));border-radius:2px;overflow:hidden;">
+                  <div style="width:${pct}%;height:100%;background:var(--accent,#4a90d9);border-radius:2px;"></div>
+                </div>
+                <span class="cell-mono" style="min-width:36px;">${pct}%</span>
+              </div>
+            </div>
+            <div class="cell-mono">${runDate}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    const sorted = [...firms].sort((a, b) => (b.tracking_pct || 0) - (a.tracking_pct || 0));
+
+    return `
+      <div class="table-shell">
+        ${statTiles}
+        <div class="table-header-grid bbg-firms-grid">
+          <div>Firm</div>
+          <div>Confirmed</div>
+          <div>Discrepancies</div>
+          <div>Additions</div>
+          <div>Tracking %</div>
+          <div>Last Run</div>
+        </div>
+        ${sorted.map(firmRow).join("")}
+      </div>
+    `;
+  },
+  onActivate: async (tab) => {
+    if (fetchingTabs.has(tab.id)) return;
+    if (tab.state?.data) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}/i;
+      const all  = await mappingGet("/bbg/firms");
+      const data = all.filter(f => UUID_RE.test(f.firm_id));
+      updateActiveTabState({ data }, tab.id);
+    } catch (e) {
+      console.error("[bbg.firms] fetch failed:", e);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+});
+
+// ---------------------------------------------------------------------------
+// BBG Extraction — Firm Detail
+// ---------------------------------------------------------------------------
+registerWorkspaceView({
+  id: "bbg.firm",
+  match: (tab) => tab.type === "bbg.firm",
+  toolbar: (tab) => ({
+    left: [
+      { id: "bbg.firm.confirmed",     label: `Confirmed${tab.state?.runData ? ` (${tab.state.runData.confirmed?.length ?? 0})` : ""}`,     active: (tab.state?.mode || "confirmed") === "confirmed" },
+      { id: "bbg.firm.discrepancies", label: `Discrepancies${tab.state?.runData ? ` (${tab.state.runData.discrepancies?.length ?? 0})` : ""}`, active: tab.state?.mode === "discrepancies" },
+      { id: "bbg.firm.additions",     label: `Additions${tab.state?.runData ? ` (${tab.state.runData.additions?.length ?? 0})` : ""}`,     active: tab.state?.mode === "additions" },
+    ],
+    right: [],
+  }),
+  render: (tab) => {
+    const mode    = tab.state?.mode || "confirmed";
+    const runs    = tab.state?.runs;
+    const runData = tab.state?.runData;
+    const selRunId = tab.state?.selectedRunId;
+    const firmName = tab.title || "Firm";
+
+    if (!runs) {
+      return `<div class="detail-view-shell view-placeholder"><span>${escapeHtml(firmName)}</span><p>Loading extraction data…</p></div>`;
+    }
+
+    // Run selector header
+    const runSelector = `
+      <div class="detail-header" style="margin-bottom:12px;">
+        <div>
+          <div class="detail-title">${escapeHtml(firmName)}</div>
+          <div class="detail-subtitle" style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <label style="font-size:var(--font-size-label,9px);text-transform:uppercase;opacity:.6;">Run</label>
+            <select class="bbg-run-selector" data-tab-id="${escapeHtml(tab.id)}" style="font-size:var(--font-size-data,11px);background:var(--surface-2);border:1px solid var(--border);color:inherit;border-radius:4px;padding:2px 6px;">
+              ${(runs || []).map(r => {
+                const label = `${new Date(r.run_at).toLocaleDateString()} — ${r.csv_filename} (${r.rows_processed} rows)`;
+                return `<option value="${r.run_id}" ${r.run_id === selRunId ? "selected" : ""}>${escapeHtml(label)}</option>`;
+              }).join("")}
+            </select>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (!runData) {
+      return `<div class="detail-view-shell">${runSelector}<p style="opacity:.5">Loading run data…</p></div>`;
+    }
+
+    // Stat tiles
+    const statRow = `
+      <div class="meta-grid" style="margin-bottom:12px;">
+        <div class="meta-item"><div class="meta-label">Confirmed</div><div class="meta-value">${(runData.confirmed?.length || 0).toLocaleString()}</div></div>
+        <div class="meta-item"><div class="meta-label">Discrepancies</div><div class="meta-value">${(runData.discrepancies?.length || 0).toLocaleString()}</div></div>
+        <div class="meta-item"><div class="meta-label">Additions</div><div class="meta-value">${(runData.additions?.length || 0).toLocaleString()}</div></div>
+        <div class="meta-item"><div class="meta-label">Rows Processed</div><div class="meta-value">${(runs.find(r => r.run_id === selRunId)?.rows_processed || 0).toLocaleString()}</div></div>
+      </div>
+    `;
+
+    // Search input
+    const searchInput = `
+      <div style="margin-bottom:8px;">
+        <input class="bbg-search-input" data-tab-id="${escapeHtml(tab.id)}" data-mode="${mode}" type="text" placeholder="Filter by name…"
+          style="width:100%;max-width:320px;font-size:var(--font-size-data,11px);padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface-2);color:inherit;"
+          value="${escapeHtml(tab.state?.searchQuery || "")}" />
+      </div>
+    `;
+
+    const q = (tab.state?.searchQuery || "").toLowerCase();
+    const filterByName = (arr) => q ? arr.filter(r => (r.name || "").toLowerCase().includes(q)) : arr;
+    const esc = escapeHtml;
+
+    let tableHtml = "";
+
+    if (mode === "confirmed") {
+      const rows = filterByName(runData.confirmed || []);
+      tableHtml = `
+        <div class="table-header-grid bbg-confirmed-grid">
+          <div>Name</div><div>Firm</div><div>Title</div><div>Function</div><div>Strategy</div><div>Products</div><div>Location</div>
+        </div>
+        ${rows.map(r => `
+          <div class="table-row-wrap">
+            <div class="table-row-grid bbg-confirmed-grid">
+              <div>${esc(r.name || "")}</div>
+              <div>${esc(r.firm || "")}</div>
+              <div>${esc(r.title || "")}</div>
+              <div>${esc(r.function || "")}</div>
+              <div>${esc(r.strategy || "")}</div>
+              <div>${esc(r.products || "")}</div>
+              <div>${esc(r.location || "")}</div>
+            </div>
+          </div>
+        `).join("")}
+        ${rows.length === 0 ? `<div style="padding:16px;opacity:.5;">No records match filter.</div>` : ""}
+      `;
+    } else if (mode === "discrepancies") {
+      const rows = filterByName(runData.discrepancies || []);
+      tableHtml = `
+        <div class="table-header-grid bbg-disc-grid">
+          <div>Name</div><div>Field</div><div>BBG Value</div><div>Master Value</div><div>Alias Info</div><div>Status</div><div>First Seen</div>
+        </div>
+        ${rows.map(r => `
+          <div class="table-row-wrap">
+            <div class="table-row-grid bbg-disc-grid">
+              <div>${esc(r.name || "")}</div>
+              <div class="cell-mono">${esc(r.discrepancy_field || "")}</div>
+              <div>${esc(r.new_file_value || "")}</div>
+              <div>${esc(r.master_file_values || "")}</div>
+              <div style="font-size:10px;opacity:.7;">${esc(r.alias_check_info || "")}</div>
+              <div><span class="alias-tag ${r.status === "Active" ? "" : "alias-tag--platform"}">${esc(r.status || "")}</span></div>
+              <div class="cell-mono">${r.first_seen ? new Date(r.first_seen).toLocaleDateString() : "—"}</div>
+            </div>
+          </div>
+        `).join("")}
+        ${rows.length === 0 ? `<div style="padding:16px;opacity:.5;">No discrepancies match filter.</div>` : ""}
+      `;
+    } else if (mode === "additions") {
+      const rows = filterByName(runData.additions || []);
+      tableHtml = `
+        <div class="table-header-grid bbg-add-grid">
+          <div>Name</div><div>BBG Company</div><div>Canonical</div><div>Title</div><div>Location</div><div>First Seen</div>
+        </div>
+        ${rows.map(r => `
+          <div class="table-row-wrap">
+            <div class="table-row-grid bbg-add-grid">
+              <div>${esc(r.name || "")}</div>
+              <div>${esc(r.company || "")}</div>
+              <div>${esc(r.canonical_company || "")}</div>
+              <div>${esc(r.title || "")}</div>
+              <div>${esc(r.location || "")}</div>
+              <div class="cell-mono">${r.first_seen ? new Date(r.first_seen).toLocaleDateString() : "—"}</div>
+            </div>
+          </div>
+        `).join("")}
+        ${rows.length === 0 ? `<div style="padding:16px;opacity:.5;">No additions match filter.</div>` : ""}
+      `;
+    }
+
+    return `
+      <div class="detail-view-shell">
+        ${runSelector}
+        ${statRow}
+        ${searchInput}
+        <div class="table-shell" style="margin-top:0;">
+          ${tableHtml}
+        </div>
+      </div>
+    `;
+  },
+  onActivate: async (tab) => {
+    if (fetchingTabs.has(tab.id)) return;
+    if (tab.state?.runs) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const runs = await mappingGet(`/bbg/firms/${tab.entityId}/runs`);
+      if (!runs || runs.length === 0) {
+        updateActiveTabState({ runs: [] }, tab.id);
+        return;
+      }
+      const latestRunId = runs[0].run_id;
+      const [confirmed, discrepancies, additions] = await Promise.all([
+        mappingGet(`/bbg/runs/${latestRunId}/confirmed`),
+        mappingGet(`/bbg/runs/${latestRunId}/discrepancies`),
+        mappingGet(`/bbg/runs/${latestRunId}/additions`),
+      ]);
+      updateActiveTabState({
+        runs,
+        selectedRunId: latestRunId,
+        runData: { confirmed, discrepancies, additions },
+        mode: "confirmed",
+      }, tab.id);
+    } catch (e) {
+      console.error("[bbg.firm] fetch failed:", e);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+});

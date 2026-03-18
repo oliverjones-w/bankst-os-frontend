@@ -8,11 +8,11 @@ import {
   renderWorkspaceSnapshots, loadWorkspaceSnapshotById,
   applyWorkspaceSnapshot, deleteWorkspaceSnapshot,
   createWorkspaceSnapshot, handleToolbarAction, setRailRenderer,
-  getActivePane, splitPane, getActiveTab,
+  getActivePane, splitPane, getActiveTab, updateActiveTabState,
 } from "./workspace.js";
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
-import { openPersonTab, openFirmTab, openFirmCard, openFinraTab } from "./nav.js";
+import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab } from "./nav.js";
 import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
@@ -37,6 +37,39 @@ document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
 
 // Allow nav.js runCommand to trigger rail toggle via CustomEvent
 document.addEventListener("bankst:toggleRightRail", toggleRightRail);
+
+// ── BBG run selector ───────────────────────────────────────────────────────────
+document.addEventListener("change", (e) => {
+  const sel = e.target.closest(".bbg-run-selector");
+  if (!sel) return;
+  const tabId = sel.dataset.tabId;
+  const runId = parseInt(sel.value, 10);
+  document.dispatchEvent(new CustomEvent("bankst:bbgRunChange", { detail: { tabId, runId } }));
+});
+
+// ── BBG search input ───────────────────────────────────────────────────────────
+document.addEventListener("input", (e) => {
+  const inp = e.target.closest(".bbg-search-input");
+  if (!inp) return;
+  const tabId = inp.dataset.tabId;
+  updateActiveTabState({ searchQuery: inp.value }, tabId);
+});
+
+// ── BBG run change ─────────────────────────────────────────────────────────────
+document.addEventListener("bankst:bbgRunChange", async (e) => {
+  const { tabId, runId } = e.detail;
+  updateActiveTabState({ selectedRunId: runId, runData: null }, tabId);
+  try {
+    const [confirmed, discrepancies, additions] = await Promise.all([
+      mappingGet(`/bbg/runs/${runId}/confirmed`),
+      mappingGet(`/bbg/runs/${runId}/discrepancies`),
+      mappingGet(`/bbg/runs/${runId}/additions`),
+    ]);
+    updateActiveTabState({ runData: { confirmed, discrepancies, additions } }, tabId);
+  } catch (err) {
+    console.error("[bbgRunChange] fetch failed:", err);
+  }
+});
 
 // Workspace snapshot save button
 document.getElementById("saveWorkspaceSnapshotBtn")?.addEventListener("click", () => {
@@ -98,6 +131,7 @@ document.addEventListener("click", (e) => {
     if (t === "hf.table")       openTab({ id: "tab-hf-table",       type: "hf.table",       title: "HF Map",     state: {} });
     if (t === "ir.table")       openTab({ id: "tab-ir-table",       type: "ir.table",       title: "IR Map",     state: {} });
     if (t === "perf.dashboard") openTab({ id: "tab-perf-dashboard", type: "perf.dashboard", title: "Performance", state: {} });
+    if (t === "bbg.firms") { openBbgFirmsTab(); return; }
     return;
   }
 
@@ -120,6 +154,14 @@ document.addEventListener("click", (e) => {
   if (delSnapshotTrigger) {
     deleteWorkspaceSnapshot(delSnapshotTrigger.dataset.deleteWorkspaceSnapshot);
     renderWorkspaceSnapshots();
+    return;
+  }
+
+  const bbgFirmBtn = e.target.closest("[data-open-bbg-firm]");
+  if (bbgFirmBtn) {
+    const firmId   = bbgFirmBtn.dataset.openBbgFirm;
+    const firmName = bbgFirmBtn.dataset.firmName || firmId;
+    openBbgFirmTab(firmId, firmName);
     return;
   }
 

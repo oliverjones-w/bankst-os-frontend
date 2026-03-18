@@ -64,6 +64,26 @@ export function openHfTab() {
   openTab({ id: "tab-hf-table", type: "hf.table", title: "HF Map", state: {} });
 }
 
+export function openBbgFirmsTab() {
+  openTab({
+    id:    "tab-bbg-firms",
+    type:  "bbg.firms",
+    title: "BBG Extraction",
+    state: {},
+  });
+}
+
+export function openBbgFirmTab(firmId, firmName) {
+  openTab({
+    id:         `tab-bbg-firm-${firmId}`,
+    type:       "bbg.firm",
+    entityType: "bbg_firm",
+    entityId:   firmId,
+    title:      firmName || "BBG Firm",
+    state:      { mode: "confirmed" },
+  });
+}
+
 export function runCommand(commandId) {
   if (commandId === "toggle-right-rail") {
     document.dispatchEvent(new CustomEvent("bankst:toggleRightRail"));
