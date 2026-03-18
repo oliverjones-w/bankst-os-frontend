@@ -1396,7 +1396,52 @@
 }
 
 /* Compact detail shell — tighter gap for data-dense views */
-.detail-view-shell--compact { gap: 12px; }
+.detail-view-shell--compact  { gap: 12px; }
+
+/* Analytics view — slightly looser to breathe between chart sections */
+.detail-view-shell--analytics { gap: 20px; }
+
+/* ── BBG Analytics layout ─────────────────────────────────── */
+
+/* Section wrapper — label + chart */
+.bbg-analytics-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Larger stat value for analytics tiles */
+.meta-value--lg {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Section header label */
+.bbg-analytics-label {
+  font-family: var(--font-interface);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Two-column grid for location + field charts */
+.bbg-analytics-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Run history table grid */
+.bbg-runs-hist-grid { grid-template-columns: 110px 2fr 65px 52px 52px 48px 130px; }
+.table-row-grid.bbg-runs-hist-grid { padding-right: 24px; }
+.bbg-runs-hist-grid > div { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── BBG Extraction views ─────────────────────────────────── */
 

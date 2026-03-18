@@ -1457,27 +1457,43 @@ registerWorkspaceView({
 
 function _bbgTrendChart(runs) {
   if (!runs || runs.length < 2) {
-    return `<p style="opacity:.5;font-size:11px;padding:4px 0 12px;">Need at least 2 runs to show trends.</p>`;
+    return `<p style="opacity:.5;font-size:11px;padding:12px 0;">Need at least 2 runs to show trends.</p>`;
   }
   const data = [...runs].reverse(); // oldest → newest
-  const W = 480, H = 150, PL = 42, PR = 12, PT = 10, PB = 32;
+  const W = 580, H = 190, PL = 46, PR = 52, PT = 14, PB = 38;
   const iW = W - PL - PR, iH = H - PT - PB;
   const n = data.length;
   const xOf = i => PL + (i / Math.max(n - 1, 1)) * iW;
+
   const series = [
     { key: "confirmed_count",   color: "#4ade80", label: "Confirmed" },
     { key: "discrepancy_count", color: "#f87171", label: "Discrepancies" },
     { key: "addition_count",    color: "#60a5fa", label: "Additions" },
   ];
   const maxVal = Math.max(...series.flatMap(s => data.map(d => d[s.key] || 0)), 1);
-  const yOf = v => PT + (1 - v / maxVal) * iH;
+  const yOf  = v   => PT + (1 - v / maxVal) * iH;
+  const yPct = pct => PT + (1 - pct / 100) * iH;
 
+  // Grid lines + left Y axis
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map(f => {
     const y = PT + f * iH, v = Math.round(maxVal * (1 - f));
-    return `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W - PR}" y2="${y.toFixed(1)}" stroke="var(--border-subtle)" stroke-width="1"/>` +
+    return `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W - PR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>` +
            `<text x="${PL - 5}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--text-faint)">${v}</text>`;
   }).join("");
 
+  // Right Y axis — tracking %
+  const rightAxis = [0, 25, 50, 75, 100].map(pct => {
+    const y = yPct(pct);
+    return `<text x="${W - PR + 6}" y="${(y + 3.5).toFixed(1)}" text-anchor="start" font-size="9" fill="#a78bfa" opacity=".5">${pct}%</text>`;
+  }).join("");
+
+  // Area fills (subtle gradient effect)
+  const areas = series.map(s => {
+    const pts = data.map((row, i) => `${xOf(i).toFixed(1)},${yOf(row[s.key] || 0).toFixed(1)}`).join(" ");
+    return `<polygon points="${xOf(0).toFixed(1)},${(PT + iH).toFixed(1)} ${pts} ${xOf(n - 1).toFixed(1)},${(PT + iH).toFixed(1)}" fill="${s.color}" opacity=".05"/>`;
+  }).join("");
+
+  // Lines
   const paths = series.map(s => {
     const d = data.map((row, i) =>
       `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(row[s.key] || 0).toFixed(1)}`
@@ -1485,29 +1501,43 @@ function _bbgTrendChart(runs) {
     return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;
   }).join("");
 
-  const dots = series.map(s => {
-    const last = data[n - 1];
-    return `<circle cx="${xOf(n - 1).toFixed(1)}" cy="${yOf(last[s.key] || 0).toFixed(1)}" r="2.5" fill="${s.color}"/>`;
-  }).join("");
+  // Tracking % dashed line
+  const trackPath = data.map((row, i) =>
+    `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yPct(row.tracking_pct || 0).toFixed(1)}`
+  ).join(" ");
+  const trackLine = `<path d="${trackPath}" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5,3" stroke-linejoin="round" opacity=".75"/>`;
 
-  const step = Math.max(1, Math.ceil(n / 5));
+  // Dots at every data point
+  const dots = series.flatMap(s =>
+    data.map((row, i) => `<circle cx="${xOf(i).toFixed(1)}" cy="${yOf(row[s.key] || 0).toFixed(1)}" r="2.2" fill="${s.color}" opacity=".85"/>`)
+  ).join("");
+  const trackDots = data.map((row, i) =>
+    `<circle cx="${xOf(i).toFixed(1)}" cy="${yPct(row.tracking_pct || 0).toFixed(1)}" r="2.2" fill="#a78bfa" opacity=".7"/>`
+  ).join("");
+
+  // X-axis labels
+  const step = Math.max(1, Math.ceil(n / 6));
   const xLabels = data.filter((_, i) => i % step === 0 || i === n - 1).map(row => {
     const i = data.indexOf(row);
     const dt = new Date(row.run_at);
-    return `<text x="${xOf(i).toFixed(1)}" y="${H - 2}" text-anchor="middle" font-size="9" fill="var(--text-faint)">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
+    const time = dt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    return `<text x="${xOf(i).toFixed(1)}" y="${H - 18}" text-anchor="middle" font-size="9" fill="var(--text-faint)">${dt.getMonth() + 1}/${dt.getDate()}</text>` +
+           `<text x="${xOf(i).toFixed(1)}" y="${H - 7}" text-anchor="middle" font-size="8" fill="var(--text-faint)" opacity=".5">${time}</text>`;
   }).join("");
 
-  const legend = series.map((s, i) =>
-    `<g transform="translate(${PL + i * 110},${H + 6})">` +
-    `<rect x="0" y="0" width="8" height="8" rx="1" fill="${s.color}" opacity=".9"/>` +
-    `<text x="12" y="7.5" font-size="9" fill="var(--text-muted)">${s.label}</text></g>`
+  // Legend
+  const allSeries = [...series, { color: "#a78bfa", label: "Track %" }];
+  const legend = allSeries.map((s, i) =>
+    `<g transform="translate(${PL + i * 108}, ${H + 8})">` +
+    `<rect x="0" y="1" width="8" height="8" rx="1.5" fill="${s.color}" opacity=".9"/>` +
+    `<text x="13" y="8.5" font-size="9" fill="var(--text-muted)">${s.label}</text></g>`
   ).join("");
 
-  return `<svg viewBox="0 0 ${W} ${H + 20}" style="width:100%;max-width:${W}px;display:block;overflow:visible;">${gridLines}${paths}${dots}${xLabels}${legend}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H + 24}" style="width:100%;display:block;overflow:visible;">${gridLines}${rightAxis}${areas}${paths}${trackLine}${dots}${trackDots}${xLabels}${legend}</svg>`;
 }
 
 function _bbgLocationChart(confirmed) {
-  if (!confirmed?.length) return `<p style="opacity:.5;font-size:11px;padding:4px 0 12px;">No confirmed records to chart.</p>`;
+  if (!confirmed?.length) return `<p style="opacity:.5;font-size:11px;padding:12px 0;">No confirmed records.</p>`;
   const counts = {};
   for (const r of confirmed) {
     const loc = (r.location || "Unknown").trim() || "Unknown";
@@ -1516,18 +1546,77 @@ function _bbgLocationChart(confirmed) {
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
   if (!sorted.length) return "";
   const maxCount = sorted[0][1];
-  const BAR_H = 16, GAP = 5, LABEL_W = 120, BAR_MAX = 220, NUM_W = 34;
+  const BAR_H = 15, GAP = 5, LABEL_W = 110, BAR_MAX = 190, NUM_W = 30;
   const W = LABEL_W + BAR_MAX + NUM_W;
   const H = sorted.length * (BAR_H + GAP) - GAP;
   const bars = sorted.map(([loc, count], i) => {
     const y  = i * (BAR_H + GAP);
     const bw = Math.max(2, (count / maxCount) * BAR_MAX);
-    const lbl = loc.length > 18 ? loc.slice(0, 17) + "…" : loc;
-    return `<text x="${LABEL_W - 6}" y="${y + BAR_H - 3}" text-anchor="end" font-size="10" fill="var(--text-muted)">${escapeHtml(lbl)}</text>` +
-           `<rect x="${LABEL_W}" y="${y}" width="${bw.toFixed(1)}" height="${BAR_H}" rx="2" fill="var(--interactive-accent)" opacity=".65"/>` +
-           `<text x="${(LABEL_W + bw + 5).toFixed(1)}" y="${y + BAR_H - 3}" font-size="10" fill="var(--text-faint)">${count}</text>`;
+    const lbl = loc.length > 17 ? loc.slice(0, 16) + "…" : loc;
+    return `<text x="${LABEL_W - 6}" y="${y + BAR_H - 2}" text-anchor="end" font-size="9.5" fill="var(--text-muted)">${escapeHtml(lbl)}</text>` +
+           `<rect x="${LABEL_W}" y="${y}" width="${bw.toFixed(1)}" height="${BAR_H}" rx="2" fill="var(--interactive-accent)" opacity=".6"/>` +
+           `<text x="${(LABEL_W + bw + 5).toFixed(1)}" y="${y + BAR_H - 2}" font-size="9.5" fill="var(--text-faint)">${count}</text>`;
   }).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block;">${bars}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;">${bars}</svg>`;
+}
+
+function _bbgFieldChart(discrepancies) {
+  if (!discrepancies?.length) return `<p style="opacity:.5;font-size:11px;padding:12px 0;">No discrepancies in current run.</p>`;
+  const counts = {};
+  for (const d of discrepancies) {
+    const f = d.discrepancy_field || "unknown";
+    counts[f] = (counts[f] || 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!sorted.length) return "";
+  const maxCount = sorted[0][1];
+  const BAR_H = 14, GAP = 5, LABEL_W = 80, BAR_MAX = 190, NUM_W = 28;
+  const W = LABEL_W + BAR_MAX + NUM_W;
+  const H = sorted.length * (BAR_H + GAP) - GAP;
+  const bars = sorted.map(([field, count], i) => {
+    const y  = i * (BAR_H + GAP);
+    const bw = Math.max(2, (count / maxCount) * BAR_MAX);
+    const lbl = field.length > 12 ? field.slice(0, 11) + "…" : field;
+    return `<text x="${LABEL_W - 6}" y="${y + BAR_H - 2}" text-anchor="end" font-size="9.5" fill="var(--text-muted)">${escapeHtml(lbl)}</text>` +
+           `<rect x="${LABEL_W}" y="${y}" width="${bw.toFixed(1)}" height="${BAR_H}" rx="2" fill="#f87171" opacity=".55"/>` +
+           `<text x="${(LABEL_W + bw + 5).toFixed(1)}" y="${y + BAR_H - 2}" font-size="9.5" fill="var(--text-faint)">${count}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block;">${bars}</svg>`;
+}
+
+function _bbgRunHistoryTable(runs, selectedRunId) {
+  if (!runs?.length) return "";
+  const esc = escapeHtml;
+  const rows = runs.map(r => {
+    const dt   = new Date(r.run_at);
+    const date = `${dt.getMonth() + 1}/${dt.getDate()} ${dt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+    const pct  = (r.tracking_pct || 0).toFixed(1);
+    const hot  = r.run_id === selectedRunId ? " table-row-grid--hot" : "";
+    return `
+      <div class="table-row-wrap">
+        <div class="table-row-grid bbg-runs-hist-grid${hot}">
+          <div class="cell-mono">${date}</div>
+          <div>${esc(r.csv_filename || "")}</div>
+          <div class="cell-mono">${(r.rows_processed || 0).toLocaleString()}</div>
+          <div class="cell-mono" style="color:#4ade80;">${(r.confirmed_count || 0).toLocaleString()}</div>
+          <div class="cell-mono" style="color:#f87171;">${(r.discrepancy_count || 0).toLocaleString()}</div>
+          <div class="cell-mono" style="color:#60a5fa;">${(r.addition_count || 0).toLocaleString()}</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div style="flex:1;height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:var(--interactive-accent);border-radius:2px;"></div>
+              </div>
+              <span class="cell-mono" style="font-size:9px;min-width:30px;">${pct}%</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+  return `
+    <div class="table-header-grid bbg-runs-hist-grid">
+      <div>Date / Time</div><div>File</div><div>Rows</div><div>Conf</div><div>Disc</div><div>Add</div><div>Tracking</div>
+    </div>
+    ${rows}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1815,20 +1904,32 @@ registerWorkspaceView({
     }
 
     if (mode === "analytics") {
-      const chartLabel = (text) =>
-        `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:8px;">${text}</div>`;
+      const sec = (label, content) => `
+        <div class="bbg-analytics-section">
+          <div class="bbg-analytics-label">${label}</div>
+          ${content}
+        </div>`;
+      const currentRun = runs?.find(r => r.run_id === selRunId) || runs?.[0];
+      const analyticsStats = currentRun ? `
+        <div class="bbg-stat-row">
+          <div class="meta-item"><div class="meta-label">Confirmed</div><div class="meta-value meta-value--lg" style="color:#4ade80;">${(currentRun.confirmed_count || 0).toLocaleString()}</div></div>
+          <div class="meta-item"><div class="meta-label">Discrepancies</div><div class="meta-value meta-value--lg" style="color:#f87171;">${(currentRun.discrepancy_count || 0).toLocaleString()}</div></div>
+          <div class="meta-item"><div class="meta-label">Additions</div><div class="meta-value meta-value--lg" style="color:#60a5fa;">${(currentRun.addition_count || 0).toLocaleString()}</div></div>
+          <div class="meta-item"><div class="meta-label">Tracking</div><div class="meta-value meta-value--lg" style="color:#a78bfa;">${currentRun.tracking_pct?.toFixed(1) ?? "—"}%</div></div>
+        </div>` : "";
       return `
-        <div class="detail-view-shell detail-view-shell--compact">
+        <div class="detail-view-shell detail-view-shell--analytics">
           ${firmTerminal}
           ${runSelector}
-          <div>
-            ${chartLabel("Extraction Trends — All Runs")}
-            ${_bbgTrendChart(runs)}
+          ${analyticsStats}
+          ${sec("Extraction Trends — All Runs", _bbgTrendChart(runs))}
+          <div class="bbg-analytics-2col">
+            ${sec("Location Distribution — Current Run",
+              runData ? _bbgLocationChart(runData.confirmed) : `<p style="opacity:.5;font-size:11px;">Loading…</p>`)}
+            ${sec("Discrepancy Fields — Current Run",
+              runData ? _bbgFieldChart(runData.discrepancies) : `<p style="opacity:.5;font-size:11px;">Loading…</p>`)}
           </div>
-          <div>
-            ${chartLabel("Location Distribution — Current Run")}
-            ${runData ? _bbgLocationChart(runData.confirmed) : `<p style="opacity:.5;font-size:11px;">Loading run data…</p>`}
-          </div>
+          ${sec("Run History", _bbgRunHistoryTable(runs, selRunId))}
         </div>
       `;
     }
