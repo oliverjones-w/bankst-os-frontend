@@ -360,8 +360,8 @@ export function handleToolbarAction(actionId) {
     case "firm.detail.reminder": console.log("[toolbar] create firm reminder"); break;
     case "firms.table.mode.table": break;
     case "firms.table.refresh":    updateActiveTabState({ firms: undefined, error: null }); break;
-    case "hf.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
-    case "ir.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
+    case "hf.table.refresh": updateActiveTabState({ records: undefined, recordsComplete: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
+    case "ir.table.refresh": updateActiveTabState({ records: undefined, recordsComplete: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
     case "hf.table.save-view":
     case "ir.table.save-view": {
       const tab = getActiveTab();

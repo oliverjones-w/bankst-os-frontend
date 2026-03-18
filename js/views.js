@@ -721,6 +721,12 @@ registerWorkspaceView({
           mappingGet("/hf/daily-changes?days=60"),
         ]);
         updateActiveTabState({ records: [...records, ...rest], recordsComplete: true, allChanges, dailyChanges }, tab.id);
+        const countEl = document.getElementById("hfSearchCount");
+        if (countEl) {
+          countEl.textContent = `All ${(records.length + rest.length).toLocaleString()} records ready`;
+          countEl.style.color = "var(--text-accent, var(--interactive-accent))";
+          setTimeout(() => { countEl.style.color = ""; }, 3000);
+        }
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {
@@ -842,6 +848,12 @@ registerWorkspaceView({
           mappingGet("/ir/daily-changes?days=60"),
         ]);
         updateActiveTabState({ records: [...records, ...rest], recordsComplete: true, allChanges, dailyChanges }, tab.id);
+        const countEl = document.getElementById("irSearchCount");
+        if (countEl) {
+          countEl.textContent = `All ${(records.length + rest.length).toLocaleString()} records ready`;
+          countEl.style.color = "var(--text-accent, var(--interactive-accent))";
+          setTimeout(() => { countEl.style.color = ""; }, 3000);
+        }
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {
