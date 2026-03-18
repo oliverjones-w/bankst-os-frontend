@@ -783,10 +783,16 @@ registerWorkspaceView({
   },
 });
 
+const MAP_DISPLAY_LIMIT = 500;
+
 function hfTableBody(filtered, total) {
   if (!filtered?.length)
     return `<div class="master-empty">No matches for current filters.</div>`;
-  return filtered.map(r => `
+  const rows = filtered.slice(0, MAP_DISPLAY_LIMIT);
+  const overflow = filtered.length > MAP_DISPLAY_LIMIT
+    ? `<div class="master-empty" style="padding:12px 16px;">Showing ${MAP_DISPLAY_LIMIT.toLocaleString()} of ${filtered.length.toLocaleString()} matches — refine your search to see more.</div>`
+    : "";
+  return rows.map(r => `
     <div class="master-table-row-grid hf-table-grid" data-select-map-record="${escapeHtml(r.id)}" data-map-source="hf" style="cursor:pointer;">
       <div class="truncate" style="color:var(--text-normal);font-weight:500;">${escapeHtml(r.name || "—")}</div>
       <div class="truncate">${escapeHtml(r.firm || "—")}</div>
@@ -803,7 +809,7 @@ function hfTableBody(filtered, total) {
           title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
       </div>
     </div>
-  `).join("");
+  `).join("") + overflow;
 }
 
 function countLabel(filtered, total) {
@@ -909,7 +915,11 @@ function skeletonGrid(cols, gridClass) {
 function irTableBody(filtered, total) {
   if (!filtered?.length)
     return `<div class="master-empty">No matches for current filters.</div>`;
-  return filtered.map(r => {
+  const rows = filtered.slice(0, MAP_DISPLAY_LIMIT);
+  const overflow = filtered.length > MAP_DISPLAY_LIMIT
+    ? `<div class="master-empty" style="padding:12px 16px;">Showing ${MAP_DISPLAY_LIMIT.toLocaleString()} of ${filtered.length.toLocaleString()} matches — refine your search to see more.</div>`
+    : "";
+  return rows.map(r => {
     const joined = r.date_joined && r.date_joined !== "Pending"
       ? r.date_joined.slice(0, 7)
       : (r.date_joined || "—");
@@ -936,7 +946,7 @@ function irTableBody(filtered, total) {
           title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
       </div>
     </div>
-  `}).join("");
+  `}).join("") + overflow;
 }
 
 // ── IR Firm composition helpers ────────────────────────────────────────────────
