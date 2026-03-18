@@ -387,6 +387,18 @@ export function handleToolbarAction(actionId) {
     case "bbg.firm.discrepancies": updateActiveTabState({ mode: "discrepancies", searchQuery: "" }); break;
     case "bbg.firm.additions":     updateActiveTabState({ mode: "additions",     searchQuery: "" }); break;
     case "bbg.firm.analytics":     updateActiveTabState({ mode: "analytics" });                      break;
+    case "bbg.firm.delta": {
+      updateActiveTabState({ mode: "delta", deltaData: null });
+      const _dt = getActiveTab();
+      if (_dt) document.dispatchEvent(new CustomEvent("bankst:bbgDeltaFetch", { detail: { tabId: _dt.id } }));
+      break;
+    }
+    case "bbg.firm.persistence": {
+      updateActiveTabState({ mode: "persistence", persistenceData: null });
+      const _pt = getActiveTab();
+      if (_pt) document.dispatchEvent(new CustomEvent("bankst:bbgPersistenceFetch", { detail: { tabId: _pt.id, firmId: _pt.entityId } }));
+      break;
+    }
     case "bbg.firms.refresh":      updateActiveTabState({ data: undefined }); break;
     case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
     case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;

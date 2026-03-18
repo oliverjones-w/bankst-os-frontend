@@ -1383,6 +1383,51 @@
 .bbg-disc-grid      { grid-template-columns: 1.5fr 100px 1fr 1fr 1fr 80px 90px; }
 .bbg-add-grid       { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 90px; }
 
+/* ── BBG delta + persistence views ───────────────────────── */
+.bbg-delta-conf-grid  { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr; }
+.bbg-delta-disc-grid  { grid-template-columns: 1.5fr 100px 1fr 1fr; }
+.bbg-delta-add-grid   { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr; }
+.bbg-persist-grid     { grid-template-columns: 1.5fr 90px 1fr 1fr 90px 90px 80px; }
+
+.delta-section-header {
+  font-family: var(--font-interface);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delta-count {
+  background: currentColor;
+  color: var(--bg-stage);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.delta-zero {
+  opacity: .3;
+  font-size: 10px;
+}
+
+.persist-badge {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.persist-low  { background: rgba(255,255,255,.06); color: var(--text-muted); }
+.persist-mid  { background: rgba(251,146,60,.15);  color: #fb923c; }
+.persist-high { background: rgba(248,113,113,.18); color: #f87171; }
+
 /* ── BBG extraction terminal ──────────────────────────────── */
 .bbg-terminal {
   font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);

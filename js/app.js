@@ -38,13 +38,29 @@ document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
 // Allow nav.js runCommand to trigger rail toggle via CustomEvent
 document.addEventListener("bankst:toggleRightRail", toggleRightRail);
 
-// ── BBG run selector ───────────────────────────────────────────────────────────
+// ── BBG run selector + delta selectors ────────────────────────────────────────
 document.addEventListener("change", (e) => {
   const sel = e.target.closest(".bbg-run-selector");
-  if (!sel) return;
-  const tabId = sel.dataset.tabId;
-  const runId = parseInt(sel.value, 10);
-  document.dispatchEvent(new CustomEvent("bankst:bbgRunChange", { detail: { tabId, runId } }));
+  if (sel) {
+    document.dispatchEvent(new CustomEvent("bankst:bbgRunChange", {
+      detail: { tabId: sel.dataset.tabId, runId: parseInt(sel.value, 10) },
+    }));
+    return;
+  }
+
+  const da = e.target.closest(".bbg-delta-run-a");
+  if (da) {
+    updateActiveTabState({ deltaRunA: parseInt(da.value, 10), deltaData: null }, da.dataset.tabId);
+    document.dispatchEvent(new CustomEvent("bankst:bbgDeltaFetch", { detail: { tabId: da.dataset.tabId } }));
+    return;
+  }
+
+  const db_ = e.target.closest(".bbg-delta-run-b");
+  if (db_) {
+    updateActiveTabState({ deltaRunB: parseInt(db_.value, 10), deltaData: null }, db_.dataset.tabId);
+    document.dispatchEvent(new CustomEvent("bankst:bbgDeltaFetch", { detail: { tabId: db_.dataset.tabId } }));
+    return;
+  }
 });
 
 // ── BBG search input ───────────────────────────────────────────────────────────
@@ -161,6 +177,33 @@ document.addEventListener("bankst:bbgRunChange", async (e) => {
     updateActiveTabState({ runData: { confirmed, discrepancies, additions } }, tabId);
   } catch (err) {
     console.error("[bbgRunChange] fetch failed:", err);
+  }
+});
+
+// ── BBG delta fetch ────────────────────────────────────────────────────────────
+document.addEventListener("bankst:bbgDeltaFetch", async (e) => {
+  const { tabId } = e.detail;
+  const tab = workspaceState.tabs?.find(t => t.id === tabId);
+  if (!tab) return;
+  const runA = tab.state?.deltaRunA ?? tab.state?.runs?.[1]?.run_id;
+  const runB = tab.state?.deltaRunB ?? tab.state?.runs?.[0]?.run_id;
+  if (!runA || !runB || runA === runB) return;
+  try {
+    const delta = await mappingGet(`/bbg/delta?run_a=${runA}&run_b=${runB}`);
+    updateActiveTabState({ deltaData: delta, deltaRunA: runA, deltaRunB: runB }, tabId);
+  } catch (err) {
+    console.error("[bbgDeltaFetch] failed:", err);
+  }
+});
+
+// ── BBG persistence fetch (triggered when entering persistence mode) ───────────
+document.addEventListener("bankst:bbgPersistenceFetch", async (e) => {
+  const { tabId, firmId } = e.detail;
+  try {
+    const data = await mappingGet(`/bbg/firms/${firmId}/discrepancy-persistence`);
+    updateActiveTabState({ persistenceData: data }, tabId);
+  } catch (err) {
+    console.error("[bbgPersistenceFetch] failed:", err);
   }
 });
 

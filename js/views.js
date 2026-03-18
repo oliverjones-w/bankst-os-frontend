@@ -1539,10 +1539,12 @@ registerWorkspaceView({
     const runData = tab.state?.runData;
     return {
       left: [
-        { id: "bbg.firm.confirmed",     label: `Confirmed${runData ? ` (${runData.confirmed?.length ?? 0})` : ""}`,     active: mode === "confirmed" },
-        { id: "bbg.firm.discrepancies", label: `Discrepancies${runData ? ` (${runData.discrepancies?.length ?? 0})` : ""}`, active: mode === "discrepancies" },
-        { id: "bbg.firm.additions",     label: `Additions${runData ? ` (${runData.additions?.length ?? 0})` : ""}`,     active: mode === "additions" },
-        { id: "bbg.firm.analytics",     label: "Analytics",                                                              active: mode === "analytics" },
+        { id: "bbg.firm.confirmed",    label: `Confirmed${runData ? ` (${runData.confirmed?.length ?? 0})` : ""}`,     active: mode === "confirmed" },
+        { id: "bbg.firm.discrepancies",label: `Discrepancies${runData ? ` (${runData.discrepancies?.length ?? 0})` : ""}`, active: mode === "discrepancies" },
+        { id: "bbg.firm.additions",    label: `Additions${runData ? ` (${runData.additions?.length ?? 0})` : ""}`,     active: mode === "additions" },
+        { id: "bbg.firm.analytics",    label: "Analytics",   active: mode === "analytics" },
+        { id: "bbg.firm.delta",        label: "Delta",        active: mode === "delta" },
+        { id: "bbg.firm.persistence",  label: "Persistence",  active: mode === "persistence" },
       ],
       right: [],
     };
@@ -1678,6 +1680,137 @@ registerWorkspaceView({
           </div>
         `).join("")}
         ${rows.length === 0 ? `<div style="padding:16px;opacity:.5;">No additions match filter.</div>` : ""}
+      `;
+    }
+
+    // ── Delta view ────────────────────────────────────────────────────────────
+    if (mode === "delta") {
+      if (!runs || runs.length < 2) {
+        return `<div class="detail-view-shell view-placeholder"><span>Delta</span><p>Need at least 2 runs to compare.</p></div>`;
+      }
+
+      const deltaRunA  = tab.state?.deltaRunA  ?? runs[1]?.run_id;
+      const deltaRunB  = tab.state?.deltaRunB  ?? runs[0]?.run_id;
+      const deltaData  = tab.state?.deltaData;
+
+      const runOpts = (selectedId) => runs.map(r => {
+        const label = `${new Date(r.run_at).toLocaleDateString()} — run #${r.run_id} (${r.rows_processed} rows)`;
+        return `<option value="${r.run_id}" ${r.run_id === selectedId ? "selected" : ""}>${escapeHtml(label)}</option>`;
+      }).join("");
+
+      const selectors = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;opacity:.5;">From</label>
+            <select class="bbg-delta-run-a" data-tab-id="${esc(tab.id)}"
+              style="font-size:11px;background:var(--surface-2);border:1px solid var(--border);color:inherit;border-radius:4px;padding:2px 6px;">
+              ${runOpts(deltaRunA)}
+            </select>
+          </div>
+          <span style="opacity:.4;font-size:12px;">→</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;opacity:.5;">To</label>
+            <select class="bbg-delta-run-b" data-tab-id="${esc(tab.id)}"
+              style="font-size:11px;background:var(--surface-2);border:1px solid var(--border);color:inherit;border-radius:4px;padding:2px 6px;">
+              ${runOpts(deltaRunB)}
+            </select>
+          </div>
+          ${!deltaData ? `<span style="font-size:11px;opacity:.4;">Select runs above to compare</span>` : ""}
+        </div>
+      `;
+
+      if (!deltaData) {
+        return `<div class="detail-view-shell">${firmTerminal}${selectors}</div>`;
+      }
+
+      const { confirmed, discrepancies, additions, run_a, run_b } = deltaData;
+
+      const deltaSection = (title, color, rows, cols, rowFn) => {
+        if (!rows?.length) return `
+          <div class="delta-section" style="margin-bottom:16px;">
+            <div class="delta-section-header" style="color:${color};">${title} <span class="delta-zero">0</span></div>
+          </div>`;
+        return `
+          <div class="delta-section" style="margin-bottom:16px;">
+            <div class="delta-section-header" style="color:${color};">${title} <span class="delta-count">${rows.length}</span></div>
+            <div class="table-header-grid ${cols}">${Object.keys(rowFn(rows[0])).map(k => `<div>${escapeHtml(k)}</div>`).join("")}</div>
+            ${rows.map(r => `
+              <div class="table-row-wrap">
+                <div class="table-row-grid ${cols}">${Object.values(rowFn(r)).map(v => `<div>${esc(v || "")}</div>`).join("")}</div>
+              </div>`).join("")}
+          </div>`;
+      };
+
+      return `
+        <div class="detail-view-shell">
+          ${firmTerminal}
+          <div class="detail-header" style="margin-bottom:12px;">
+            <div class="detail-title">${esc(firmName)} — Run Delta</div>
+            <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
+              Run #${run_a.run_id} (${new Date(run_a.run_at).toLocaleDateString()})
+              → Run #${run_b.run_id} (${new Date(run_b.run_at).toLocaleDateString()})
+            </div>
+          </div>
+          ${selectors}
+          ${deltaSection("New Confirmations",   "#4ade80", confirmed.added,   "bbg-delta-conf-grid",
+            r => ({ Name: r.name, Firm: r.firm, Title: r.title, Location: r.location }))}
+          ${deltaSection("Lost Confirmations",  "#f87171", confirmed.removed, "bbg-delta-conf-grid",
+            r => ({ Name: r.name, Firm: r.firm, Title: r.title, Location: r.location }))}
+          ${deltaSection("New Discrepancies",   "#fb923c", discrepancies.added,   "bbg-delta-disc-grid",
+            r => ({ Name: r.name, Field: r.discrepancy_field, "BBG Value": r.new_file_value, "Master Value": r.master_file_values }))}
+          ${deltaSection("Resolved Discrepancies", "#60a5fa", discrepancies.resolved, "bbg-delta-disc-grid",
+            r => ({ Name: r.name, Field: r.discrepancy_field, "BBG Value": r.new_file_value, "Master Value": r.master_file_values }))}
+          ${deltaSection("New Additions",       "#a78bfa", additions.added,   "bbg-delta-add-grid",
+            r => ({ Name: r.name, Company: r.company, "Canonical": r.canonical_company, Location: r.location }))}
+          ${deltaSection("Resolved Additions",  "#94a3b8", additions.resolved, "bbg-delta-add-grid",
+            r => ({ Name: r.name, Company: r.company, "Canonical": r.canonical_company, Location: r.location }))}
+        </div>
+      `;
+    }
+
+    // ── Persistence view ──────────────────────────────────────────────────────
+    if (mode === "persistence") {
+      const pd = tab.state?.persistenceData;
+
+      if (!pd) {
+        return `<div class="detail-view-shell view-placeholder"><span>Persistence</span><p>Loading…</p></div>`;
+      }
+      if (!pd.length) {
+        return `<div class="detail-view-shell view-placeholder"><span>Persistence</span><p>No discrepancies recorded yet.</p></div>`;
+      }
+
+      const persistBadge = (n) => {
+        const cls = n >= 4 ? "persist-high" : n >= 2 ? "persist-mid" : "persist-low";
+        return `<span class="persist-badge ${cls}">${n} run${n !== 1 ? "s" : ""}</span>`;
+      };
+
+      return `
+        <div class="detail-view-shell">
+          ${firmTerminal}
+          <div class="detail-header" style="margin-bottom:12px;">
+            <div class="detail-title">${esc(firmName)} — Discrepancy Persistence</div>
+            <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
+              ${pd.length} unique discrepancy${pd.length !== 1 ? "ies" : ""} across all runs —
+              signals with 4+ runs are high-confidence
+            </div>
+          </div>
+          <div class="table-header-grid bbg-persist-grid">
+            <div>Name</div><div>Field</div><div>BBG Value</div><div>Master Value</div><div>First Seen</div><div>Last Seen</div><div>Runs</div>
+          </div>
+          ${pd.map(r => `
+            <div class="table-row-wrap">
+              <div class="table-row-grid bbg-persist-grid">
+                <div>${esc(r.name || "")}</div>
+                <div class="cell-mono">${esc(r.discrepancy_field || "")}</div>
+                <div>${esc(r.new_file_value || "")}</div>
+                <div style="opacity:.7;">${esc(r.master_file_values || "")}</div>
+                <div class="cell-mono">${new Date(r.first_seen).toLocaleDateString()}</div>
+                <div class="cell-mono">${new Date(r.last_seen).toLocaleDateString()}</div>
+                <div>${persistBadge(r.run_count)}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
       `;
     }
 
