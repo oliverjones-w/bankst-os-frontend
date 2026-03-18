@@ -13,7 +13,7 @@ import {
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
 import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab } from "./nav.js";
-import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload } from "./api.js";
+import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload, mappingUploadStream } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
 import { initTabDragHandlers } from "./drag.js";
@@ -55,95 +55,95 @@ document.addEventListener("input", (e) => {
   updateActiveTabState({ searchQuery: inp.value }, tabId);
 });
 
-// ── BBG CSV drag-and-drop upload ───────────────────────────────────────────────
+// ── BBG CSV upload — shared handler ───────────────────────────────────────────
+
+async function handleBbgCsvUpload(file, tabId) {
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    updateActiveTabState({ uploadState: "error", uploadMessage: "Only CSV files are accepted.", uploadLog: null }, tabId);
+    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId), 12000);
+    return;
+  }
+
+  // Switch to streaming state — renders the terminal container in the view
+  updateActiveTabState({ uploadState: "streaming", uploadLog: null, uploadMessage: "" }, tabId);
+
+  const logLines = [];
+
+  const appendLine = (type, msg) => {
+    logLines.push({ type, msg });
+    const el = document.getElementById(`bbg-terminal-${tabId}`);
+    if (el) {
+      const div = document.createElement("div");
+      div.className = `tl tl-${type}`;
+      div.textContent = msg;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }
+  };
+
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    let finalResult = null;
+
+    await mappingUploadStream("/bbg/upload/stream", form, (event) => {
+      if (event.type === "log") {
+        appendLine("log", event.payload);
+      } else if (event.type === "done") {
+        finalResult = event.payload;
+        const r = finalResult;
+        appendLine("done", `Run #${r.run_id} complete — ${r.confirmed_count} confirmed / ${r.discrepancy_count} disc / ${r.addition_count} additions`);
+      } else if (event.type === "error") {
+        appendLine("error", event.payload);
+      }
+    });
+
+    if (finalResult) {
+      updateActiveTabState({ uploadState: "success", uploadResult: finalResult, uploadLog: logLines, data: undefined }, tabId);
+      openBbgFirmTab(finalResult.firm_id, finalResult.firm_name);
+      setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadResult: null, uploadLog: null }, tabId), 30000);
+    } else {
+      updateActiveTabState({ uploadState: "error", uploadMessage: "Extraction failed — see terminal output above.", uploadLog: logLines }, tabId);
+      setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadLog: null }, tabId), 30000);
+    }
+  } catch (err) {
+    appendLine("error", err.detail || err.message || "Upload failed.");
+    updateActiveTabState({ uploadState: "error", uploadMessage: err.detail || err.message || "Upload failed.", uploadLog: logLines }, tabId);
+    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadLog: null }, tabId), 30000);
+  }
+}
+
+// ── BBG upload zone drag events ────────────────────────────────────────────────
 document.addEventListener("dragover", (e) => {
   const zone = e.target.closest(".bbg-upload-zone");
   if (!zone) return;
   e.preventDefault();
-  const tabId = zone.dataset.tabId;
-  updateActiveTabState({ uploadState: "dragging" }, tabId);
+  updateActiveTabState({ uploadState: "dragging" }, zone.dataset.tabId);
 });
 
 document.addEventListener("dragleave", (e) => {
   const zone = e.target.closest(".bbg-upload-zone");
-  if (!zone) return;
-  // Only reset if leaving the zone entirely (not moving to a child)
-  if (zone.contains(e.relatedTarget)) return;
-  const tabId = zone.dataset.tabId;
-  updateActiveTabState({ uploadState: "idle" }, tabId);
+  if (!zone || zone.contains(e.relatedTarget)) return;
+  updateActiveTabState({ uploadState: "idle" }, zone.dataset.tabId);
 });
 
 document.addEventListener("drop", async (e) => {
   const zone = e.target.closest(".bbg-upload-zone");
   if (!zone) return;
   e.preventDefault();
-
-  const tabId = zone.dataset.tabId;
-  const file  = e.dataTransfer?.files?.[0];
-
+  const file = e.dataTransfer?.files?.[0];
   if (!file) {
-    updateActiveTabState({ uploadState: "error", uploadMessage: "No file detected." }, tabId);
+    updateActiveTabState({ uploadState: "error", uploadMessage: "No file detected." }, zone.dataset.tabId);
     return;
   }
-  if (!file.name.toLowerCase().endsWith(".csv")) {
-    updateActiveTabState({ uploadState: "error", uploadMessage: "Only CSV files are accepted." }, tabId);
-    return;
-  }
-
-  updateActiveTabState({ uploadState: "uploading", uploadMessage: "" }, tabId);
-
-  try {
-    const form = new FormData();
-    form.append("file", file);
-    const result = await mappingUpload("/bbg/upload", form);
-
-    // Show success in the upload zone and bust the firms cache
-    updateActiveTabState({ uploadState: "success", uploadResult: result, data: undefined }, tabId);
-
-    // Open the firm's detail tab — unambiguous confirmation that the run completed
-    openBbgFirmTab(result.firm_id, result.firm_name);
-
-    // Auto-reset the upload zone to idle after 8s
-    setTimeout(() => {
-      updateActiveTabState({ uploadState: "idle", uploadResult: null }, tabId);
-    }, 8000);
-  } catch (err) {
-    const detail = err.detail || err.message || "Upload failed.";
-    updateActiveTabState({ uploadState: "error", uploadMessage: detail }, tabId);
-
-    // Auto-reset error state after 12s
-    setTimeout(() => {
-      updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId);
-    }, 12000);
-  }
+  await handleBbgCsvUpload(file, zone.dataset.tabId);
 });
 
 // ── BBG full-pane CSV drop (dispatched by drag.js) ────────────────────────────
 document.addEventListener("bankst:bbgCsvDrop", async (e) => {
   const { file, tabId } = e.detail;
-
-  if (!file.name.toLowerCase().endsWith(".csv")) {
-    updateActiveTabState({ uploadState: "error", uploadMessage: "Only CSV files are accepted." }, tabId);
-    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId), 12000);
-    return;
-  }
-
-  updateActiveTabState({ uploadState: "uploading", uploadMessage: "" }, tabId);
-
-  try {
-    const form = new FormData();
-    form.append("file", file);
-    const result = await mappingUpload("/bbg/upload", form);
-
-    updateActiveTabState({ uploadState: "success", uploadResult: result, data: undefined }, tabId);
-    openBbgFirmTab(result.firm_id, result.firm_name);
-
-    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadResult: null }, tabId), 8000);
-  } catch (err) {
-    const detail = err.detail || err.message || "Upload failed.";
-    updateActiveTabState({ uploadState: "error", uploadMessage: detail }, tabId);
-    setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId), 12000);
-  }
+  await handleBbgCsvUpload(file, tabId);
 });
 
 // ── BBG run change ─────────────────────────────────────────────────────────────

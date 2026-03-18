@@ -1313,82 +1313,55 @@ registerWorkspaceView({
     const uploadState = tab.state?.uploadState || "idle";
     const uploadMsg   = tab.state?.uploadMessage || "";
 
-    // Upload zone — state-driven appearance
+    // Upload zone + terminal block — state-driven appearance
     const uploadResult = tab.state?.uploadResult;
-    let uploadZoneInner = "";
-
-    if (uploadState === "success" && uploadResult) {
-      uploadZoneInner = `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-          <div>
-            <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                        font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                        color:var(--color-green,#4ade80);margin-bottom:6px;">
-              ✓ Run complete — ${escapeHtml(uploadResult.firm_name)}
-            </div>
-            <div style="display:flex;gap:20px;">
-              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
-                <span style="color:var(--color-green,#4ade80);font-weight:600;">${uploadResult.confirmed_count}</span> confirmed
-              </span>
-              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
-                <span style="color:var(--text-normal);font-weight:600;">${uploadResult.discrepancy_count}</span> discrepancies
-              </span>
-              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
-                <span style="color:var(--text-normal);font-weight:600;">${uploadResult.addition_count}</span> additions
-              </span>
-              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-faint);">
-                ${uploadResult.rows_processed} rows · run #${uploadResult.run_id}
-              </span>
-            </div>
-          </div>
-          <button class="cell-link" data-open-bbg-firm="${escapeHtml(uploadResult.firm_id)}" data-firm-name="${escapeHtml(uploadResult.firm_name)}"
-            style="font-size:10px;font-family:var(--font-interface);font-weight:600;letter-spacing:.04em;
-                   text-transform:uppercase;color:var(--text-accent);white-space:nowrap;">
-            View Results →
-          </button>
-        </div>
-      `;
-    } else if (uploadState === "error") {
-      uploadZoneInner = `
-        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                    color:var(--color-red,#ef4444);margin-bottom:4px;">✗ Upload failed</div>
-        <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(uploadMsg)}</div>
-      `;
-    } else if (uploadState === "uploading") {
-      uploadZoneInner = `
-        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                    color:var(--text-muted);">⟳ Processing CSV…</div>
-      `;
-    } else if (uploadState === "dragging") {
-      uploadZoneInner = `
-        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                    color:var(--text-accent);">⊛ Release to upload</div>
-      `;
-    } else {
-      uploadZoneInner = `
-        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                    color:var(--text-faint);">⊛ Drop a BBG CSV here to run extraction</div>
-      `;
-    }
+    const uploadLog    = tab.state?.uploadLog;
 
     const zoneBorder = {
       idle:      "border-color:var(--border-subtle);background:transparent;",
-      dragging:  "border-color:var(--border-accent);background:var(--background-accent-faint);",
-      uploading: "border-color:var(--border-subtle);background:transparent;",
+      dragging:  "border-color:var(--interactive-accent);background:rgba(0,115,255,.04);",
+      streaming: "border-color:var(--interactive-accent);background:rgba(0,115,255,.04);",
       success:   "border-color:hsla(133,49%,49%,.4);background:hsla(133,49%,49%,.05);",
       error:     "border-color:hsla(0,72%,60%,.4);background:hsla(0,72%,60%,.05);",
     };
 
+    let zoneLabel = "";
+    if      (uploadState === "success" && uploadResult) {
+      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4ade80;">
+        ✓ Run complete — ${escapeHtml(uploadResult.firm_name)}
+        <span style="margin-left:16px;color:var(--text-muted);font-weight:400;">
+          ${uploadResult.confirmed_count} conf · ${uploadResult.discrepancy_count} disc · ${uploadResult.addition_count} add · run #${uploadResult.run_id}
+          <button class="cell-link" data-open-bbg-firm="${escapeHtml(uploadResult.firm_id)}" data-firm-name="${escapeHtml(uploadResult.firm_name)}"
+            style="margin-left:12px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-accent);">View →</button>
+        </span>
+      </div>`;
+    } else if (uploadState === "streaming") {
+      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--interactive-accent);">⟳ Extraction running…</div>`;
+    } else if (uploadState === "error") {
+      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef4444;">✗ Extraction failed</div>`;
+    } else if (uploadState === "dragging") {
+      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--interactive-accent);">⊛ Release to upload</div>`;
+    } else {
+      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);">⊛ Drop a BBG CSV here to run extraction</div>`;
+    }
+
+    // Terminal block — shown during streaming (empty, lines appended via DOM) and after (log from state)
+    let terminalBlock = "";
+    if (uploadState === "streaming") {
+      terminalBlock = `<div class="bbg-terminal" id="bbg-terminal-${escapeHtml(tab.id)}"></div>`;
+    } else if (uploadLog?.length) {
+      terminalBlock = `<div class="bbg-terminal bbg-terminal--done">${uploadLog.map(l =>
+        `<div class="tl tl-${escapeHtml(l.type)}">${escapeHtml(l.msg)}</div>`
+      ).join("")}</div>`;
+    }
+
     const uploadZone = `
       <div class="bbg-upload-zone" data-tab-id="${escapeHtml(tab.id)}"
-        style="margin-bottom:16px;padding:12px 16px;border:1px dashed;border-radius:6px;
-               cursor:default;transition:all 120ms ease;${zoneBorder[uploadState]}">
-        ${uploadZoneInner}
+        style="margin-bottom:${terminalBlock ? "0" : "16px"};padding:10px 14px;border:1px dashed;border-radius:6px;
+               cursor:default;transition:border-color 120ms,background 120ms;${zoneBorder[uploadState] || zoneBorder.idle}">
+        ${zoneLabel}
       </div>
+      ${terminalBlock ? `<div style="margin-bottom:16px;">${terminalBlock}</div>` : ""}
     `;
 
     if (!firms) {
@@ -1581,6 +1554,18 @@ registerWorkspaceView({
     const selRunId = tab.state?.selectedRunId;
     const firmName = tab.title || "Firm";
 
+    // Terminal panel — shown during/after upload when this firm's tab is active
+    const uploadState = tab.state?.uploadState;
+    const uploadLog   = tab.state?.uploadLog;
+    let firmTerminal = "";
+    if (uploadState === "streaming") {
+      firmTerminal = `<div class="bbg-terminal" id="bbg-terminal-${escapeHtml(tab.id)}" style="margin-bottom:12px;"></div>`;
+    } else if (uploadLog?.length) {
+      firmTerminal = `<div class="bbg-terminal bbg-terminal--done" style="margin-bottom:12px;">${uploadLog.map(l =>
+        `<div class="tl tl-${escapeHtml(l.type)}">${escapeHtml(l.msg)}</div>`
+      ).join("")}</div>`;
+    }
+
     if (!runs) {
       return `<div class="detail-view-shell view-placeholder"><span>${escapeHtml(firmName)}</span><p>Loading extraction data…</p></div>`;
     }
@@ -1701,6 +1686,7 @@ registerWorkspaceView({
         `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:8px;">${text}</div>`;
       return `
         <div class="detail-view-shell">
+          ${firmTerminal}
           ${runSelector}
           <div style="margin-bottom:20px;">
             ${chartLabel("Extraction Trends — All Runs")}
@@ -1716,6 +1702,7 @@ registerWorkspaceView({
 
     return `
       <div class="detail-view-shell">
+        ${firmTerminal}
         ${runSelector}
         ${statRow}
         ${searchInput}

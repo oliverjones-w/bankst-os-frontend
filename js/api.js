@@ -30,6 +30,29 @@ export async function mappingUpload(path, formData) {
   return data;
 }
 
+export async function mappingUploadStream(path, formData, onEvent) {
+  const res = await fetch(`${MAPPING_API_BASE}${path}`, { method: "POST", body: formData });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw Object.assign(new Error(data?.detail || `Mapping API ${res.status}`), { detail: data?.detail });
+  }
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // hold incomplete trailing line
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        try { onEvent(JSON.parse(line.slice(6))); } catch {}
+      }
+    }
+  }
+}
+
 export async function bankstGet(path) {
   const timer = new Timer("api", `bankst:${path}`);
   const res = await fetch(`${BANKST_API_BASE}${path}`, { headers: { Accept: "application/json" } });

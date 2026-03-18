@@ -1383,6 +1383,39 @@
 .bbg-disc-grid      { grid-template-columns: 1.5fr 100px 1fr 1fr 1fr 80px 90px; }
 .bbg-add-grid       { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 90px; }
 
+/* ── BBG extraction terminal ──────────────────────────────── */
+.bbg-terminal {
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  font-size: 11px;
+  line-height: 1.6;
+  background: var(--bg-deep, #0d0d0f);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 10px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+  color: var(--text-muted);
+}
+
+.bbg-terminal--done {
+  opacity: 0.85;
+}
+
+.tl {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.tl::before {
+  content: "> ";
+  opacity: 0.35;
+}
+
+.tl-log  { color: #a8d8a8; }
+.tl-done { color: #4ade80; font-weight: 600; }
+.tl-error { color: #f87171; }
+
 /* ── BBG run history (right rail) ─────────────────────────── */
 .bbg-run-history-list {
   display: flex;
