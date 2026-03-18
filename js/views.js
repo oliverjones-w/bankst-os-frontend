@@ -713,12 +713,13 @@ registerWorkspaceView({
     if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
       fetchingTabs.add(tab.id);
       try {
-        const [records, allChanges, dailyChanges] = await Promise.all([
-          mappingGet("/hf/records"),
+        const records = await mappingGet("/hf/records");
+        updateActiveTabState({ records, error: null }, tab.id);
+        const [allChanges, dailyChanges] = await Promise.all([
           mappingGet("/hf/changes?limit=200"),
           mappingGet("/hf/daily-changes?days=60"),
         ]);
-        updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
+        updateActiveTabState({ allChanges, dailyChanges }, tab.id);
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {
@@ -826,12 +827,13 @@ registerWorkspaceView({
     if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
       fetchingTabs.add(tab.id);
       try {
-        const [records, allChanges, dailyChanges] = await Promise.all([
-          mappingGet("/ir/records"),
+        const records = await mappingGet("/ir/records");
+        updateActiveTabState({ records, error: null }, tab.id);
+        const [allChanges, dailyChanges] = await Promise.all([
           mappingGet("/ir/changes?limit=200"),
           mappingGet("/ir/daily-changes?days=60"),
         ]);
-        updateActiveTabState({ records, allChanges, dailyChanges, error: null }, tab.id);
+        updateActiveTabState({ allChanges, dailyChanges }, tab.id);
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {

@@ -6,7 +6,6 @@ Start with: python -m uvicorn api:app --port 8765 --reload
 
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import psycopg2
 import psycopg2.extras
@@ -75,67 +74,25 @@ def search_master(
 # ── Firms ─────────────────────────────────────────────────────────────────────
 
 @app.get("/firms")
-def list_firms(include: str | None = Query(default=None)):
-    def generate():
-        conn = get_conn()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        if include == "aliases":
-            cur.execute("""
-                SELECT
-                    f.firm_id,
-                    f.name,
-                    f.firm_key,
-                    COALESCE(
-                        ARRAY_AGG(fa.alias_text ORDER BY fa.alias_text)
-                        FILTER (WHERE fa.alias_type = 'alias' AND fa.active = true),
-                        '{}'
-                    ) AS aliases,
-                    COALESCE(
-                        ARRAY_AGG(fa.alias_text ORDER BY fa.alias_text)
-                        FILTER (WHERE fa.alias_type = 'platform' AND fa.active = true),
-                        '{}'
-                    ) AS platforms,
-                    COALESCE(
-                        ARRAY_AGG(fa.alias_text ORDER BY fa.alias_text)
-                        FILTER (WHERE fa.alias_type = 'blacklist' AND fa.active = true),
-                        '{}'
-                    ) AS blacklist,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'alias' AND fa.active = true)     AS alias_count,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'platform' AND fa.active = true)  AS platform_count,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'blacklist' AND fa.active = true) AS blacklist_count
-                FROM firm f
-                LEFT JOIN firm_alias fa ON fa.firm_id = f.firm_id
-                GROUP BY f.firm_id, f.name, f.firm_key
-                ORDER BY f.name
-            """)
-        else:
-            cur.execute("""
-                SELECT
-                    f.firm_id,
-                    f.name,
-                    f.firm_key,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'alias' AND fa.active = true)     AS alias_count,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'platform' AND fa.active = true)  AS platform_count,
-                    COUNT(*) FILTER (WHERE fa.alias_type = 'blacklist' AND fa.active = true) AS blacklist_count
-                FROM firm f
-                LEFT JOIN firm_alias fa ON fa.firm_id = f.firm_id
-                GROUP BY f.firm_id, f.name, f.firm_key
-                ORDER BY f.name
-            """)
-        yield "["
-        first = True
-        while True:
-            row = cur.fetchone()
-            if not row:
-                break
-            if not first:
-                yield ","
-            yield json.dumps(dict(row))
-            first = False
-        yield "]"
-        conn.close()
-
-    return StreamingResponse(generate(), media_type="application/json")
+def list_firms():
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT
+            f.firm_id,
+            f.name,
+            f.firm_key,
+            COUNT(*) FILTER (WHERE fa.alias_type = 'alias')     AS alias_count,
+            COUNT(*) FILTER (WHERE fa.alias_type = 'platform')  AS platform_count,
+            COUNT(*) FILTER (WHERE fa.alias_type = 'blacklist') AS blacklist_count
+        FROM firm f
+        LEFT JOIN firm_alias fa ON fa.firm_id = f.firm_id AND fa.active = true
+        GROUP BY f.firm_id, f.name, f.firm_key
+        ORDER BY f.name
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 @app.get("/firms/{firm_id}")
@@ -190,34 +147,22 @@ async def record_view(record: ViewRecord, background_tasks: BackgroundTasks):
 
 @app.get("/recently-viewed")
 def get_recently_viewed(limit: int = Query(default=10, le=50)):
-    def generate():
-        conn = get_conn()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cur.execute("""
-            SELECT entity_id, entity_type, entity_label, viewed_at
-            FROM (
-                SELECT DISTINCT ON (entity_id)
-                    entity_id, entity_type, entity_label, viewed_at
-                FROM recently_viewed
-                ORDER BY entity_id, viewed_at DESC
-            ) sub
-            ORDER BY viewed_at DESC
-            LIMIT %s
-        """, (limit,))
-        yield "["
-        first = True
-        while True:
-            row = cur.fetchone()
-            if not row:
-                break
-            if not first:
-                yield ","
-            yield json.dumps(dict(row), default=str)
-            first = False
-        yield "]"
-        conn.close()
-
-    return StreamingResponse(generate(), media_type="application/json")
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("""
+        SELECT entity_id, entity_type, entity_label, viewed_at
+        FROM (
+            SELECT DISTINCT ON (entity_id)
+                entity_id, entity_type, entity_label, viewed_at
+            FROM recently_viewed
+            ORDER BY entity_id, viewed_at DESC
+        ) sub
+        ORDER BY viewed_at DESC
+        LIMIT %s
+    """, (limit,))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 @app.get("/trending")
 def get_trending(hours: int = Query(default=48, le=168), limit: int = Query(default=10, le=50)):
