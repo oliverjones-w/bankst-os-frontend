@@ -4,6 +4,7 @@ FastAPI on port 8765, connects to PostgreSQL via SSH tunnel on localhost:5432.
 Start with: python -m uvicorn api:app --port 8765 --reload
 """
 
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -74,9 +75,45 @@ def search_master(
 # ── Firms ─────────────────────────────────────────────────────────────────────
 
 @app.get("/firms")
-def list_firms():
+def list_firms(include: Optional[str] = Query(default=None)):
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    if include == "aliases":
+        cur.execute("""
+            SELECT
+                f.firm_id,
+                f.name,
+                COALESCE(
+                    array_agg(fa.alias_text) FILTER (WHERE fa.alias_type = 'alias'),
+                    '{}'
+                ) AS aliases,
+                COALESCE(
+                    array_agg(fa.alias_text) FILTER (WHERE fa.alias_type = 'platform'),
+                    '{}'
+                ) AS platforms,
+                COALESCE(
+                    array_agg(fa.alias_text) FILTER (WHERE fa.alias_type = 'blacklist'),
+                    '{}'
+                ) AS blacklist
+            FROM firm f
+            LEFT JOIN firm_alias fa ON fa.firm_id = f.firm_id AND fa.active = true
+            GROUP BY f.firm_id, f.name
+            ORDER BY f.name
+        """)
+        rows = cur.fetchall()
+        conn.close()
+        return [
+            {
+                "firm_id":   r["firm_id"],
+                "name":      r["name"],
+                "aliases":   list(r["aliases"]  or []),
+                "platforms": list(r["platforms"] or []),
+                "blacklist": list(r["blacklist"] or []),
+            }
+            for r in rows
+        ]
+
     cur.execute("""
         SELECT
             f.firm_id,
