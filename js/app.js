@@ -62,6 +62,8 @@ document.addEventListener("click", (e) => {
   const delSnapshotTrigger  = e.target.closest("[data-delete-workspace-snapshot]");
   const actionTrigger       = e.target.closest(".action-btn");
   const importTrigger       = e.target.closest("[data-master-import]");
+  const hfRecordTrigger     = e.target.closest("[data-open-hf-record]");
+  const irFirmTrigger       = e.target.closest("[data-open-ir-firm]");
   const mapRowTrigger       = e.target.closest("[data-select-map-record]");
 
   if (railGroupHeader) {
@@ -121,7 +123,19 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  if (mapRowTrigger && !e.target.closest("[data-master-import]")) {
+  if (irFirmTrigger) {
+    const firmName = irFirmTrigger.dataset.openIrFirm;
+    const tabId    = `tab-ir-firm-${firmName.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 40)}`;
+    openTab({ id: tabId, type: "ir.firm", title: firmName, state: { firmName } });
+    return;
+  }
+
+  if (hfRecordTrigger) {
+    openTab({ id: "tab-hf-table", type: "hf.table", title: "HF Map", state: {} });
+    return;
+  }
+
+  if (mapRowTrigger && !e.target.closest("[data-master-import]") && !hfRecordTrigger) {
     const { selectMapRecord: id, mapSource: source } = mapRowTrigger.dataset;
     const tab = getActiveTab();
     if (!tab) return;

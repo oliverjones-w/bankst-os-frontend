@@ -322,7 +322,15 @@ Standalone page — open directly in browser, no dev server needed.
 
 ## Running locally
 
+### Default dev config (Dell)
+- Run Caddy from the frontend root — `caddy run` (uses `Caddyfile` in repo root)
+- Frontend served at `http://localhost:3000`
+- `/api` and `/system` routes proxy to Mac Mini gateway over Tailscale
+
 ```bash
+# Start Caddy (frontend root)
+caddy run
+
 # Start FINRA API
 cd C:/dev/tools/finra_scraper
 uvicorn src.api:app --host 0.0.0.0 --port 8001
@@ -331,8 +339,8 @@ uvicorn src.api:app --host 0.0.0.0 --port 8001
 cd C:/dev/tools/mapping_api
 uvicorn src.api:app --host 0.0.0.0 --port 8003
 
-# Open shell — just open index.html in a browser (no build step)
-# Open theme lab — open theme-lab.html in a browser
+# Open shell — http://localhost:3000
+# Open theme lab — http://localhost:3000/theme-lab.html
 ```
 
 Dev reset (clears workspace persistence):

@@ -184,6 +184,8 @@ function updateBreadcrumbs(activeTab) {
     html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">HF Map</h1>`;
   } else if (activeTab.type === "ir.table") {
     html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">IR Map</h1>`;
+  } else if (activeTab.type === "ir.firm") {
+    html = `<div class="eyebrow">IR Map</div><h1 class="topbar-title">${escapeHtml(activeTab.state?.firmName || "Firm")}</h1>`;
   } else if (activeTab.type === "perf.dashboard") {
     html = `<div class="eyebrow">System</div><h1 class="topbar-title">Performance</h1>`;
   } else if (activeTab.type.startsWith("finra.")) {
@@ -208,6 +210,7 @@ export function getActiveContext() {
   if (activeTab.type === "master.search")  return { type: "master.search",  tab: activeTab };
   if (activeTab.type === "hf.table")       return { type: "hf.table",       tab: activeTab };
   if (activeTab.type === "ir.table")       return { type: "ir.table",       tab: activeTab };
+  if (activeTab.type === "ir.firm")        return { type: "ir.firm",        tab: activeTab, firmName: activeTab.state?.firmName };
   if (activeTab.type === "perf.dashboard") return { type: "perf.dashboard", tab: activeTab };
   if (activeTab.type === "person.detail") return {
     type:     "person",
@@ -359,6 +362,25 @@ export function handleToolbarAction(actionId) {
     case "firms.table.refresh":    updateActiveTabState({ firms: undefined, error: null }); break;
     case "hf.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
     case "ir.table.refresh": updateActiveTabState({ records: undefined, allChanges: undefined, dailyChanges: undefined, recordHistory: undefined, selectedRecord: undefined, error: null }); break;
+    case "hf.table.save-view":
+    case "ir.table.save-view": {
+      const tab = getActiveTab();
+      if (!tab) break;
+      const f = tab.state?.filters || {};
+      const q = tab.state?.query || "";
+      const label = tab.type === "hf.table" ? "HF Map" : "IR Map";
+      const parts = [label];
+      if (f.firm)     parts.push(f.firm);
+      if (f.function) parts.push(f.function);
+      if (f.group)    parts.push(f.group);
+      if (f.strategy) parts.push(f.strategy);
+      if (f.location) parts.push(f.location);
+      if (q && parts.length === 1) parts.push(`"${q}"`);
+      const name = parts.join(" · ");
+      createWorkspaceSnapshot(name);
+      renderWorkspaceSnapshots();
+      break;
+    }
     case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
     case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;
     case "finra.monitor.mode.individuals": updateActiveTabState({ mode: "individuals" }); break;

@@ -1,0 +1,29 @@
+{
+    debug
+}
+
+localhost {
+    # Serve the HTML/JS/CSS locally from your Dell
+    root * .
+    encode zstd gzip
+
+    log {
+        output file access.log
+        format json
+    }
+
+    file_server
+
+    @proxy_paths {
+        path /api/* /system/*
+    }
+
+    # Proxy all API calls to the Mac Mini via Tailscale
+    reverse_proxy @proxy_paths http://100.82.94.80:7842 {
+        # Keeps the 9MB firm data streaming instantly
+        flush_interval -1
+        
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+    }
+}

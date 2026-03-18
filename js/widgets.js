@@ -1,4 +1,4 @@
-import { getActiveContext } from "./workspace.js";
+import { getActiveContext, workspaceState } from "./workspace.js";
 import { contextData } from "./mock-data.js";
 import { escapeHtml } from "./utils.js";
 import { getTrendingCache, getFinraChangesCache } from "./api.js";
@@ -437,13 +437,146 @@ registerRightRailWidget({
   render: (ctx) => {
     const records = ctx.tab?.state?.records;
     if (!records) return "";
-    const label = ctx.type === "hf.table" ? "HF Map" : "IR Map";
-    const firms  = new Set(records.map(r => r.firm || r.current_firm).filter(Boolean)).size;
+
+    const label     = ctx.type === "hf.table" ? "HF Map" : "IR Map";
+    const firmField = ctx.type === "hf.table" ? "firm" : "current_firm";
+    const filters   = ctx.tab?.state?.filters || {};
+    const query     = ctx.tab?.state?.query   || "";
+    const hasFilters = Object.values(filters).some(Boolean) || !!query;
+
+    // Compute filtered set using same logic as views.js
+    let filtered = records;
+    const q = query.toLowerCase();
+    if (q) {
+      if (ctx.type === "hf.table") {
+        filtered = filtered.filter(r =>
+          [r.name, r.firm, r.title, r.function, r.strategy, r.location, r.products, r.reports_to]
+            .some(v => (v || "").toLowerCase().includes(q)));
+      } else {
+        filtered = filtered.filter(r =>
+          [r.name, r.current_firm, r.current_title, r.function, r.group, r.current_location]
+            .some(v => (v || "").toLowerCase().includes(q)));
+      }
+    }
+    if (filters.firm)     filtered = filtered.filter(r => (r[firmField]  || "") === filters.firm);
+    if (filters.function) filtered = filtered.filter(r => (r.function    || "") === filters.function);
+    if (filters.strategy) filtered = filtered.filter(r => (r.strategy    || "") === filters.strategy);
+    if (filters.group)    filtered = filtered.filter(r => (r.group       || "") === filters.group);
+    if (filters.location) {
+      const locField = ctx.type === "hf.table" ? "location" : "current_location";
+      filtered = filtered.filter(r => (r[locField] || "") === filters.location);
+    }
+
+    const activeFilters = [
+      filters.firm, filters.function, filters.strategy, filters.group, filters.location,
+    ].filter(Boolean);
+
+    // Filter tag pills
+    const filterPills = activeFilters.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+          ${activeFilters.map(v => `
+            <span style="font-size:10px;font-family:var(--font-data);padding:2px 6px;border-radius:3px;background:var(--background-accent-faint);color:var(--text-accent);border:1px solid var(--border-accent);">${escapeHtml(v)}</span>
+          `).join("")}
+         </div>`
+      : "";
+
+    // Firm breakdown of filtered set (only when something is filtered)
+    let firmBreakdown = "";
+    if (hasFilters && filtered.length > 0 && !filters.firm) {
+      const counts = {};
+      filtered.forEach(r => {
+        const f = r[firmField] || "—";
+        counts[f] = (counts[f] || 0) + 1;
+      });
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const max = top[0]?.[1] || 1;
+      firmBreakdown = `
+        <div style="margin-top:10px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;">By Firm</div>
+          ${top.map(([firm, count]) => `
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <div class="truncate" style="flex:1;font-size:11px;color:var(--text-normal);">${escapeHtml(firm)}</div>
+              <div style="width:${Math.round((count / max) * 52)}px;height:3px;background:var(--border-accent);border-radius:2px;flex-shrink:0;"></div>
+              <div style="font-size:10px;font-family:var(--font-data);color:var(--text-faint);min-width:18px;text-align:right;">${count}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    const showingText = hasFilters
+      ? `${filtered.length.toLocaleString()} of ${records.length.toLocaleString()}`
+      : records.length.toLocaleString();
+    const totalFirms = new Set(filtered.map(r => r[firmField]).filter(Boolean)).size;
+
     return renderContextCard(label, `
       <div class="meta-grid">
-        <div class="meta-block"><div class="meta-label">Records</div><div class="meta-value">${records.length.toLocaleString()}</div></div>
-        <div class="meta-block"><div class="meta-label">Firms</div><div class="meta-value">${firms}</div></div>
+        <div class="meta-block">
+          <div class="meta-label">${hasFilters ? "Showing" : "Records"}</div>
+          <div class="meta-value">${showingText}</div>
+        </div>
+        <div class="meta-block">
+          <div class="meta-label">Firms</div>
+          <div class="meta-value">${totalFirms}</div>
+        </div>
       </div>
+      ${filterPills}
+      ${firmBreakdown}
+    `);
+  },
+});
+
+// ── Widgets: ir.firm ───────────────────────────────────────────────────────────
+
+registerRightRailWidget({
+  id: "ir-firm-rail",
+  order: 10,
+  when: (ctx) => ctx.type === "ir.firm",
+  render: (ctx) => {
+    const firmName = ctx.tab?.state?.firmName;
+    if (!firmName) return "";
+
+    // Pull records from loaded ir.table tab
+    const irTab = workspaceState.tabs.find(t => t.type === "ir.table" && t.state?.records);
+    const allRecords = irTab?.state?.records || [];
+    const firm = allRecords.filter(r => r.current_firm === firmName);
+    if (!firm.length) return renderContextCard(firmName, `
+      <p style="font-size:11px;color:var(--text-faint);margin:0;">No records loaded. Open IR Map first.</p>
+    `);
+
+    // Function distribution mini bars
+    const fnCounts = {};
+    firm.forEach(r => { const f = r.function || "Unknown"; fnCounts[f] = (fnCounts[f] || 0) + 1; });
+    const fnEntries = Object.entries(fnCounts).sort((a, b) => b[1] - a[1]);
+    const fnMax = fnEntries[0]?.[1] || 1;
+    const fnBars = fnEntries.slice(0, 6).map(([label, count]) => `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div class="truncate" style="flex:1;font-size:11px;color:var(--text-normal);">${escapeHtml(label)}</div>
+        <div style="width:${Math.round(count / fnMax * 48)}px;height:3px;background:var(--border-accent);border-radius:2px;flex-shrink:0;"></div>
+        <div style="font-size:10px;font-family:var(--font-data);color:var(--text-faint);min-width:16px;text-align:right;">${count}</div>
+      </div>`).join("");
+
+    // Top groups
+    const grpCounts = {};
+    firm.forEach(r => { const g = r.group; if (g && g !== "--") grpCounts[g] = (grpCounts[g] || 0) + 1; });
+    const grpEntries = Object.entries(grpCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const grpRows = grpEntries.map(([label, count]) => `
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div class="truncate" style="flex:1;font-size:11px;color:var(--text-muted);">${escapeHtml(label)}</div>
+        <div style="font-size:10px;font-family:var(--font-data);color:var(--text-faint);">${count}</div>
+      </div>`).join("");
+
+    return renderContextCard(firmName, `
+      <div class="meta-grid" style="margin-bottom:8px;">
+        <div class="meta-block"><div class="meta-label">People</div><div class="meta-value">${firm.length}</div></div>
+        <div class="meta-block"><div class="meta-label">Groups</div><div class="meta-value">${grpEntries.length}</div></div>
+      </div>
+      ${fnBars ? `
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin:8px 0 6px;">By Function</div>
+        ${fnBars}` : ""}
+      ${grpRows ? `
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin:10px 0 6px;">Top Groups</div>
+        ${grpRows}` : ""}
     `);
   },
 });
@@ -485,6 +618,7 @@ export function renderRightRail() {
   else if (context.type === "master.search") rightRailTitle.textContent = "Reference";
   else if (context.type === "hf.table")     rightRailTitle.textContent = "HF Map";
   else if (context.type === "ir.table")     rightRailTitle.textContent = "IR Map";
+  else if (context.type === "ir.firm")      rightRailTitle.textContent = context.firmName || "IR Firm";
   else if (context.type === "finra")        rightRailTitle.textContent = "FINRA Monitor";
   else rightRailTitle.textContent = "Context";
 
