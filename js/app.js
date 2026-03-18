@@ -101,6 +101,8 @@ async function handleBbgCsvUpload(file, tabId) {
 
     if (finalResult) {
       updateActiveTabState({ uploadState: "success", uploadResult: finalResult, uploadLog: logLines, data: undefined }, tabId);
+      // Bust the runs cache on the firm detail tab so onActivate re-fetches the new run
+      updateActiveTabState({ runs: undefined, runData: null, selectedRunId: undefined }, `tab-bbg-firm-${finalResult.firm_id}`);
       openBbgFirmTab(finalResult.firm_id, finalResult.firm_name);
       setTimeout(() => updateActiveTabState({ uploadState: "idle", uploadResult: null, uploadLog: null }, tabId), 30000);
     } else {
