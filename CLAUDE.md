@@ -7,7 +7,8 @@ BankSt OS is a workspace-native intelligence and workflow shell for managing pro
 Full product vision: `vision.md`
 PostgreSQL schema reference: `sql_schema.sql`
 FINRA scraper service: `C:/dev/tools/finra_scraper`
-Mapping API service: `C:/dev/tools/mapping_api` (port 8003)
+Mapping API service: `/Users/dev-server/workspace/services/mapping_tools` (Mac Mini, port 8003, always run via pm2)
+Mapping API dev source: `C:/dev/tools/mapping_tools` (Dell — edit here, push, pull on Mac Mini, restart via pm2)
 
 ---
 
