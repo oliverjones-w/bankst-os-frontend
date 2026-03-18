@@ -713,13 +713,14 @@ registerWorkspaceView({
     if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
       fetchingTabs.add(tab.id);
       try {
-        const records = await mappingGet("/hf/records");
-        updateActiveTabState({ records, error: null }, tab.id);
-        const [allChanges, dailyChanges] = await Promise.all([
+        const records = await mappingGet("/hf/records?limit=400");
+        updateActiveTabState({ records, recordsComplete: false, error: null }, tab.id);
+        const [rest, allChanges, dailyChanges] = await Promise.all([
+          mappingGet("/hf/records?offset=400"),
           mappingGet("/hf/changes?limit=200"),
           mappingGet("/hf/daily-changes?days=60"),
         ]);
-        updateActiveTabState({ allChanges, dailyChanges }, tab.id);
+        updateActiveTabState({ records: [...records, ...rest], recordsComplete: true, allChanges, dailyChanges }, tab.id);
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {
@@ -760,7 +761,7 @@ registerWorkspaceView({
           <input id="hfSearchInput" class="master-search-input" type="text"
             placeholder="Search ${records ? records.length.toLocaleString() : "…"} HF records…"
             value="${escapeHtml(query)}" autocomplete="off" spellcheck="false" />
-          <span id="hfSearchCount" class="master-search-count">${records ? countLabel(filtered?.length ?? records.length, records.length) : ""}</span>
+          <span id="hfSearchCount" class="master-search-count">${records ? (tab.state?.recordsComplete === false ? `${records.length.toLocaleString()} records — loading more…` : countLabel(filtered?.length ?? records.length, records.length)) : ""}</span>
         </div>
         ${records ? `
         <div class="filter-bar">
@@ -827,13 +828,14 @@ registerWorkspaceView({
     if (!tab.state?.records && !fetchingTabs.has(tab.id)) {
       fetchingTabs.add(tab.id);
       try {
-        const records = await mappingGet("/ir/records");
-        updateActiveTabState({ records, error: null }, tab.id);
-        const [allChanges, dailyChanges] = await Promise.all([
+        const records = await mappingGet("/ir/records?limit=400");
+        updateActiveTabState({ records, recordsComplete: false, error: null }, tab.id);
+        const [rest, allChanges, dailyChanges] = await Promise.all([
+          mappingGet("/ir/records?offset=400"),
           mappingGet("/ir/changes?limit=200"),
           mappingGet("/ir/daily-changes?days=60"),
         ]);
-        updateActiveTabState({ allChanges, dailyChanges }, tab.id);
+        updateActiveTabState({ records: [...records, ...rest], recordsComplete: true, allChanges, dailyChanges }, tab.id);
       } catch (e) {
         updateActiveTabState({ records: null, allChanges: null, error: e.message }, tab.id);
       } finally {
@@ -874,7 +876,7 @@ registerWorkspaceView({
           <input id="irSearchInput" class="master-search-input" type="text"
             placeholder="Search ${records ? records.length.toLocaleString() : "…"} IR records…"
             value="${escapeHtml(query)}" autocomplete="off" spellcheck="false" />
-          <span id="irSearchCount" class="master-search-count">${records ? countLabel(filtered?.length ?? records.length, records.length) : ""}</span>
+          <span id="irSearchCount" class="master-search-count">${records ? (tab.state?.recordsComplete === false ? `${records.length.toLocaleString()} records — loading more…` : countLabel(filtered?.length ?? records.length, records.length)) : ""}</span>
         </div>
         ${records ? `
         <div class="filter-bar">
