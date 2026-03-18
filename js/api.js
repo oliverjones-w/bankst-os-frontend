@@ -1,4 +1,4 @@
-import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE } from "./config.js";
+import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE, ENCORE_API_BASE } from "./config.js";
 import { escapeHtml, Timer } from "./utils.js";
 
 // ── Core fetch helpers ────────────────────────────────────────────────────────
@@ -51,6 +51,28 @@ export async function mappingUploadStream(path, formData, onEvent) {
       }
     }
   }
+}
+
+export async function encoreGet(path) {
+  const timer = new Timer("api", `encore:${path}`);
+  const res = await fetch(`${ENCORE_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Encore API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function encorePatch(path, body) {
+  const timer = new Timer("api", `encore:${path}`);
+  const res = await fetch(`${ENCORE_API_BASE}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Encore API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
 }
 
 export async function bankstGet(path) {

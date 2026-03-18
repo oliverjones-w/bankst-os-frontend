@@ -1639,3 +1639,18 @@
 .rh-disc  { font-size: 9px; color: #f87171; font-family: var(--font-data); }
 .rh-add   { font-size: 9px; color: #60a5fa; font-family: var(--font-data); }
 .rh-rows  { font-size: 9px; color: var(--text-faint); font-family: var(--font-data); margin-left: auto; }
+
+/* ── Encore Sync view ──────────────────────────────────────── */
+
+.encore-sync-grid { grid-template-columns: 1.8fr 1.1fr 90px 1.6fr 120px 95px 72px; }
+
+.table-row-grid.encore-sync-grid { padding-right: 24px; }
+
+.encore-sync-grid > div,
+.encore-sync-grid > button,
+.encore-sync-grid > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -400,6 +400,7 @@ export function handleToolbarAction(actionId) {
       break;
     }
     case "bbg.firms.refresh":      updateActiveTabState({ data: undefined }); break;
+    case "encore.sync.refresh":    updateActiveTabState({ candidates: undefined, stats: undefined }); break;
     case "finra.monitor.mode.overview":    updateActiveTabState({ mode: "overview" });    break;
     case "finra.monitor.mode.changes":     updateActiveTabState({ mode: "changes" });     break;
     case "finra.monitor.mode.individuals": updateActiveTabState({ mode: "individuals" }); break;

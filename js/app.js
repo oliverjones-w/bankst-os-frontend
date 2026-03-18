@@ -12,8 +12,8 @@ import {
 } from "./workspace.js";
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
-import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab } from "./nav.js";
-import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload, mappingUploadStream } from "./api.js";
+import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab, openEncoreSyncTab } from "./nav.js";
+import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload, mappingUploadStream, encorePatch } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
 import { initTabDragHandlers } from "./drag.js";
@@ -65,10 +65,16 @@ document.addEventListener("change", (e) => {
 
 // ── BBG search input ───────────────────────────────────────────────────────────
 document.addEventListener("input", (e) => {
-  const inp = e.target.closest(".bbg-search-input");
-  if (!inp) return;
-  const tabId = inp.dataset.tabId;
-  updateActiveTabState({ searchQuery: inp.value }, tabId);
+  const bbgInp = e.target.closest(".bbg-search-input");
+  if (bbgInp) {
+    updateActiveTabState({ searchQuery: bbgInp.value }, bbgInp.dataset.tabId);
+    return;
+  }
+  const encoreInp = e.target.closest(".encore-search-input");
+  if (encoreInp) {
+    const encoreTab = workspaceState.tabs.find(t => t.type === "encore.sync");
+    if (encoreTab) updateActiveTabState({ query: encoreInp.value }, encoreTab.id);
+  }
 });
 
 // ── BBG CSV upload — shared handler ───────────────────────────────────────────
@@ -268,6 +274,7 @@ document.addEventListener("click", (e) => {
     if (t === "ir.table")       openTab({ id: "tab-ir-table",       type: "ir.table",       title: "IR Map",     state: {} });
     if (t === "perf.dashboard") openTab({ id: "tab-perf-dashboard", type: "perf.dashboard", title: "Performance", state: {} });
     if (t === "bbg.firms") { openBbgFirmsTab(); return; }
+    if (t === "encore.sync") { openEncoreSyncTab(); return; }
     return;
   }
 
@@ -306,6 +313,79 @@ document.addEventListener("click", (e) => {
     const runId = parseInt(bbgRunBtn.dataset.selectBbgRun, 10);
     const tabId = bbgRunBtn.dataset.tabId;
     document.dispatchEvent(new CustomEvent("bankst:bbgRunChange", { detail: { tabId, runId } }));
+    return;
+  }
+
+  // ── Encore Sync: filter buttons ──────────────────────────────────────────────
+  const encoreFilterBtn = e.target.closest(".encore-filter-btn");
+  if (encoreFilterBtn) {
+    updateActiveTabState({ filter: encoreFilterBtn.dataset.encoreFilter });
+    return;
+  }
+
+  // ── Encore Sync: open GUID match form ────────────────────────────────────────
+  const encoreMatchBtn = e.target.closest("[data-encore-match]");
+  if (encoreMatchBtn) {
+    const row = encoreMatchBtn.closest(".table-row-wrap");
+    if (!row) return;
+    const existing = row.querySelector(".encore-match-form");
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll(".encore-match-form").forEach(f => f.remove());
+    const name        = encoreMatchBtn.dataset.encoreMatch;
+    const currentGuid = encoreMatchBtn.dataset.currentGuid || "";
+    const form = document.createElement("div");
+    form.className = "encore-match-form";
+    form.style.cssText = "display:flex;align-items:center;gap:8px;padding:6px 24px 8px;border-top:1px solid var(--border-subtle);background:rgba(0,115,255,.04);";
+    form.innerHTML = `
+      <input class="encore-guid-input" type="text" value="${currentGuid}"
+        placeholder="Paste Encore GUID…" autocomplete="off" spellcheck="false"
+        style="flex:1;max-width:360px;height:28px;padding:0 10px;font-family:var(--font-data);font-size:11px;
+               background:var(--surface-2,rgba(255,255,255,.06));border:1px solid var(--border-subtle);
+               border-radius:4px;color:var(--text-normal);" />
+      <button class="encore-guid-confirm" data-candidate="${name}"
+        style="font-family:var(--font-interface);font-size:11px;font-weight:600;padding:4px 12px;
+               border-radius:4px;border:none;background:var(--interactive-accent);color:#fff;cursor:pointer;">
+        Confirm
+      </button>
+      <button class="encore-guid-cancel"
+        style="font-family:var(--font-interface);font-size:11px;color:var(--text-muted);background:none;
+               border:none;cursor:pointer;padding:4px 8px;">
+        Cancel
+      </button>
+    `;
+    row.appendChild(form);
+    form.querySelector(".encore-guid-input").focus();
+    return;
+  }
+
+  // ── Encore Sync: confirm GUID ─────────────────────────────────────────────────
+  const encoreConfirmBtn = e.target.closest(".encore-guid-confirm");
+  if (encoreConfirmBtn) {
+    const form  = encoreConfirmBtn.closest(".encore-match-form");
+    const input = form?.querySelector(".encore-guid-input");
+    const guid  = input?.value?.trim();
+    const name  = encoreConfirmBtn.dataset.candidate;
+    if (!guid || !name) return;
+    encoreConfirmBtn.disabled    = true;
+    encoreConfirmBtn.textContent = "Saving…";
+    encorePatch("/candidates/match", { candidate_name: name, encore_guid: guid })
+      .then(() => {
+        form.remove();
+        const encoreTab = workspaceState.tabs.find(t => t.type === "encore.sync");
+        if (encoreTab) updateActiveTabState({ candidates: undefined, stats: undefined }, encoreTab.id);
+      })
+      .catch((err) => {
+        encoreConfirmBtn.disabled    = false;
+        encoreConfirmBtn.textContent = "Confirm";
+        console.error("[encore:match]", err);
+      });
+    return;
+  }
+
+  // ── Encore Sync: cancel GUID form ────────────────────────────────────────────
+  const encoreCancelBtn = e.target.closest(".encore-guid-cancel");
+  if (encoreCancelBtn) {
+    encoreCancelBtn.closest(".encore-match-form")?.remove();
     return;
   }
 

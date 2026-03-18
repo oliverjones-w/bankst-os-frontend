@@ -84,6 +84,10 @@ export function openBbgFirmTab(firmId, firmName) {
   });
 }
 
+export function openEncoreSyncTab() {
+  openTab({ id: "tab-encore-sync", type: "encore.sync", title: "Encore Sync", state: {} });
+}
+
 export function runCommand(commandId) {
   if (commandId === "toggle-right-rail") {
     document.dispatchEvent(new CustomEvent("bankst:toggleRightRail"));

@@ -1,5 +1,5 @@
 import { registerWorkspaceView, updateActiveTabState, getActiveTab, fetchingTabs, workspaceState } from "./workspace.js";
-import { finraGet, bankstGet, mappingGet, mappingUpload, setFinraChangesCache } from "./api.js";
+import { finraGet, bankstGet, mappingGet, mappingUpload, setFinraChangesCache, encoreGet } from "./api.js";
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
 
@@ -1971,5 +1971,187 @@ registerWorkspaceView({
     } finally {
       fetchingTabs.delete(tab.id);
     }
+  },
+});
+
+// ── View: encore.sync ──────────────────────────────────────────────────────────
+
+const ENCORE_STATUS_CFG = {
+  found:     { label: "Found",     color: "#4ade80" },
+  possible:  { label: "Possible",  color: "#fbbf24" },
+  ambiguous: { label: "Ambiguous", color: "#f97316" },
+  not_found: { label: "Not Found", color: "#f87171" },
+  error:     { label: "Error",     color: "#ef4444" },
+};
+
+function encoreStatusBadge(status) {
+  const cfg = ENCORE_STATUS_CFG[status] || { label: status || "Pending", color: "var(--text-faint)" };
+  return `<span style="display:inline-block;font-family:var(--font-data);font-size:10px;font-weight:600;border-radius:4px;padding:2px 6px;background:${cfg.color}22;color:${cfg.color};">${escapeHtml(cfg.label)}</span>`;
+}
+
+function encoreFilterCandidates(candidates, filter, query) {
+  let list = candidates;
+  if      (filter === "needs_review") list = list.filter(c => c.encore_status === "possible" || c.encore_status === "ambiguous");
+  else if (filter === "not_found")    list = list.filter(c => c.encore_status === "not_found");
+  else if (filter === "found")        list = list.filter(c => c.encore_status === "found");
+  else if (filter === "error")        list = list.filter(c => c.encore_status === "error");
+  if (query) {
+    const q = query.toLowerCase();
+    list = list.filter(c =>
+      c.candidate_name?.toLowerCase().includes(q) ||
+      c.obsidian_firm?.toLowerCase().includes(q) ||
+      c.encore_match_name?.toLowerCase().includes(q) ||
+      c.encore_match_company?.toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
+registerWorkspaceView({
+  id: "encore.sync",
+  hasContext: false,
+  match: (tab) => tab.type === "encore.sync",
+  toolbar: () => ({
+    left:  [{ id: "encore.sync.view", label: "Encore Sync", active: true }],
+    right: [{ id: "encore.sync.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (Array.isArray(tab.state?.candidates) || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const [stats, candidates] = await Promise.all([
+        encoreGet("/stats"),
+        encoreGet("/candidates"),
+      ]);
+      updateActiveTabState({ stats, candidates }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ stats: null, candidates: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+    const input = document.getElementById("encoreSearchInput");
+    if (input) {
+      input.addEventListener("input", debounce((ev) => {
+        const t = getActiveTab();
+        if (t?.type === "encore.sync") updateActiveTabState({ query: ev.target.value }, t.id);
+      }, 150));
+    }
+  },
+  render: (tab) => {
+    const candidates = tab.state?.candidates;
+    const stats      = tab.state?.stats;
+    const filter     = tab.state?.filter || "all";
+    const query      = tab.state?.query  || "";
+    const error      = tab.state?.error;
+
+    if (error) return `
+      <div class="table-shell view-placeholder">
+        <span>Encore Sync</span>
+        <p style="color:var(--text-error,#f87171);">${escapeHtml(error)}</p>
+        <p style="font-size:11px;color:var(--text-faint);">Is the encore_scraper API running?<br><code style="font-family:var(--font-data);font-size:10px;">uvicorn api:app --port 5050</code></p>
+      </div>`;
+
+    const loading = !candidates;
+
+    const statsBar = stats ? `
+      <div class="bbg-stat-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:12px;">
+        <div class="meta-item"><div class="meta-label">Total</div><div class="meta-value cell-mono">${stats.total}</div></div>
+        <div class="meta-item"><div class="meta-label">Found</div><div class="meta-value cell-mono" style="color:#4ade80;">${stats.found}</div></div>
+        <div class="meta-item"><div class="meta-label">Needs Review</div><div class="meta-value cell-mono" style="color:#fbbf24;">${stats.needs_review}</div></div>
+        <div class="meta-item"><div class="meta-label">Not Found</div><div class="meta-value cell-mono" style="color:#f87171;">${stats.not_found}</div></div>
+        <div class="meta-item"><div class="meta-label">Error</div><div class="meta-value cell-mono" style="color:#ef4444;">${stats.error}</div></div>
+      </div>` : "";
+
+    const filterDefs = [
+      { key: "all",          label: "All" },
+      { key: "needs_review", label: `Needs Review${stats?.needs_review ? ` · ${stats.needs_review}` : ""}` },
+      { key: "not_found",    label: `Not Found${stats?.not_found ? ` · ${stats.not_found}` : ""}` },
+      { key: "found",        label: `Found${stats?.found ? ` · ${stats.found}` : ""}` },
+    ];
+
+    const filterBtns = filterDefs.map(f => {
+      const active = filter === f.key;
+      return `<button class="encore-filter-btn" data-encore-filter="${f.key}"
+        style="font-family:var(--font-interface);font-size:11px;font-weight:${active ? "600" : "400"};
+               padding:4px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;
+               border:1px solid ${active ? "var(--interactive-accent)" : "var(--border-subtle)"};
+               background:${active ? "rgba(0,115,255,.12)" : "transparent"};
+               color:${active ? "var(--interactive-accent)" : "var(--text-muted)"};">
+        ${escapeHtml(f.label)}
+      </button>`;
+    }).join("");
+
+    const visible = loading ? [] : encoreFilterCandidates(candidates, filter, query);
+    const countLabel = loading ? "" : `${visible.length.toLocaleString()} candidate${visible.length !== 1 ? "s" : ""}`;
+
+    const filterBar = `
+      <div style="display:flex;align-items:center;gap:8px;padding:0 24px;margin-bottom:12px;flex-wrap:wrap;">
+        ${filterBtns}
+        <input id="encoreSearchInput" class="encore-search-input" type="text"
+          value="${escapeHtml(query)}" placeholder="Search name, firm, match…" autocomplete="off" spellcheck="false"
+          style="margin-left:8px;max-width:260px;height:28px;padding:0 10px;font-family:var(--font-interface);
+                 font-size:12px;border-radius:4px;background:var(--surface-2,rgba(255,255,255,.05));
+                 border:1px solid var(--border-subtle);color:var(--text-normal);" />
+        <span style="font-family:var(--font-data);font-size:10px;color:var(--text-faint);margin-left:auto;">${countLabel}</span>
+      </div>`;
+
+    if (loading) {
+      return `
+        <div class="table-shell" style="padding:16px 0;">
+          <div style="padding:0 24px;">${statsBar}</div>
+          ${filterBar}
+          ${skeletonGrid(7, "encore-sync-grid")}
+        </div>`;
+    }
+
+    const rows = visible.map(c => {
+      const status      = c.encore_status;
+      const matchName   = c.encore_match_name   ? escapeHtml(c.encore_match_name)   : `<span style="color:var(--text-faint)">—</span>`;
+      const matchCo     = c.encore_match_company ? ` · <span style="color:var(--text-muted)">${escapeHtml(c.encore_match_company)}</span>` : "";
+      const guidDisplay = c.encore_guid
+        ? `<span class="cell-mono" style="font-size:10px;color:var(--text-muted);" title="${escapeHtml(c.encore_guid)}">${escapeHtml(c.encore_guid.slice(0, 8))}…</span>`
+        : `<span style="color:var(--text-faint)">—</span>`;
+      const lastProbed  = c.last_probe_at ? new Date(c.last_probe_at).toLocaleDateString() : "—";
+      const needsAction = status === "possible" || status === "ambiguous" || status === "not_found";
+      const actionBtn   = needsAction
+        ? `<button class="encore-match-btn" data-encore-match="${escapeHtml(c.candidate_name)}" data-current-guid="${escapeHtml(c.encore_guid || "")}"
+             style="font-family:var(--font-interface);font-size:10px;font-weight:600;letter-spacing:.04em;
+                    text-transform:uppercase;color:var(--interactive-accent);background:none;border:none;cursor:pointer;padding:0;">
+             Set GUID
+           </button>`
+        : "";
+      return `
+        <div class="table-row-wrap">
+          <div class="table-row-grid encore-sync-grid">
+            <div style="font-family:var(--font-interface);font-size:12px;font-weight:500;">${escapeHtml(c.candidate_name || "")}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(c.obsidian_firm || "—")}</div>
+            <div>${encoreStatusBadge(status)}</div>
+            <div style="font-size:11px;">${matchName}${matchCo}</div>
+            <div>${guidDisplay}</div>
+            <div class="cell-mono" style="font-size:10px;color:var(--text-faint);">${escapeHtml(lastProbed)}</div>
+            <div>${actionBtn}</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    const empty = visible.length === 0
+      ? `<div style="padding:32px 24px;color:var(--text-faint);font-size:12px;">No candidates match this filter.</div>`
+      : "";
+
+    return `
+      <div class="table-shell" style="padding:16px 0;">
+        <div style="padding:0 24px;">${statsBar}</div>
+        ${filterBar}
+        <div class="table-header-grid encore-sync-grid" style="padding-left:24px;padding-right:24px;">
+          <div>Name</div>
+          <div>Firm</div>
+          <div>Status</div>
+          <div>Encore Match</div>
+          <div>GUID</div>
+          <div>Last Probed</div>
+          <div></div>
+        </div>
+        ${rows}${empty}
+      </div>`;
   },
 });
