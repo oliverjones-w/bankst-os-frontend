@@ -1314,37 +1314,80 @@ registerWorkspaceView({
     const uploadMsg   = tab.state?.uploadMessage || "";
 
     // Upload zone — state-driven appearance
-    const zoneStyles = {
+    const uploadResult = tab.state?.uploadResult;
+    let uploadZoneInner = "";
+
+    if (uploadState === "success" && uploadResult) {
+      uploadZoneInner = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+          <div>
+            <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                        font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                        color:var(--color-green,#4ade80);margin-bottom:6px;">
+              ✓ Run complete — ${escapeHtml(uploadResult.firm_name)}
+            </div>
+            <div style="display:flex;gap:20px;">
+              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
+                <span style="color:var(--color-green,#4ade80);font-weight:600;">${uploadResult.confirmed_count}</span> confirmed
+              </span>
+              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
+                <span style="color:var(--text-normal);font-weight:600;">${uploadResult.discrepancy_count}</span> discrepancies
+              </span>
+              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-muted);">
+                <span style="color:var(--text-normal);font-weight:600;">${uploadResult.addition_count}</span> additions
+              </span>
+              <span style="font-size:11px;font-family:var(--font-data);color:var(--text-faint);">
+                ${uploadResult.rows_processed} rows · run #${uploadResult.run_id}
+              </span>
+            </div>
+          </div>
+          <button class="cell-link" data-open-bbg-firm="${escapeHtml(uploadResult.firm_id)}" data-firm-name="${escapeHtml(uploadResult.firm_name)}"
+            style="font-size:10px;font-family:var(--font-interface);font-weight:600;letter-spacing:.04em;
+                   text-transform:uppercase;color:var(--text-accent);white-space:nowrap;">
+            View Results →
+          </button>
+        </div>
+      `;
+    } else if (uploadState === "error") {
+      uploadZoneInner = `
+        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                    color:var(--color-red,#ef4444);margin-bottom:4px;">✗ Upload failed</div>
+        <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(uploadMsg)}</div>
+      `;
+    } else if (uploadState === "uploading") {
+      uploadZoneInner = `
+        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                    color:var(--text-muted);">⟳ Processing CSV…</div>
+      `;
+    } else if (uploadState === "dragging") {
+      uploadZoneInner = `
+        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                    color:var(--text-accent);">⊛ Release to upload</div>
+      `;
+    } else {
+      uploadZoneInner = `
+        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
+                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                    color:var(--text-faint);">⊛ Drop a BBG CSV here to run extraction</div>
+      `;
+    }
+
+    const zoneBorder = {
       idle:      "border-color:var(--border-subtle);background:transparent;",
       dragging:  "border-color:var(--border-accent);background:var(--background-accent-faint);",
-      uploading: "border-color:var(--border-subtle);background:transparent;opacity:.7;",
-      success:   "border-color:hsla(133,49%,49%,.5);background:hsla(133,49%,49%,.06);",
-      error:     "border-color:hsla(0,72%,60%,.5);background:hsla(0,72%,60%,.06);",
-    };
-    const zoneText = {
-      idle:      "⊛ Drop a BBG CSV here to run extraction",
-      dragging:  "⊛ Release to upload",
-      uploading: "⟳ Processing…",
-      success:   `✓ ${uploadMsg}`,
-      error:     `✗ ${uploadMsg}`,
-    };
-    const zoneTextColor = {
-      idle:      "var(--text-faint)",
-      dragging:  "var(--text-accent)",
-      uploading: "var(--text-muted)",
-      success:   "var(--color-green,#4ade80)",
-      error:     "var(--color-red,#ef4444)",
+      uploading: "border-color:var(--border-subtle);background:transparent;",
+      success:   "border-color:hsla(133,49%,49%,.4);background:hsla(133,49%,49%,.05);",
+      error:     "border-color:hsla(0,72%,60%,.4);background:hsla(0,72%,60%,.05);",
     };
 
     const uploadZone = `
       <div class="bbg-upload-zone" data-tab-id="${escapeHtml(tab.id)}"
         style="margin-bottom:16px;padding:12px 16px;border:1px dashed;border-radius:6px;
-               cursor:default;transition:all 120ms ease;${zoneStyles[uploadState]}">
-        <div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);
-                    font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-                    color:${zoneTextColor[uploadState]};">
-          ${zoneText[uploadState]}
-        </div>
+               cursor:default;transition:all 120ms ease;${zoneBorder[uploadState]}">
+        ${uploadZoneInner}
       </div>
     `;
 

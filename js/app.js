@@ -97,14 +97,24 @@ document.addEventListener("drop", async (e) => {
     form.append("file", file);
     const result = await mappingUpload("/bbg/upload", form);
 
-    const msg = `${result.firm_name} — ${result.confirmed_count} confirmed, `
-      + `${result.discrepancy_count} discrepancies, ${result.addition_count} additions`;
+    // Show success in the upload zone and bust the firms cache
+    updateActiveTabState({ uploadState: "success", uploadResult: result, data: undefined }, tabId);
 
-    // Bust the firms cache so the view re-fetches with updated data
-    updateActiveTabState({ uploadState: "success", uploadMessage: msg, data: undefined }, tabId);
+    // Open the firm's detail tab — unambiguous confirmation that the run completed
+    openBbgFirmTab(result.firm_id, result.firm_name);
+
+    // Auto-reset the upload zone to idle after 8s
+    setTimeout(() => {
+      updateActiveTabState({ uploadState: "idle", uploadResult: null }, tabId);
+    }, 8000);
   } catch (err) {
     const detail = err.detail || err.message || "Upload failed.";
     updateActiveTabState({ uploadState: "error", uploadMessage: detail }, tabId);
+
+    // Auto-reset error state after 12s
+    setTimeout(() => {
+      updateActiveTabState({ uploadState: "idle", uploadMessage: "" }, tabId);
+    }, 12000);
   }
 });
 
