@@ -1377,17 +1377,75 @@
 .perf-asset-name { font-family: var(--font-data); }
 .perf-asset-size { font-family: var(--font-data); color: var(--text-muted); }
 
+/* ── Utility classes used across BBG + other views ────────── */
+.cell-mono {
+  font-family: var(--font-data);
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 12px;
+  background: var(--surface-2, rgba(255,255,255,.04));
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+/* Compact detail shell — tighter gap for data-dense views */
+.detail-view-shell--compact { gap: 12px; }
+
 /* ── BBG Extraction views ─────────────────────────────────── */
-.bbg-firms-grid     { grid-template-columns: 2fr 80px 100px 80px 140px 90px; }
-.bbg-confirmed-grid { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 1fr 1fr; }
-.bbg-disc-grid      { grid-template-columns: 1.5fr 100px 1fr 1fr 1fr 80px 90px; }
+
+/* Grid column templates — tuned for actual content widths */
+.bbg-firms-grid     { grid-template-columns: 2fr 78px 100px 75px 150px 88px; }
+.bbg-confirmed-grid { grid-template-columns: 2fr 1.4fr 1.5fr 1fr 1fr 85px 115px; }
+.bbg-disc-grid      { grid-template-columns: 1.8fr 85px 1.2fr 1.2fr 0.8fr 65px 90px; }
 .bbg-add-grid       { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr 1fr 90px; }
 
 /* ── BBG delta + persistence views ───────────────────────── */
-.bbg-delta-conf-grid  { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr; }
-.bbg-delta-disc-grid  { grid-template-columns: 1.5fr 100px 1fr 1fr; }
-.bbg-delta-add-grid   { grid-template-columns: 1.5fr 1.5fr 1.5fr 1fr; }
-.bbg-persist-grid     { grid-template-columns: 1.5fr 90px 1fr 1fr 90px 90px 80px; }
+.bbg-delta-conf-grid  { grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr; }
+.bbg-delta-disc-grid  { grid-template-columns: 2fr 90px 1.2fr 1.2fr; }
+.bbg-delta-add-grid   { grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr; }
+.bbg-persist-grid     { grid-template-columns: 1.8fr 80px 1.2fr 1.2fr 90px 90px 70px; }
+
+/* Remove row-actions padding clearance — BBG tables don't use .row-actions */
+.table-row-grid.bbg-firms-grid,
+.table-row-grid.bbg-confirmed-grid,
+.table-row-grid.bbg-disc-grid,
+.table-row-grid.bbg-add-grid,
+.table-row-grid.bbg-delta-conf-grid,
+.table-row-grid.bbg-delta-disc-grid,
+.table-row-grid.bbg-delta-add-grid,
+.table-row-grid.bbg-persist-grid {
+  padding-right: 24px;
+}
+
+/* Text truncation for all BBG grid cells — prevents row height expansion */
+.bbg-firms-grid > div, .bbg-firms-grid > button,
+.bbg-confirmed-grid > div, .bbg-confirmed-grid > button,
+.bbg-disc-grid > div, .bbg-disc-grid > button,
+.bbg-add-grid > div, .bbg-add-grid > button,
+.bbg-delta-conf-grid > div,
+.bbg-delta-disc-grid > div,
+.bbg-delta-add-grid > div,
+.bbg-persist-grid > div, .bbg-persist-grid > button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Stat row — horizontal strip of 4 tiles across views */
+.bbg-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 24px;
+}
 
 .delta-section-header {
   font-family: var(--font-interface);

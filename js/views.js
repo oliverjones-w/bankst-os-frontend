@@ -1380,7 +1380,7 @@ registerWorkspaceView({
     const totalAdditions     = firms.reduce((s, f) => s + (f.addition_count     || 0), 0);
 
     const statTiles = `
-      <div class="meta-grid" style="margin-bottom:16px;">
+      <div class="bbg-stat-row" style="margin-bottom:12px;">
         <div class="meta-item"><div class="meta-label">Firms</div><div class="meta-value">${firms.length}</div></div>
         <div class="meta-item"><div class="meta-label">Confirmed</div><div class="meta-value">${totalConfirmed.toLocaleString()}</div></div>
         <div class="meta-item"><div class="meta-label">Discrepancies</div><div class="meta-value">${totalDiscrepancies.toLocaleString()}</div></div>
@@ -1574,7 +1574,7 @@ registerWorkspaceView({
 
     // Run selector header
     const runSelector = `
-      <div class="detail-header" style="margin-bottom:12px;">
+      <div class="detail-header">
         <div>
           <div class="detail-title">${escapeHtml(firmName)}</div>
           <div class="detail-subtitle" style="display:flex;align-items:center;gap:8px;margin-top:4px;">
@@ -1596,7 +1596,7 @@ registerWorkspaceView({
 
     // Stat tiles
     const statRow = `
-      <div class="meta-grid" style="margin-bottom:12px;">
+      <div class="bbg-stat-row">
         <div class="meta-item"><div class="meta-label">Confirmed</div><div class="meta-value">${(runData.confirmed?.length || 0).toLocaleString()}</div></div>
         <div class="meta-item"><div class="meta-label">Discrepancies</div><div class="meta-value">${(runData.discrepancies?.length || 0).toLocaleString()}</div></div>
         <div class="meta-item"><div class="meta-label">Additions</div><div class="meta-value">${(runData.additions?.length || 0).toLocaleString()}</div></div>
@@ -1606,9 +1606,9 @@ registerWorkspaceView({
 
     // Search input
     const searchInput = `
-      <div style="margin-bottom:8px;">
+      <div style="padding:0 24px;">
         <input class="bbg-search-input" data-tab-id="${escapeHtml(tab.id)}" data-mode="${mode}" type="text" placeholder="Filter by name…"
-          style="width:100%;max-width:320px;font-size:var(--font-size-data,11px);padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface-2);color:inherit;"
+          style="width:100%;max-width:300px;font-size:var(--font-size-data,11px);padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface-2);color:inherit;"
           value="${escapeHtml(tab.state?.searchQuery || "")}" />
       </div>
     `;
@@ -1742,9 +1742,9 @@ registerWorkspaceView({
       };
 
       return `
-        <div class="detail-view-shell">
+        <div class="detail-view-shell detail-view-shell--compact">
           ${firmTerminal}
-          <div class="detail-header" style="margin-bottom:12px;">
+          <div class="detail-header">
             <div class="detail-title">${esc(firmName)} — Run Delta</div>
             <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
               Run #${run_a.run_id} (${new Date(run_a.run_at).toLocaleDateString()})
@@ -1785,9 +1785,9 @@ registerWorkspaceView({
       };
 
       return `
-        <div class="detail-view-shell">
+        <div class="detail-view-shell detail-view-shell--compact">
           ${firmTerminal}
-          <div class="detail-header" style="margin-bottom:12px;">
+          <div class="detail-header">
             <div class="detail-title">${esc(firmName)} — Discrepancy Persistence</div>
             <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
               ${pd.length} unique discrepancy${pd.length !== 1 ? "ies" : ""} across all runs —
@@ -1818,14 +1818,14 @@ registerWorkspaceView({
       const chartLabel = (text) =>
         `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:8px;">${text}</div>`;
       return `
-        <div class="detail-view-shell">
+        <div class="detail-view-shell detail-view-shell--compact">
           ${firmTerminal}
           ${runSelector}
-          <div style="margin-bottom:20px;">
+          <div>
             ${chartLabel("Extraction Trends — All Runs")}
             ${_bbgTrendChart(runs)}
           </div>
-          <div style="margin-bottom:16px;">
+          <div>
             ${chartLabel("Location Distribution — Current Run")}
             ${runData ? _bbgLocationChart(runData.confirmed) : `<p style="opacity:.5;font-size:11px;">Loading run data…</p>`}
           </div>
@@ -1834,14 +1834,12 @@ registerWorkspaceView({
     }
 
     return `
-      <div class="detail-view-shell">
+      <div class="detail-view-shell detail-view-shell--compact">
         ${firmTerminal}
         ${runSelector}
         ${statRow}
         ${searchInput}
-        <div class="table-shell" style="margin-top:0;">
-          ${tableHtml}
-        </div>
+        <div>${tableHtml}</div>
       </div>
     `;
   },
