@@ -129,6 +129,14 @@ export function updateActiveTabState(patch, tabId) {
   saveWorkspaceState();
 }
 
+export function updateTabTitle(tabId, title) {
+  const tab = findTab(tabId);
+  if (!tab || !title) return;
+  tab.title = title;
+  renderWorkspace();
+  saveWorkspaceState();
+}
+
 // ── Master render cycle ────────────────────────────────────────────────────────
 function syncSidebarState(tab) {
   if (!workspaceRow) return;
