@@ -164,18 +164,18 @@
      Navigation domain tokens
      ========================= */
 
-  --nav-item-padding-x:        20px;
-  --nav-item-active-border-w:  3px;
+  --nav-item-padding-x:        8px;
+  --nav-item-active-border-w:  0px;  /* accent moves to text, not left bar */
 
   --nav-item-bg:               transparent;
   --nav-item-bg-hover:         var(--background-modifier-hover);
-  --nav-item-bg-active:        var(--background-accent-subtle);
+  --nav-item-bg-active:        var(--background-modifier-active-hover);  /* neutral wash, was blue */
 
-  --nav-item-text:             var(--text-faint);
+  --nav-item-text:             var(--text-muted);   /* #a0a0a0 — was --text-faint #606060 */
   --nav-item-text-hover:       var(--text-primary);
-  --nav-item-text-active:      var(--text-primary);
+  --nav-item-text-active:      var(--interactive-accent);  /* accent on text, not background */
 
-  --nav-item-border-active:    var(--interactive-accent);
+  --nav-item-border-active:    transparent;  /* left bar removed */
 
   --nav-icon-color:            var(--text-faint);
   --nav-icon-color-hover:      var(--text-primary);
