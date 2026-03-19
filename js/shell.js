@@ -3,6 +3,22 @@
 
 const shell = document.querySelector(".app-shell");
 
+const RAIL_MIN = 160;
+const RAIL_MAX = 480;
+const RAIL_WIDTH_KEY = "shell.leftRailWidth";
+
+function setRailWidth(px) {
+  const clamped = Math.round(Math.min(RAIL_MAX, Math.max(RAIL_MIN, px)));
+  document.documentElement.style.setProperty("--left-rail-w", `${clamped}px`);
+  document.documentElement.style.setProperty("--left-rail-base-w", `${clamped}px`);
+  localStorage.setItem(RAIL_WIDTH_KEY, String(clamped));
+}
+
+function initRailWidth() {
+  const saved = localStorage.getItem(RAIL_WIDTH_KEY);
+  if (saved) setRailWidth(Number(saved));
+}
+
 export const shellState = {
   rightRail: localStorage.getItem("shell.rightRail") || "open",
   zenMode:   false,
@@ -17,8 +33,10 @@ export function setLeftRailState(state) {
 
 export function initShellState() {
   const savedLeft  = localStorage.getItem("shell.leftRail") || "open";
+  initRailWidth();
   setLeftRailState(savedLeft);
   shell.dataset.rightRail = shellState.rightRail;
+  initRailResizeDrag();
 }
 
 export function toggleLeftRail() {
@@ -39,5 +57,44 @@ export function toggleZenMode() {
     shell.dataset.rightRail = "closed";
   } else {
     initShellState();
+  }
+}
+
+function initRailResizeDrag() {
+  const handle = document.getElementById("railResizeHandle");
+  if (!handle) return;
+
+  let startX = 0;
+  let startW = 0;
+
+  handle.addEventListener("pointerdown", (e) => {
+    // Only respond when the rail is open
+    if (shell.getAttribute("data-left-rail") === "closed") return;
+
+    e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
+    handle.classList.add("is-dragging");
+    shell.classList.add("is-resizing-rail");
+
+    startX = e.clientX;
+    startW = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue("--left-rail-w"),
+      10
+    );
+
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp, { once: true });
+    handle.addEventListener("pointercancel", onUp, { once: true });
+  });
+
+  function onMove(e) {
+    const delta = e.clientX - startX;
+    setRailWidth(startW + delta);
+  }
+
+  function onUp() {
+    handle.classList.remove("is-dragging");
+    shell.classList.remove("is-resizing-rail");
+    handle.removeEventListener("pointermove", onMove);
   }
 }

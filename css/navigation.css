@@ -4,7 +4,29 @@
    Left rail
    ========================= */
 
+/* Resize handle — sits on the right edge of the left rail */
+.rail-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.rail-resize-handle:hover,
+.rail-resize-handle.is-dragging {
+  background: var(--interactive-accent);
+  opacity: 0.5;
+}
+
+/* Left rail needs position:relative so the handle can anchor to it */
+
 .left-rail {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: var(--space-3) 0;
