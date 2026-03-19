@@ -48,8 +48,8 @@
      Accent semantics
      ========================= */
 
-  --interactive-accent: #0073ff;
-  --interactive-accent-hover: color-mix(in srgb, #0073ff 80%, white);
+  --interactive-accent: #006eff;
+  --interactive-accent-hover: color-mix(in srgb, #006eff 80%, white);
   --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
 
   --text-accent: var(--interactive-accent);
@@ -99,7 +99,7 @@
   --background-secondary-alt: var(--bg-elevated);
 
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
-  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.1);
+  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
 
   --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.04);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.06);
@@ -207,6 +207,7 @@
   --radius-md: 4px;
   --radius-lg: 6px;
   --radius-xl: 10px;
+  --radius-2xl: 14px;  /* Command palette, large floating surfaces */
 
   /* =========================
      Z-index hierarchy
@@ -262,6 +263,7 @@
   --transition-ui:     180ms  cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow:   280ms  cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 360ms  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-luxe:   250ms  cubic-bezier(0.16, 1, 0.3, 1); /* Palette, large surface reveals */
 
   /* Needed by components that reference --accent-color */
   --accent-color: var(--interactive-accent);
@@ -324,7 +326,7 @@
      ========================= */
 
   /* Glass surface — command palette, system modal. Inverts in light mode. */
-  --surface-glass: rgba(10, 10, 10, 0.92);
+  --surface-glass: rgba(10, 10, 10, 0.40);
 
   /* Scrollbar — auto-adapts via --mono-rgb-100 (inverts per theme) */
   --scrollbar-thumb:       rgba(var(--mono-rgb-100), 0.10);
@@ -339,7 +341,7 @@
   --bg-stage:    #fafafa;   /* workspace, panes, toolbar — matches color-base-10 */
   --bg-elevated: #ffffff;   /* row hover, cards, elevated panels — matches color-base-00 */
 
-  --surface-glass: rgba(248, 248, 248, 0.92);
+  --surface-glass: rgba(248, 248, 248, 0.40);
 
   --color-base-00: #ffffff;
   --color-base-05: #fcfcfc;
@@ -363,7 +365,7 @@
   --background-secondary-alt: var(--color-base-20);
 
   --background-modifier-hover: rgba(var(--mono-rgb-100), 0.04);
-  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
+  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.04);
 
   --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.06);
   --background-modifier-border: rgba(var(--mono-rgb-100), 0.09);
@@ -378,8 +380,8 @@
 
   --interactive-normal: var(--color-base-20);
   --interactive-hover: var(--color-base-25);
-  --interactive-accent: hsl(var(--accent-h), 52%, 38%);
-  --interactive-accent-hover: hsl(var(--accent-h), 52%, 32%);
+  --interactive-accent: #006eff;
+  --interactive-accent-hover: color-mix(in srgb, #006eff 80%, white);
 
   --text-normal: var(--color-base-100);
   --text-muted: var(--color-base-60);
@@ -387,8 +389,8 @@
 
   --text-on-accent: #ffffff;
   --text-on-accent-inverted: #111111;
-  --text-accent: hsl(var(--accent-h), 52%, 38%);
-  --text-accent-hover: hsl(var(--accent-h), 52%, 30%);
+  --text-accent: #006eff;
+  --text-accent-hover: color-mix(in srgb, #006eff 80%, white);
 
   --text-selection: rgba(var(--mono-rgb-100), 0.12);
   --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.22);

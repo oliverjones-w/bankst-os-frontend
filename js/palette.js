@@ -2,14 +2,17 @@ import { entityData, commandData } from "./mock-data.js";
 import { getFirmsIndex } from "./api.js";
 import { openCard } from "./cards.js";
 import { openPersonTab, openFirmTab, openFirmCard, runCommand } from "./nav.js";
+import { escapeHtml } from "./utils.js";
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
 const palette   = document.getElementById("commandPalette");
 const input     = document.getElementById("commandInput");
 const resultsEl = document.getElementById("commandResults");
+const prefixEl  = document.querySelector(".command-prefix");
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let paletteItems = [];
+let currentQuery  = "";
 
 // ── Open / close ───────────────────────────────────────────────────────────────
 export function paletteIsOpen() {
@@ -25,6 +28,9 @@ export function openPalette() {
 
 export function closePalette() {
   palette.classList.add("is-hidden");
+  palette.classList.remove("has-results");
+  palette?.removeAttribute("data-mode");
+  if (prefixEl) prefixEl.textContent = ">";
   input.value = "";
   if (resultsEl) resultsEl.innerHTML = "";
   paletteItems = [];
@@ -41,39 +47,85 @@ function scoreMatch(query, text) {
   if (!q) return 1;
   if (t === q) return 100;
   if (t.startsWith(q)) return 80;
-  if (t.includes(q)) return 60;
 
-  let qi = 0;
+  // Word-boundary bonus: "bnp" scores higher against "BNP Paribas" than against
+  // a string where "bnp" only appears mid-word
+  const words = t.split(/[\s·,/()-]+/);
+  if (words.some((w) => w.startsWith(q))) return 70;
+
+  // Weighted subsequence: extra points for matches at word boundaries
+  let score = 0;
+  let qi    = 0;
   for (let i = 0; i < t.length && qi < q.length; i++) {
-    if (t[i] === q[qi]) qi++;
+    if (t[i] === q[qi]) {
+      qi++;
+      score += 10;
+      if (i === 0 || /[\s·,/()-]/.test(t[i - 1])) score += 15;
+    }
   }
-  return qi === q.length ? 40 : 0;
+  return qi === q.length ? score : 0;
+}
+
+// ── Match highlighting ─────────────────────────────────────────────────────────
+// Highlights subsequence characters from query in text, returns safe HTML.
+function highlightMatch(text, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return escapeHtml(text);
+
+  let result = "";
+  let ti = 0;
+  let qi = 0;
+  while (ti < text.length) {
+    if (qi < q.length && text[ti].toLowerCase() === q[qi]) {
+      result += `<mark>${escapeHtml(text[ti])}</mark>`;
+      qi++;
+    } else {
+      result += escapeHtml(text[ti]);
+    }
+    ti++;
+  }
+  // If the full query wasn't matched, return plain escaped text
+  return qi === q.length ? result : escapeHtml(text);
 }
 
 // ── Build results ──────────────────────────────────────────────────────────────
-function buildPaletteResults(query) {
-  const entityItems = Object.entries(entityData)
-    .map(([key, entity]) => ({
-      kind:     "entity",
-      key,
-      group:    entity.entityType === "person" ? "People" : "Firms",
-      title:    entity.title,
-      subtitle: entity.entityType === "person" ? "Person" : "Firm",
-      score:    Math.max(scoreMatch(query, entity.title), scoreMatch(query, entity.subtitle)),
-    }))
-    .filter((item) => item.score > 0);
+function buildPaletteResults(query, commandsOnly = false) {
+  currentQuery = query;
 
-  const firmItems = getFirmsIndex()
-    .map(f => ({
-      kind:     "firm",
-      key:      f.key,
-      name:     f.name,
-      group:    "Firms",
-      title:    f.name,
-      subtitle: f.firm_key || "Firm",
-      score:    Math.max(scoreMatch(query, f.name), scoreMatch(query, f.firm_key)),
-    }))
-    .filter(item => item.score > 0);
+  let entityItems      = [];
+  let dedupedFirmItems = [];
+
+  if (!commandsOnly) {
+    entityItems = Object.entries(entityData)
+      .map(([key, entity]) => ({
+        kind:     "entity",
+        key,
+        group:    entity.entityType === "person" ? "People" : "Firms",
+        title:    entity.title,
+        subtitle: entity.entityType === "person" ? "Person" : "Firm",
+        score:    Math.max(scoreMatch(query, entity.title), scoreMatch(query, entity.subtitle)),
+      }))
+      .filter((item) => item.score > 0);
+
+    const firmItems = getFirmsIndex()
+      .map(f => ({
+        kind:     "firm",
+        key:      f.key,
+        name:     f.name,
+        group:    "Firms",
+        title:    f.name,
+        subtitle: f.firm_key || "Firm",
+        score:    Math.max(scoreMatch(query, f.name), scoreMatch(query, f.firm_key)),
+      }))
+      .filter(item => item.score > 0);
+
+    const mockFirmNames = new Set(
+      Object.values(entityData)
+        .filter(e => e.entityType === "firm")
+        .map(e => e.title.toLowerCase())
+    );
+    dedupedFirmItems = firmItems.filter(f => !mockFirmNames.has(f.title.toLowerCase()));
+  }
 
   const commandItems = commandData
     .map((cmd) => ({
@@ -81,21 +133,20 @@ function buildPaletteResults(query) {
       key:      cmd.id,
       group:    "Commands",
       title:    cmd.title,
+      shortcut: cmd.shortcut,
       subtitle: cmd.subtitle,
       score:    Math.max(scoreMatch(query, cmd.title), scoreMatch(query, cmd.subtitle)),
     }))
     .filter((item) => item.score > 0);
 
-  // Deduplicate firm results vs mock entity firms
-  const mockFirmNames = new Set(
-    Object.values(entityData)
-      .filter(e => e.entityType === "firm")
-      .map(e => e.title.toLowerCase())
-  );
-  const dedupedFirmItems = firmItems.filter(f => !mockFirmNames.has(f.title.toLowerCase()));
+  // Zero-state discovery: cap commands at 5 when / is typed with no query
+  const cap = commandsOnly && !query.trim() ? 5 : 20;
 
-  paletteItems = [...entityItems, ...dedupedFirmItems, ...commandItems].sort((a, b) => b.score - a.score);
-  renderPaletteResults();
+  paletteItems = [...entityItems, ...dedupedFirmItems, ...commandItems]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, cap);
+  palette?.classList.toggle("has-results", paletteItems.length > 0);
+  requestAnimationFrame(() => renderPaletteResults());
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────────
@@ -131,8 +182,8 @@ function renderPaletteResults() {
             data-palette-index="${item.index}"
             type="button"
           >
-            <span>${item.title}</span>
-            <span class="command-result-meta">${item.subtitle}</span>
+            <span>${highlightMatch(item.title, currentQuery)}</span>
+            <span class="command-result-meta">${escapeHtml(item.shortcut || item.subtitle)}</span>
           </button>
         `).join("")}
       </div>
@@ -181,7 +232,16 @@ function activateSelected(useCard = false) {
 
 // ── Event listeners ────────────────────────────────────────────────────────────
 input?.addEventListener("input", () => {
-  buildPaletteResults(input.value);
+  const val = input.value;
+  if (val.startsWith("/")) {
+    palette?.setAttribute("data-mode", "command");
+    if (prefixEl) prefixEl.textContent = "/";
+    buildPaletteResults(val.slice(1), true);
+  } else {
+    palette?.removeAttribute("data-mode");
+    if (prefixEl) prefixEl.textContent = ">";
+    buildPaletteResults(val);
+  }
 });
 
 resultsEl?.addEventListener("click", (e) => {

@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=12" />
-  <link rel="stylesheet" href="./base.css?v=12" />
-  <link rel="stylesheet" href="./css/navigation.css?v=12" />
-  <link rel="stylesheet" href="./css/shell.css?v=12" />
-  <link rel="stylesheet" href="./css/workspace.css?v=12" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=12" />
-  <link rel="stylesheet" href="./css/data-views.css?v=12" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=12" />
+  <link rel="stylesheet" href="./css/fonts.css?v=30" />
+  <link rel="stylesheet" href="./base.css?v=30" />
+  <link rel="stylesheet" href="./css/navigation.css?v=30" />
+  <link rel="stylesheet" href="./css/shell.css?v=30" />
+  <link rel="stylesheet" href="./css/workspace.css?v=30" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=30" />
+  <link rel="stylesheet" href="./css/data-views.css?v=30" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=30" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -173,7 +173,7 @@
     <div class="overlay-root">
       <section id="commandPalette" class="command-palette is-hidden" aria-label="Command palette">
         <div class="command-input-row">
-          <span class="command-prefix">⌘</span>
+          <span class="command-prefix">&gt;</span>
           <input
             id="commandInput"
             class="command-input"
@@ -184,7 +184,14 @@
             autocomplete="off"
           />
         </div>
-        <div id="commandResults" class="command-results"></div>
+        <div class="palette-reveal-wrapper">
+          <div id="commandResults" class="command-results"></div>
+        </div>
+        <footer class="palette-footer">
+          <span class="kbd-hint"><kbd class="kbd-key">↵</kbd><span>open</span></span>
+          <span class="kbd-hint"><kbd class="kbd-key">Ctrl</kbd><kbd class="kbd-key">↵</kbd><span>open card</span></span>
+          <span class="kbd-hint"><kbd class="kbd-key">Esc</kbd><span>dismiss</span></span>
+        </footer>
       </section>
 
       <div id="cardLayer" class="card-layer"></div>
@@ -192,7 +199,7 @@
     </div>
   </div>
 
-  <script type="module" src="./js/app.js?v=12"></script>
+  <script type="module" src="./js/app.js?v=30"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");
