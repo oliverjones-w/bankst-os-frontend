@@ -145,6 +145,29 @@ function syncSidebarState(tab) {
   workspaceRow.classList.toggle("is-context-hidden", hide);
 }
 
+// Maps a tab type to its "root" nav section — so detail/child tabs
+// keep the parent section highlighted (Option B: rail as sense of place)
+const NAV_ROOT = {
+  "person.detail":  "people.table",
+  "firm.detail":    "firms.table",
+  "bbg.firm":       "bbg.firms",
+};
+
+function syncNavActive(tab) {
+  document.querySelectorAll("[data-open-nav-tab], [data-open-finra-tab]")
+    .forEach(el => el.classList.remove("is-active"));
+
+  if (!tab) return;
+
+  const root = NAV_ROOT[tab.type] ?? tab.type;
+
+  const match =
+    document.querySelector(`[data-open-nav-tab="${root}"]`) ||
+    document.querySelector(`[data-open-finra-tab="${root}"]`);
+
+  match?.classList.add("is-active");
+}
+
 export function renderWorkspace() {
   if (!workspaceContainer) return;
 
@@ -160,6 +183,7 @@ export function renderWorkspace() {
   });
 
   syncSidebarState(getActiveTab());
+  syncNavActive(getActiveTab());
   updateBreadcrumbs(getActiveTab());
   _renderRightRail();
 }
