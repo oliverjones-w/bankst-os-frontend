@@ -41,78 +41,90 @@
 .tabbar {
   display: flex;
   align-items: stretch;
-  height: 30px;
+  height: 36px;
   background: var(--background-primary-alt);
   border-bottom: 1px solid var(--border-subtle);
+  padding: 0 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tabbar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-wrap {
+  display: grid;
+  grid-template-columns: 1fr 24px;
+  align-items: center;
+  min-width: 80px;
+  max-width: 180px;
+  flex-shrink: 0;
+  padding: 0 0 0 12px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border: 1px solid var(--border-subtle);
+  border-top-width: 2px;
+  border-top-color: transparent;
+  border-bottom: none;
+  background: var(--background-primary-alt);
+  position: relative;
+  user-select: none;
+  animation: tabAppear 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tab-wrap + .tab-wrap {
+  margin-left: -1px;
+}
+
+.tab-wrap:hover {
+  background: var(--background-modifier-hover);
+}
+
+.tab-wrap.is-active {
+  background: var(--background-primary);
+  border-color: var(--border-subtle);
+  border-top-color: var(--interactive-accent);
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--background-primary);
+}
+
+.tab-wrap.is-dragging {
+  opacity: 0;
+}
+
+/* Suppress re-entry animation while tabs are being reordered */
+.tabbar.is-reordering .tab-wrap {
+  animation: none;
 }
 
 .tab {
-  padding: 0 12px;
+  min-width: 0;
   height: 100%;
   display: flex;
   align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
   font-family: var(--font-interface);
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  border-top: 2px solid transparent;
-  border-right: 1px solid var(--border-subtle);
-  transition: all var(--transition-fast);
-}
-
-.tab:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transition-fast);
 }
 
 .tab.is-active {
-  background: var(--background-primary);
   color: var(--text-primary);
-  border-top-color: var(--interactive-accent);
-  box-shadow: none;
-}
-
-.tab.is-dragging {
-  opacity: 0.4;
-  cursor: grabbing;
-}
-
-.tab-wrap.is-dragging {
-  opacity: 0.2;
-  filter: grayscale(1);
-  cursor: grabbing;
-}
-
-/* Pane drop-target overlay */
-.pane.drop-target,
-.pane.drop-target-right {
-  position: relative;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
-}
-
-.pane.drop-target::after,
-.pane.drop-target-right::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--background-accent-faint);
-  border: 1px solid var(--interactive-accent);
-  pointer-events: none;
-  z-index: 10;
-  animation: fadeIn 120ms ease-out;
-}
-
-.pane.drop-target-right::after {
-  left: 50%;
-  background: var(--background-accent-subtle);
-  border-left: 2px solid var(--interactive-accent);
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
 }
 
 /* BBG CSV file drop — full-pane highlight */
@@ -207,30 +219,39 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.tab-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  padding-right: 6px;
-  border-right: 1px solid var(--border-subtle);
-  animation: tabAppear 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
 .tab-close {
+  grid-column: 2;
+  justify-self: center;
   width: 18px;
   height: 18px;
-  margin-left: 4px;
-  display: grid;
-  place-items: center;
-  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   color: var(--text-faint);
-  font-size: 10px;
-  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.tab-wrap:hover .tab-close,
+.tab-wrap.is-active .tab-close {
+  opacity: 1;
+}
+
+.tab-wrap:hover .tab-close {
+  color: var(--text-muted);
 }
 
 .tab-close:hover {
   background: var(--background-modifier-hover);
-  color: var(--text-primary);
+  color: var(--text-normal);
 }
 
 /* =========================

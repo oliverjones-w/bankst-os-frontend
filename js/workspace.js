@@ -76,11 +76,12 @@ export function renderToolbarGroup(items = []) {
 // ── Per-pane HTML renderers ────────────────────────────────────────────────────
 function renderPaneTabs(pane) {
   return pane.tabs.map((tabId) => {
-    const tab = findTab(tabId);
+    const tab      = findTab(tabId);
     if (!tab) return "";
+    const isActive = tabId === pane.activeTabId;
     return `
-      <div class="tab-wrap" draggable="true" data-tab-id="${tabId}" data-pane-id="${pane.id}">
-        <button class="tab${tabId === pane.activeTabId ? " is-active" : ""}"
+      <div class="tab-wrap${isActive ? " is-active" : ""}" draggable="true" data-tab-id="${tabId}" data-pane-id="${pane.id}">
+        <button class="tab${isActive ? " is-active" : ""}"
                 data-tab-id="${tabId}" data-pane-id="${pane.id}"
         >${escapeHtml(tab.title)}</button>
         <button class="tab-close" data-close-tab="${tabId}" aria-label="Close tab">×</button>
@@ -294,6 +295,15 @@ export function closeTab(tabId) {
   }
 
   renderWorkspace();
+  saveWorkspaceState();
+}
+
+// ── Reorder tabs within a pane (called after DOM drag settles) ────────────────
+export function reorderTabsInPane(paneId, orderedTabIds) {
+  const pane = workspaceState.panes.find((p) => p.id === paneId);
+  if (!pane) return;
+  // Filter to only IDs that actually belong to this pane, preserving drag order
+  pane.tabs = orderedTabIds.filter((id) => pane.tabs.includes(id));
   saveWorkspaceState();
 }
 

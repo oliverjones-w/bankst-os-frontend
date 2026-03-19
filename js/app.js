@@ -8,7 +8,7 @@ import {
   renderWorkspaceSnapshots, loadWorkspaceSnapshotById,
   applyWorkspaceSnapshot, deleteWorkspaceSnapshot,
   createWorkspaceSnapshot, handleToolbarAction, setRailRenderer,
-  getActivePane, splitPane, getActiveTab, updateActiveTabState,
+  getActivePane, getActiveTab, updateActiveTabState,
 } from "./workspace.js";
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
@@ -16,7 +16,7 @@ import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab
 import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload, mappingUploadStream, encorePatch } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
-import { initTabDragHandlers } from "./drag.js";
+import { initDragHandlers } from "./drag.js";
 import { initRailGroups, setGroupState } from "./ui-prefs.js";
 
 // Side-effect imports: registers all views and widgets at module init
@@ -535,7 +535,7 @@ if (restored && workspaceState.panes.length) {
 }
 
 initRailGroups();
-initTabDragHandlers();
+initDragHandlers();
 renderWorkspaceSnapshots();
 loadFirmsIndex();
 loadRecentlyViewed();

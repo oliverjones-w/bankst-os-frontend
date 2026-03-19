@@ -1,112 +1,121 @@
-import { splitPane, moveTab, getActiveTab } from "./workspace.js";
+import { getActiveTab, reorderTabsInPane } from "./workspace.js";
 
-let draggedTabId = null;
-let sourcePaneId = null;
+// Track whether a tab drag is in progress so dragover can branch correctly
+let isDraggingTab  = false;
+let rafPending     = false; // requestAnimationFrame throttle for dragover
 
-export function initTabDragHandlers() {
+// Returns the tab-wrap element that the dragged tab should be inserted BEFORE,
+// or null if it should go at the end. Uses midpoint heuristic per Chrome spec.
+function getDragAfterElement(tabbar, x) {
+  const tabs = [...tabbar.querySelectorAll(".tab-wrap:not(.is-dragging)")];
+  return tabs.reduce((closest, tab) => {
+    const box    = tab.getBoundingClientRect();
+    const offset = x - box.left - box.width / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset, element: tab };
+    }
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+export function initDragHandlers() {
   const workspace = document.querySelector(".workspace");
   if (!workspace) return;
 
+  // ── Tab drag: start ──────────────────────────────────────────────────────────
   workspace.addEventListener("dragstart", (e) => {
     const tabWrap = e.target.closest(".tab-wrap[data-tab-id]");
     if (!tabWrap) return;
-    draggedTabId = tabWrap.dataset.tabId;
-    sourcePaneId = tabWrap.dataset.paneId;
+
+    isDraggingTab = true;
     e.dataTransfer.effectAllowed = "move";
-    tabWrap.classList.add("is-dragging");
+    e.dataTransfer.setData("text/bankst-tab-id", tabWrap.dataset.tabId);
 
-    // Custom drag ghost — translucent SF Mono card
-    const label = tabWrap.querySelector(".tab")?.textContent?.trim() || draggedTabId;
-    const ghost = document.createElement("div");
-    ghost.textContent = label;
-    Object.assign(ghost.style, {
-      position:   "absolute",
-      top:        "-1000px",
-      left:       "-1000px",
-      padding:    "4px 10px",
-      background: "var(--background-secondary)",
-      border:     "1px solid var(--interactive-accent)",
-      borderRadius: "3px",
-      fontFamily: "var(--font-data, monospace)",
-      fontSize:   "12px",
-      color:      "var(--text-normal)",
-      opacity:    "0.9",
-      whiteSpace: "nowrap",
-      pointerEvents: "none",
-    });
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
-    setTimeout(() => ghost.remove(), 0);
+    const tabbar = tabWrap.closest(".tabbar");
+    if (tabbar) tabbar.classList.add("is-reordering");
+
+    // Delay opacity so the browser captures the ghost BEFORE we hide the element
+    requestAnimationFrame(() => tabWrap.classList.add("is-dragging"));
   });
 
-  workspace.addEventListener("dragend", (e) => {
-    const tabWrap = e.target.closest(".tab-wrap");
-    if (tabWrap) tabWrap.classList.remove("is-dragging");
-    // Clean up any lingering drop indicators
-    workspace.querySelectorAll(".drop-target, .drop-target-right, .bbg-file-drop").forEach((el) => {
-      el.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
-    });
-    draggedTabId = null;
-    sourcePaneId = null;
-  });
-
+  // ── Tab drag / file hover ────────────────────────────────────────────────────
   workspace.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    const pane = e.target.closest(".pane");
-    if (!pane) return;
+    if (isDraggingTab) {
+      const targetTabWrap = e.target.closest(".tab-wrap[data-tab-id]");
+      if (!targetTabWrap) return;
+      e.preventDefault();
 
-    // OS file drag (not a tab drag) — highlight pane if a BBG view is active
-    if (draggedTabId === null && e.dataTransfer.types.includes("Files")) {
-      const activeTab = getActiveTab();
-      if (activeTab?.type?.startsWith("bbg.")) {
-        e.dataTransfer.dropEffect = "copy";
-        pane.classList.add("bbg-file-drop");
-      }
+      if (rafPending) return; // throttle to one DOM move per frame
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        const tabbar  = targetTabWrap.closest(".tabbar");
+        if (!tabbar) return;
+        const dragging = tabbar.querySelector(".tab-wrap.is-dragging");
+        if (!dragging) return;
+        const after = getDragAfterElement(tabbar, e.clientX);
+        if (after === null) {
+          tabbar.appendChild(dragging);
+        } else {
+          tabbar.insertBefore(dragging, after);
+        }
+      });
       return;
     }
 
-    const rect = pane.getBoundingClientRect();
-    const isRightEdge = e.clientX > rect.right - 80;
-
-    pane.classList.toggle("drop-target",       !isRightEdge);
-    pane.classList.toggle("drop-target-right",  isRightEdge);
+    // BBG file drop: highlight pane when hovering with a file
+    if (!e.dataTransfer.types.includes("Files")) return;
+    const pane      = e.target.closest(".pane");
+    const activeTab = getActiveTab();
+    if (pane && activeTab?.type?.startsWith("bbg.")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      pane.classList.add("bbg-file-drop");
+    }
   });
 
+  // ── File hover: leave ────────────────────────────────────────────────────────
   workspace.addEventListener("dragleave", (e) => {
+    if (isDraggingTab) return;
     const pane = e.target.closest(".pane");
-    // Only clear if leaving the pane entirely (not moving to a child)
     if (pane && !pane.contains(e.relatedTarget)) {
-      pane.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
+      pane.classList.remove("bbg-file-drop");
     }
   });
 
-  workspace.addEventListener("drop", (e) => {
-    e.preventDefault();
-    const targetPane = e.target.closest(".pane");
-    if (!targetPane) return;
-
-    targetPane.classList.remove("drop-target", "drop-target-right", "bbg-file-drop");
-
-    // OS file drop — dispatch to BBG upload handler if a BBG view is active
-    if (draggedTabId === null) {
-      const files     = e.dataTransfer?.files;
-      const activeTab = getActiveTab();
-      if (files?.length && activeTab?.type?.startsWith("bbg.")) {
-        document.dispatchEvent(new CustomEvent("bankst:bbgCsvDrop", {
-          detail: { file: files[0], tabId: activeTab.id },
-        }));
+  // ── Tab drag: end — sync DOM order back to state ─────────────────────────────
+  workspace.addEventListener("dragend", (e) => {
+    const tabWrap = e.target.closest(".tab-wrap[data-tab-id]");
+    if (tabWrap) {
+      tabWrap.classList.remove("is-dragging");
+      const tabbar = tabWrap.closest(".tabbar");
+      const pane   = tabWrap.closest(".pane");
+      if (tabbar && pane) {
+        tabbar.classList.remove("is-reordering");
+        const orderedIds = [...tabbar.querySelectorAll(".tab-wrap[data-tab-id]")]
+          .map((el) => el.dataset.tabId);
+        reorderTabsInPane(pane.dataset.paneId, orderedIds);
       }
-      return;
     }
+    isDraggingTab = false;
+    rafPending    = false;
+  });
 
-    const targetPaneId = targetPane.dataset.paneId;
-    const rect         = targetPane.getBoundingClientRect();
-    const isRightEdge  = e.clientX > rect.right - 80;
+  // ── Drop ─────────────────────────────────────────────────────────────────────
+  workspace.addEventListener("drop", (e) => {
+    // Tab drops are handled entirely via DOM manipulation in dragover/dragend
+    if (isDraggingTab) { isDraggingTab = false; return; }
 
-    if (isRightEdge) {
-      splitPane(draggedTabId);
-    } else if (sourcePaneId !== targetPaneId) {
-      moveTab(draggedTabId, sourcePaneId, targetPaneId);
+    const pane = e.target.closest(".pane");
+    if (pane) pane.classList.remove("bbg-file-drop");
+
+    const files     = e.dataTransfer?.files;
+    const activeTab = getActiveTab();
+    if (files?.length && activeTab?.type?.startsWith("bbg.")) {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent("bankst:bbgCsvDrop", {
+        detail: { file: files[0], tabId: activeTab.id },
+      }));
     }
   });
 }
