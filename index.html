@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=11" />
-  <link rel="stylesheet" href="./base.css?v=11" />
-  <link rel="stylesheet" href="./css/navigation.css?v=11" />
-  <link rel="stylesheet" href="./css/shell.css?v=11" />
-  <link rel="stylesheet" href="./css/workspace.css?v=11" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=11" />
-  <link rel="stylesheet" href="./css/data-views.css?v=11" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=11" />
+  <link rel="stylesheet" href="./css/fonts.css?v=39" />
+  <link rel="stylesheet" href="./base.css?v=39" />
+  <link rel="stylesheet" href="./css/navigation.css?v=39" />
+  <link rel="stylesheet" href="./css/shell.css?v=39" />
+  <link rel="stylesheet" href="./css/workspace.css?v=39" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=39" />
+  <link rel="stylesheet" href="./css/data-views.css?v=39" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=39" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -71,53 +71,38 @@
         </div>
       </div>
 
-      <div class="rail-group" data-group-id="navigation">
+      <div class="rail-group" data-group-id="core">
         <div class="rail-group-header">
           <span class="chevron">›</span>
-          <span class="rail-label">Navigation</span>
+          <span class="rail-label">Core</span>
         </div>
         <div class="rail-group-content">
           <nav class="nav-list">
-            <button class="nav-item is-active" data-open-nav-tab="people.table"><span class="nav-label">People</span></button>
-            <button class="nav-item" data-open-nav-tab="firms.table"><span class="nav-label">Firms</span></button>
-            <button class="nav-item"><span class="nav-label">Mandates</span></button>
-            <button class="nav-item"><span class="nav-label">Pipeline</span></button>
-            <button class="nav-item"><span class="nav-label">Documents</span></button>
-            <button class="nav-item"><span class="nav-label">Saved Searches</span></button>
-            <button class="nav-item"><span class="nav-label">Graph</span></button>
-            <button class="nav-item" data-open-nav-tab="master.search"><span class="nav-label">Reference</span></button>
-            <button class="nav-item" data-open-nav-tab="hf.table"><span class="nav-label">HF Map</span></button>
-            <button class="nav-item" data-open-nav-tab="ir.table"><span class="nav-label">IR Map</span></button>
-            <button class="nav-item" data-open-nav-tab="bbg.firms"><span class="nav-label">BBG Extraction</span></button>
-            <button class="nav-item" data-open-nav-tab="encore.sync"><span class="nav-label">Encore Sync</span></button>
-            <button class="nav-item" data-open-nav-tab="perf.dashboard"><span class="nav-label">Performance</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="people.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">People</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="firms.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Firms</span></button>
+            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Mandates</span></button>
+            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Pipeline</span></button>
+            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Documents</span></button>
+            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Saved Searches</span></button>
+            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Graph</span></button>
           </nav>
         </div>
       </div>
 
-      <div class="rail-group" data-group-id="saved-views">
+      <div class="rail-group" data-group-id="tools">
         <div class="rail-group-header">
           <span class="chevron">›</span>
-          <span class="rail-label">Saved Views</span>
-        </div>
-        <div class="rail-group-content">
-          <div class="saved-list">
-            <button class="saved-item">Top Macro PMs</button>
-            <button class="saved-item">Agency MBS</button>
-            <button class="saved-item">Rates RV</button>
-            <button class="saved-item">West Coast Crypto</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="rail-group" data-group-id="finra">
-        <div class="rail-group-header">
-          <span class="chevron">›</span>
-          <span class="rail-label">FINRA Monitor</span>
+          <span class="rail-label">Tools</span>
         </div>
         <div class="rail-group-content">
           <nav class="nav-list">
-            <button class="nav-item" data-open-finra-tab="finra.monitor"><span class="nav-icon">⊙</span><span class="nav-label">Monitor</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="master.search"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Reference</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="hf.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">HF Map</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="ir.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">IR Map</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="bbg.firms"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">BBG Extraction</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="encore.sync"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Encore Sync</span></button>
+            <button class="nav-row is-leaf" data-open-nav-tab="perf.dashboard"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Performance</span></button>
+            <button class="nav-row is-leaf" data-open-finra-tab="finra.monitor"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">FINRA Monitor</span></button>
           </nav>
         </div>
       </div>
@@ -130,16 +115,6 @@
         <div class="rail-group-content">
           <div id="workspaceSnapshotList" class="saved-list"></div>
           <button id="saveWorkspaceSnapshotBtn" class="saved-item">+ Save Current</button>
-        </div>
-      </div>
-
-      <div class="rail-group rail-group-bottom" data-group-id="recent" data-default-state="open">
-        <div class="rail-group-header">
-          <span class="chevron">›</span>
-          <span class="rail-label">Recent</span>
-        </div>
-        <div class="rail-group-content">
-          <div id="recentList" class="recent-list"></div>
         </div>
       </div>
 
@@ -173,7 +148,7 @@
     <div class="overlay-root">
       <section id="commandPalette" class="command-palette is-hidden" aria-label="Command palette">
         <div class="command-input-row">
-          <span class="command-prefix">⌘</span>
+          <span class="command-prefix">&gt;</span>
           <input
             id="commandInput"
             class="command-input"
@@ -184,7 +159,14 @@
             autocomplete="off"
           />
         </div>
-        <div id="commandResults" class="command-results"></div>
+        <div class="palette-reveal-wrapper">
+          <div id="commandResults" class="command-results"></div>
+        </div>
+        <footer class="palette-footer">
+          <span class="kbd-hint"><kbd class="kbd-key">↵</kbd><span>open</span></span>
+          <span class="kbd-hint"><kbd class="kbd-key">Ctrl</kbd><kbd class="kbd-key">↵</kbd><span>open card</span></span>
+          <span class="kbd-hint"><kbd class="kbd-key">Esc</kbd><span>dismiss</span></span>
+        </footer>
       </section>
 
       <div id="cardLayer" class="card-layer"></div>
@@ -192,7 +174,7 @@
     </div>
   </div>
 
-  <script type="module" src="./js/app.js?v=11"></script>
+  <script type="module" src="./js/app.js?v=39"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");

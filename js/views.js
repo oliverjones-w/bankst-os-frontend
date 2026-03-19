@@ -1,4 +1,4 @@
-import { registerWorkspaceView, updateActiveTabState, getActiveTab, fetchingTabs, workspaceState } from "./workspace.js";
+import { registerWorkspaceView, updateActiveTabState, updateTabTitle, getActiveTab, fetchingTabs, workspaceState } from "./workspace.js";
 import { finraGet, bankstGet, mappingGet, mappingUpload, setFinraChangesCache, encoreGet } from "./api.js";
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
@@ -322,6 +322,7 @@ registerWorkspaceView({
     try {
       const data = await bankstGet(`/firms/${tab.entityId}`);
       updateActiveTabState({ data }, tab.id);
+      updateTabTitle(tab.id, data.firm_key || data.name);
     } catch (e) {
       console.error("[firm.detail] fetch failed:", e);
     } finally {

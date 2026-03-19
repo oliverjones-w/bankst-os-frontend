@@ -44,11 +44,12 @@
 .rail-group-header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 2px 10px;
-  min-height: 24px;
+  gap: 6px;
+  padding: 0 var(--nav-item-padding-x);
+  height: 28px;
   cursor: pointer;
   user-select: none;
+  border-radius: var(--radius-md);
 }
 
 .rail-group-header:hover {
@@ -59,26 +60,24 @@
   font-size: 10px;
   color: var(--text-faint);
   display: inline-block;
-  transition: transform 150ms ease;
+  transition: transform 180ms ease;
   line-height: 1;
   width: 10px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.rail-group[data-state="open"] .chevron {
-  transform: rotate(90deg);
-}
-
-.rail-group[data-state="closed"] .chevron {
-  transform: rotate(0deg);
-}
+/* Points right (closed) → rotates down (open) */
+.rail-group[data-state="open"]   .chevron { transform: rotate(90deg); }
+.rail-group[data-state="closed"] .chevron { transform: rotate(0deg); }
 
 .rail-group-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-1) 0 var(--space-3) var(--space-3);
-  border-left: 1px solid var(--border-subtle);
+  gap: 0;
+  padding: 2px 0 6px 10px;
+  margin-left: 8px;
+  border-left: 1px solid rgba(var(--mono-rgb-100), 0.05); /* softer than --border-subtle */
 }
 
 .rail-group[data-state="closed"] .rail-group-content {
@@ -122,13 +121,124 @@
 
 .rail-label {
   font-family: var(--font-interface);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-faint);
-  opacity: 0.5;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
 }
+
+/* =========================
+   Nav tree — Obsidian-style rows + guide wires
+   ========================= */
+
+/* Branch container — wraps children of an expandable node.
+   Provides the guide wire (border-left) and indentation. */
+.nav-tree-branch {
+  display: grid;
+  grid-template-rows: 1fr;          /* collapses to 0fr when .is-collapsed */
+  transition: grid-template-rows 200ms ease;
+  margin-left: 12px;
+  border-left: 1px solid rgba(var(--mono-rgb-100), 0.05);
+}
+
+.nav-tree-branch.is-collapsed {
+  grid-template-rows: 0fr;
+}
+
+/* Inner wrapper — required for 0fr clip to work */
+.nav-tree-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-left: 4px;
+}
+
+/* Row — 3-column grid: chevron | icon | label */
+.nav-row {
+  display: grid;
+  grid-template-columns: 16px 16px 1fr;
+  align-items: center;
+  width: 100%;
+  height: 28px;
+  padding: 0 var(--nav-item-padding-x);
+  border: none;
+  border-radius: var(--radius-md);
+  text-align: left;
+  font-family: var(--font-interface);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--nav-item-text);
+  background: var(--nav-item-bg);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.nav-row:hover {
+  background: var(--nav-item-bg-hover);
+  color: var(--nav-item-text-hover);
+}
+
+.nav-row:active {
+  background: transparent; /* suppress browser native button flash */
+}
+
+.nav-row.is-active,
+.nav-row.is-active:hover {
+  background: transparent;
+  color: var(--nav-item-text-active);
+}
+
+/* Chevron column — rotates when branch is open */
+.nav-row-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 9px;
+  transition: transform 150ms ease;
+  /* Chevron click is a separate handler — prevent row activation */
+}
+
+.nav-row[data-state="open"] .nav-row-chevron {
+  transform: rotate(90deg);
+}
+
+/* Hide chevron column for leaf nodes (no children) */
+.nav-row.is-leaf .nav-row-chevron {
+  visibility: hidden;
+}
+
+/* Icon column */
+.nav-row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nav-icon-color);
+  font-size: 11px;
+}
+
+.nav-row:hover .nav-row-icon {
+  color: var(--nav-icon-color-hover);
+}
+
+.nav-row.is-active .nav-row-icon {
+  color: var(--nav-icon-color-active);
+}
+
+/* Label column */
+.nav-row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================
+   Legacy flat lists (kept for saved/recent during transition)
+   ========================= */
 
 .nav-list,
 .saved-list,
@@ -137,7 +247,7 @@
 .feed-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 0;
 }
 
 .nav-item,
@@ -146,12 +256,12 @@
 .stack-item {
   width: 100%;
   text-align: left;
-  height: 2.5rem;
+  height: 28px;
   padding: 0 var(--nav-item-padding-x);
-  font-size: var(--font-ui-medium);
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  border-radius: 0;
+  border-radius: var(--radius-md);
   color: var(--nav-item-text);
   background: var(--nav-item-bg);
   display: flex;
@@ -161,8 +271,7 @@
   border-left: var(--nav-item-active-border-w) solid transparent;
   transition:
     background-color var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
+    color var(--transition-fast);
 }
 
 .nav-item:hover,
@@ -173,12 +282,9 @@
   color: var(--nav-item-text-hover);
 }
 
-/* Proton-style active marker: 3px left border, elevated background */
 .nav-item.is-active {
   background: var(--nav-item-bg-active);
   color: var(--nav-item-text-active);
-  border-left-color: var(--nav-item-border-active);
-  padding-left: calc(var(--nav-item-padding-x) - var(--nav-item-active-border-w));
 }
 
 .breadcrumb-trail {

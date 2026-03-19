@@ -142,10 +142,10 @@ export const contextData = {
 };
 
 export const commandData = [
-  { id: "open-people",       type: "command", title: "Open People Table",  subtitle: "Command" },
-  { id: "open-firms",        type: "command", title: "Open Firms Table",   subtitle: "Command" },
-  { id: "open-finra",        type: "command", title: "Open FINRA Monitor", subtitle: "Command" },
-  { id: "open-trending",     type: "command", title: "Open Trending",      subtitle: "Command" },
-  { id: "open-pipeline",     type: "command", title: "Open Pipeline Queue", subtitle: "Command" },
-  { id: "toggle-right-rail", type: "command", title: "Toggle Right Rail",  subtitle: "Command" },
+  { id: "open-people",       type: "command", title: "Open People Table",   shortcut: "G P",      subtitle: "Navigation" },
+  { id: "open-firms",        type: "command", title: "Open Firms Table",    shortcut: "G F",      subtitle: "Navigation" },
+  { id: "open-finra",        type: "command", title: "Open FINRA Monitor",  shortcut: "G N",      subtitle: "Navigation" },
+  { id: "open-trending",     type: "command", title: "Open Trending",       shortcut: "G T",      subtitle: "Navigation" },
+  { id: "open-pipeline",     type: "command", title: "Open Pipeline Queue", shortcut: "G L",      subtitle: "Navigation" },
+  { id: "toggle-right-rail", type: "command", title: "Toggle Right Rail",   shortcut: "Ctrl+\\",  subtitle: "View"       },
 ];
