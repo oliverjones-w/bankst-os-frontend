@@ -9,7 +9,7 @@
   flex-direction: column;
   min-height: 0;
   background: var(--background-primary);
-  box-shadow: inset 1px 0 0 0 var(--divider-subtle, rgba(255,255,255,0.06));
+  box-shadow: inset 1px 0 0 0 var(--border-subtle);
   transition:
     opacity   var(--transition-ui),
     transform var(--transition-slow);
@@ -27,7 +27,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--row-padding-v, 8px) var(--space-4);
-  border-bottom: var(--divider-subtle, 1px solid rgba(255,255,255,0.06));
+  border-bottom: var(--divider-subtle);
 }
 
 .right-rail-title {
@@ -66,7 +66,7 @@
   border: none;
   border-radius: 0;
   background: transparent;
-  border-bottom: var(--divider-subtle, 1px solid rgba(255,255,255,0.06));
+  border-bottom: var(--divider-subtle);
 }
 
 .context-card:last-child {
@@ -146,7 +146,7 @@
   flex-direction: column;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  background: var(--bg-deep);
+  background: var(--background-primary-alt);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   z-index: var(--z-palette);
@@ -164,7 +164,7 @@
 }
 
 .command-input-row:focus-within {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--background-modifier-border-faint);
 }
 
 .command-prefix {
@@ -230,13 +230,13 @@
 }
 
 .command-result:hover {
-  background: var(--bg-elevated);
+  background: var(--background-secondary);
   color: var(--text-normal);
 }
 
 /* Proton active marker — 2px left bar */
 .command-result.is-selected {
-  background: var(--bg-elevated);
+  background: var(--background-secondary);
   color: var(--text-primary);
   box-shadow: inset 2px 0 0 0 var(--interactive-accent);
 }
@@ -264,7 +264,7 @@
   max-width: 90vw;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  background: var(--bg-stage);
+  background: var(--background-primary);
   box-shadow: var(--shadow-floating);
   overflow: hidden;
   animation: cardAppear 200ms cubic-bezier(0, 0, 0.2, 1);
@@ -283,13 +283,13 @@
 }
 
 @keyframes card-specular-pulse {
-  0%   { border-color: rgba(255, 255, 255, 0.03); }
+  0%   { border-color: var(--border-subtle); }
   50%  { border-color: var(--border-accent); }
-  100% { border-color: rgba(255, 255, 255, 0.03); }
+  100% { border-color: var(--border-subtle); }
 }
 
 .floating-card.is-highlighted {
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
   animation: card-specular-pulse 2s infinite ease-in-out;
 }
 
@@ -342,7 +342,7 @@
   overflow: auto;
   background: radial-gradient(
     circle at 50% -10%,
-    rgba(255, 255, 255, 0.05) 0%,
+    rgba(var(--mono-rgb-100), 0.04) 0%,
     transparent 50%
   );
 }
@@ -423,7 +423,7 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-lg);
-  background: rgba(20, 20, 22, 0.88);
+  background: var(--surface-glass);
   backdrop-filter: blur(40px) saturate(2);
   width: min(480px, 90vw);
   box-shadow: var(--shadow-floating);
@@ -456,7 +456,7 @@
 .modal-header {
   padding: var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent);
+  background: linear-gradient(to bottom, rgba(var(--mono-rgb-100), 0.03), transparent);
 }
 
 .modal-title {

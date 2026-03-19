@@ -4,16 +4,21 @@ const STORAGE_KEY = "bankst.themeLab.overrides";
 
 const TOKEN_GROUPS = [
   {
-    label: "Core surfaces",
+    label: "Surfaces — Semantic",
     tokens: [
-      "--background-primary",
       "--background-primary-alt",
+      "--background-primary",
       "--background-secondary",
+      "--border-subtle",
+      "--border-strong",
+    ],
+  },
+  {
+    label: "Surfaces — Primitives",
+    tokens: [
       "--bg-deep",
       "--bg-stage",
       "--bg-elevated",
-      "--border-subtle",
-      "--border-strong",
     ],
   },
   {

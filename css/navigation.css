@@ -9,6 +9,8 @@
   flex-direction: column;
   padding: var(--space-3) 0;
   gap: 0;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .left-rail > * {
@@ -99,7 +101,7 @@
   border-radius: 6px;
   display: grid;
   place-items: center;
-  background: var(--bg-elevated);
+  background: var(--background-secondary);
   border: 1px solid var(--border-strong);
   color: var(--text-normal);
   font-weight: 700;
@@ -215,33 +217,6 @@
   letter-spacing: -0.2px;
 }
 
-/* =========================
-   Nav icon normalization
-   16x16 standard — dimmed fill, brightens on hover/active
-   ========================= */
-
-.nav-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: var(--nav-icon-color);
-  transition: color var(--transition-fast);
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.nav-item:hover .nav-icon,
-.saved-item:hover .nav-icon,
-.recent-item:hover .nav-icon,
-.stack-item:hover .nav-icon {
-  color: var(--nav-icon-color-hover);
-}
-
-.nav-item.is-active .nav-icon {
-  color: var(--nav-icon-color-active);
-}
 
 /* =========================
    Primary action button
@@ -327,7 +302,7 @@
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--border-subtle);
-  background: var(--bg-deep);
+  background: var(--background-primary-alt);
   flex-shrink: 0;
 }
 
