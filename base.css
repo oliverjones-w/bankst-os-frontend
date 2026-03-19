@@ -538,9 +538,7 @@ hr {
   transition: none;
 }
 
-.app-shell.is-resizing-rail,
 .app-shell.is-resizing-rail * {
-  cursor: col-resize !important;
   user-select: none !important;
 }
 

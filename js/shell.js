@@ -77,10 +77,7 @@ function initRailResizeDrag() {
     shell.classList.add("is-resizing-rail");
 
     startX = e.clientX;
-    startW = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue("--left-rail-w"),
-      10
-    );
+    startW = document.querySelector(".left-rail").getBoundingClientRect().width;
 
     handle.addEventListener("pointermove", onMove);
     handle.addEventListener("pointerup", onUp, { once: true });

@@ -19,8 +19,7 @@
 
 .rail-resize-handle:hover,
 .rail-resize-handle.is-dragging {
-  background: var(--interactive-accent);
-  opacity: 0.5;
+  box-shadow: inset -1px 0 0 var(--interactive-accent);
 }
 
 /* Left rail needs position:relative so the handle can anchor to it */
