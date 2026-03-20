@@ -64,34 +64,28 @@ function initRailResizeDrag() {
   const handle = document.getElementById("railResizeHandle");
   if (!handle) return;
 
-  let startX = 0;
-  let startW = 0;
-
   handle.addEventListener("pointerdown", (e) => {
-    // Only respond when the rail is open
     if (shell.getAttribute("data-left-rail") === "closed") return;
-
     e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
+
+    const startX = e.clientX;
+    const startW = document.querySelector(".left-rail").getBoundingClientRect().width;
+
     handle.classList.add("is-dragging");
     shell.classList.add("is-resizing-rail");
 
-    startX = e.clientX;
-    startW = document.querySelector(".left-rail").getBoundingClientRect().width;
+    function onMove(e) {
+      setRailWidth(startW + (e.clientX - startX));
+    }
 
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp, { once: true });
-    handle.addEventListener("pointercancel", onUp, { once: true });
+    function onUp() {
+      handle.classList.remove("is-dragging");
+      shell.classList.remove("is-resizing-rail");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   });
-
-  function onMove(e) {
-    const delta = e.clientX - startX;
-    setRailWidth(startW + delta);
-  }
-
-  function onUp() {
-    handle.classList.remove("is-dragging");
-    shell.classList.remove("is-resizing-rail");
-    handle.removeEventListener("pointermove", onMove);
-  }
 }
