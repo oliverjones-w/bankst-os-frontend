@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=41" />
-  <link rel="stylesheet" href="./base.css?v=41" />
-  <link rel="stylesheet" href="./css/navigation.css?v=41" />
-  <link rel="stylesheet" href="./css/shell.css?v=41" />
-  <link rel="stylesheet" href="./css/workspace.css?v=41" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=41" />
-  <link rel="stylesheet" href="./css/data-views.css?v=41" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=41" />
+  <link rel="stylesheet" href="./css/fonts.css?v=42" />
+  <link rel="stylesheet" href="./base.css?v=42" />
+  <link rel="stylesheet" href="./css/navigation.css?v=42" />
+  <link rel="stylesheet" href="./css/shell.css?v=42" />
+  <link rel="stylesheet" href="./css/workspace.css?v=42" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=42" />
+  <link rel="stylesheet" href="./css/data-views.css?v=42" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=42" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -126,8 +126,10 @@
           <span class="chevron-icon">«</span>
         </button>
       </div>
-      <div class="rail-resize-handle" id="railResizeHandle" aria-hidden="true"></div>
     </aside>
+
+    <!-- Rail resize handle — direct child of app-shell so overflow:auto on the rail can't swallow pointer events -->
+    <div class="rail-resize-handle" id="railResizeHandle" aria-hidden="true"></div>
 
     <!-- Main — grid-area: main -->
     <div class="workspace-shell">
@@ -175,7 +177,7 @@
     </div>
   </div>
 
-  <script type="module" src="./js/app.js?v=41"></script>
+  <script type="module" src="./js/app.js?v=42"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");
