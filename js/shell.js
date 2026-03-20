@@ -64,8 +64,10 @@ function initRailResizeDrag() {
   const handle = document.getElementById("railResizeHandle");
   if (!handle) return;
 
-  handle.addEventListener("pointerdown", (e) => {
+  handle.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
     if (shell.getAttribute("data-left-rail") === "closed") return;
+
     e.preventDefault();
 
     const startX = e.clientX;
@@ -74,18 +76,16 @@ function initRailResizeDrag() {
     handle.classList.add("is-dragging");
     shell.classList.add("is-resizing-rail");
 
-    function onMove(e) {
-      setRailWidth(startW + (e.clientX - startX));
-    }
+    const onMove = (e) => setRailWidth(startW + (e.clientX - startX));
 
-    function onUp() {
+    const onUp = () => {
       handle.classList.remove("is-dragging");
       shell.classList.remove("is-resizing-rail");
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    }
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
 
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
   });
 }
