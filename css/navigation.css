@@ -8,7 +8,7 @@
    Kept outside .left-rail to avoid overflow:auto swallowing pointer events. */
 .rail-resize-handle {
   position: absolute;
-  top: var(--topbar-h);
+  top: 0;
   bottom: 0;
   left: calc(var(--left-rail-w) - 2px);
   width: 8px;
@@ -38,6 +38,31 @@
   opacity: 0;
 }
 
+/* Rail-open ghost button — visible only when left rail is collapsed */
+.rail-open-btn {
+  display: none;
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 30;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--background-primary-alt);
+  color: var(--text-faint);
+  font-size: 14px;
+  cursor: pointer;
+}
+.rail-open-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-primary);
+}
+.app-shell[data-left-rail="closed"] .rail-open-btn {
+  display: grid;
+}
+
 /* =========================
    Right rail resize handle
    ========================= */
@@ -46,7 +71,7 @@
    Positioned via right: so it tracks --right-rail-w automatically. */
 .right-rail-resize-handle {
   position: absolute;
-  top: var(--topbar-h);
+  top: 0;
   bottom: 0;
   right: calc(var(--right-rail-w) - 2px);
   width: 8px;

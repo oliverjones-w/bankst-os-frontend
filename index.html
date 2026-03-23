@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=45" />
-  <link rel="stylesheet" href="./base.css?v=45" />
-  <link rel="stylesheet" href="./css/navigation.css?v=45" />
-  <link rel="stylesheet" href="./css/shell.css?v=45" />
-  <link rel="stylesheet" href="./css/workspace.css?v=45" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=45" />
-  <link rel="stylesheet" href="./css/data-views.css?v=45" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=45" />
+  <link rel="stylesheet" href="./css/fonts.css?v=46" />
+  <link rel="stylesheet" href="./base.css?v=46" />
+  <link rel="stylesheet" href="./css/navigation.css?v=46" />
+  <link rel="stylesheet" href="./css/shell.css?v=46" />
+  <link rel="stylesheet" href="./css/workspace.css?v=46" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=46" />
+  <link rel="stylesheet" href="./css/data-views.css?v=46" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=46" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -31,35 +31,8 @@
 <body>
   <div class="app-shell" data-right-rail="open" data-left-rail="open">
 
-    <!-- Topbar — spans full grid width (grid-area: topbar) -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <button id="leftRailToggle" class="icon-button" aria-label="Toggle navigation" aria-expanded="true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 5H4a1 1 0 000 2h16a1 1 0 100-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Z"/>
-          </svg>
-        </button>
-        <div id="topbarTitleGroup" class="topbar-title-group">
-          <div class="eyebrow">Workspace</div>
-          <h1 class="topbar-title">People</h1>
-        </div>
-      </div>
-
-      <div class="topbar-center">
-        <button id="commandTrigger" class="command-trigger">
-          <span class="command-trigger-label">Search people, firms, commands…</span>
-          <span class="command-trigger-kbd">Ctrl+P</span>
-        </button>
-      </div>
-
-      <div class="topbar-right">
-        <button class="icon-button">+</button>
-        <button class="icon-button">⟲</button>
-        <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
-        <button id="rightRailToggle" class="icon-button" aria-label="Toggle right rail" title="Toggle context panel (Ctrl+\)">⊟</button>
-        <button class="icon-button">⚙</button>
-      </div>
-    </header>
+    <!-- Rail-open ghost — visible only when left rail is collapsed -->
+    <button id="leftRailToggle" class="rail-open-btn" aria-label="Open navigation">☰</button>
 
     <!-- Left rail — grid-area: rail -->
     <aside class="left-rail">
@@ -70,6 +43,11 @@
           <div class="brand-subtitle">Workspace Shell</div>
         </div>
       </div>
+
+      <button id="commandTrigger" class="command-trigger">
+        <span class="command-trigger-label">Search people, firms, commands…</span>
+        <span class="command-trigger-kbd">Ctrl+P</span>
+      </button>
 
       <div class="rail-group" data-group-id="core">
         <div class="rail-group-header">
@@ -122,6 +100,8 @@
         <div class="rail-footer-meta">
           <div class="version-tag">v2.4.12-beta</div>
         </div>
+        <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
+        <button id="rightRailToggle" class="icon-button" aria-label="Toggle context panel">⊟</button>
         <button id="railCollapseBtn" class="rail-collapse-btn" aria-label="Collapse sidebar">
           <span class="chevron-icon">«</span>
         </button>

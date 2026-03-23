@@ -523,10 +523,8 @@ hr {
 .app-shell {
   display: grid;
   grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "topbar topbar"
-    "rail   main";
+  grid-template-rows: 1fr;
+  grid-template-areas: "rail main";
   height: 100vh;
   width: 100vw;
   overflow: hidden;

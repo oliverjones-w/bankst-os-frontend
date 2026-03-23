@@ -12,7 +12,6 @@ export const fetchingTabs = new Set();
 // ── DOM refs ───────────────────────────────────────────────────────────────────
 const workspaceContainer = document.querySelector(".workspace");
 const workspaceRow       = document.querySelector(".workspace-shell");
-const topbarTitleGroup   = document.getElementById("topbarTitleGroup");
 
 // ── View registry ──────────────────────────────────────────────────────────────
 export const workspaceViews = [];
@@ -189,50 +188,8 @@ export function renderWorkspace() {
 }
 
 // ── Breadcrumbs ────────────────────────────────────────────────────────────────
-function updateBreadcrumbs(activeTab) {
-  if (!topbarTitleGroup) return;
-  if (!activeTab) {
-    topbarTitleGroup.innerHTML = `<div class="eyebrow">Workspace</div><h1 class="topbar-title">BankSt OS</h1>`;
-    return;
-  }
-
-  let html;
-  if (activeTab.type === "person.detail") {
-    html = `
-      <div class="eyebrow">People</div>
-      <div class="breadcrumb-trail">
-        <span class="breadcrumb-root" data-open-nav-tab="people.table">People</span>
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-leaf">${activeTab.title}</span>
-      </div>`;
-  } else if (activeTab.type === "firm.detail") {
-    html = `
-      <div class="eyebrow">Firms</div>
-      <div class="breadcrumb-trail">
-        <span class="breadcrumb-root" data-open-nav-tab="firms.table">Firms</span>
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-leaf">${activeTab.title}</span>
-      </div>`;
-  } else if (activeTab.type === "hf.table") {
-    html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">HF Map</h1>`;
-  } else if (activeTab.type === "ir.table") {
-    html = `<div class="eyebrow">Maps</div><h1 class="topbar-title">IR Map</h1>`;
-  } else if (activeTab.type === "ir.firm") {
-    html = `<div class="eyebrow">IR Map</div><h1 class="topbar-title">${escapeHtml(activeTab.state?.firmName || "Firm")}</h1>`;
-  } else if (activeTab.type === "perf.dashboard") {
-    html = `<div class="eyebrow">System</div><h1 class="topbar-title">Performance</h1>`;
-  } else if (activeTab.type.startsWith("finra.")) {
-    html = `
-      <div class="eyebrow">FINRA Monitor</div>
-      <div class="breadcrumb-trail">
-        <span class="breadcrumb-leaf">${activeTab.title}</span>
-      </div>`;
-  } else {
-    html = `<div class="eyebrow">Workspace</div><h1 class="topbar-title">${activeTab.title}</h1>`;
-  }
-
-  topbarTitleGroup.innerHTML = html;
-}
+// Topbar removed — breadcrumb rendering is a no-op for now
+function updateBreadcrumbs(_activeTab) {}
 
 // ── Context engine ─────────────────────────────────────────────────────────────
 export function getActiveContext() {
