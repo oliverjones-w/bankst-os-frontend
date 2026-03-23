@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=51" />
-  <link rel="stylesheet" href="./base.css?v=51" />
-  <link rel="stylesheet" href="./css/navigation.css?v=51" />
-  <link rel="stylesheet" href="./css/shell.css?v=51" />
-  <link rel="stylesheet" href="./css/workspace.css?v=51" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=51" />
-  <link rel="stylesheet" href="./css/data-views.css?v=51" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=51" />
+  <link rel="stylesheet" href="./css/fonts.css?v=52" />
+  <link rel="stylesheet" href="./base.css?v=52" />
+  <link rel="stylesheet" href="./css/navigation.css?v=52" />
+  <link rel="stylesheet" href="./css/shell.css?v=52" />
+  <link rel="stylesheet" href="./css/workspace.css?v=52" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=52" />
+  <link rel="stylesheet" href="./css/data-views.css?v=52" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=52" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -36,11 +36,13 @@
 
     <!-- Left rail — grid-area: rail -->
     <aside class="left-rail">
-      <div class="rail-section user-profile">
-        <div class="user-avatar">OJ</div>
-        <div class="user-info">
-          <div class="user-name">Oliver Jones</div>
-          <div class="user-role">Portfolio Manager</div>
+
+      <!-- Top: logo + icon actions -->
+      <div class="rail-header">
+        <div class="rail-logo">B</div>
+        <div class="rail-header-actions">
+          <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
+          <button id="rightRailToggle" class="icon-button" aria-label="Toggle context panel">⊟</button>
         </div>
       </div>
 
@@ -96,12 +98,14 @@
         </div>
       </div>
 
+      <!-- User profile — anchored to bottom -->
+      <div class="user-profile">
+        <div class="user-avatar">OJ</div>
+        <div class="user-name">Oliver Jones</div>
+      </div>
+
       <div class="rail-footer">
-        <div class="rail-footer-meta">
-          <div class="version-tag">v2.4.12-beta</div>
-        </div>
-        <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
-        <button id="rightRailToggle" class="icon-button" aria-label="Toggle context panel">⊟</button>
+        <div class="version-tag">v2.4.12-beta</div>
         <button id="railCollapseBtn" class="rail-collapse-btn" aria-label="Collapse sidebar">
           <span class="chevron-icon">«</span>
         </button>

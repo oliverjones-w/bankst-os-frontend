@@ -182,14 +182,59 @@
   display: none;
 }
 
-.user-profile {
+/* =========================
+   Rail header — logo + icon actions
+   ========================= */
+
+.rail-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   padding: 8px 10px;
   border-bottom: 1px solid var(--border-subtle);
   margin-bottom: var(--space-1);
-  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.rail-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--interactive-accent);
+  color: #fff;
+  font-family: var(--font-interface);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.rail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rail-header-actions .icon-button {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+/* =========================
+   User profile — bottom of rail
+   ========================= */
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-top: auto;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0;
   cursor: pointer;
   user-select: none;
   transition: background var(--transition-fast);
@@ -200,8 +245,8 @@
 }
 
 .user-avatar {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -210,31 +255,17 @@
   border: 1px solid var(--border-accent);
   color: var(--interactive-accent);
   font-family: var(--font-interface);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-.user-info {
-  min-width: 0;
-  flex: 1;
 }
 
 .user-name {
   font-family: var(--font-interface);
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-normal);
+  color: var(--text-muted);
   letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-role {
-  font-family: var(--font-interface);
-  font-size: 11px;
-  color: var(--text-faint);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -527,7 +558,6 @@
    ========================= */
 
 .rail-footer {
-  margin-top: auto;
   height: 32px;
   padding: 0 8px 0 12px;
   display: flex;
