@@ -40,11 +40,11 @@
 
 .tabbar {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   height: 40px;
   background: var(--background-primary-alt);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 4px 4px 0;
+  padding: 0 4px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
