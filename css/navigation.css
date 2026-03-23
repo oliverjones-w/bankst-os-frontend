@@ -38,6 +38,45 @@
   opacity: 0;
 }
 
+/* =========================
+   Right rail resize handle
+   ========================= */
+
+/* Kept outside .right-rail (same reason as left) — overflow:auto swallows pointer events.
+   Positioned via right: so it tracks --right-rail-w automatically. */
+.right-rail-resize-handle {
+  position: absolute;
+  top: var(--topbar-h);
+  bottom: 0;
+  right: calc(var(--right-rail-w) - 2px);
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 50;
+  background: transparent;
+}
+
+.right-rail-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 3px;
+  width: 1px;
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.right-rail-resize-handle:hover::after,
+.right-rail-resize-handle.is-dragging::after {
+  background: var(--interactive-accent);
+}
+
+.app-shell[data-right-rail="closed"] .right-rail-resize-handle,
+.workspace-shell.is-context-hidden ~ .right-rail-resize-handle {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .left-rail {
   display: flex;
   flex-direction: column;

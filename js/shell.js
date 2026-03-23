@@ -7,6 +7,10 @@ const RAIL_MIN = 160;
 const RAIL_MAX = 480;
 const RAIL_WIDTH_KEY = "shell.leftRailWidth";
 
+const CONTEXT_MIN = 200;
+const CONTEXT_MAX = 540;
+const CONTEXT_WIDTH_KEY = "shell.rightRailWidth";
+
 function setRailWidth(px) {
   const clamped = Math.round(Math.min(RAIL_MAX, Math.max(RAIL_MIN, px)));
   document.documentElement.style.setProperty("--left-rail-w", `${clamped}px`);
@@ -17,6 +21,18 @@ function setRailWidth(px) {
 function initRailWidth() {
   const saved = localStorage.getItem(RAIL_WIDTH_KEY);
   if (saved) setRailWidth(Number(saved));
+}
+
+function setContextWidth(px) {
+  const clamped = Math.round(Math.min(CONTEXT_MAX, Math.max(CONTEXT_MIN, px)));
+  document.documentElement.style.setProperty("--right-rail-w", `${clamped}px`);
+  document.documentElement.style.setProperty("--right-rail-base-w", `${clamped}px`);
+  localStorage.setItem(CONTEXT_WIDTH_KEY, String(clamped));
+}
+
+function initContextWidth() {
+  const saved = localStorage.getItem(CONTEXT_WIDTH_KEY);
+  if (saved) setContextWidth(Number(saved));
 }
 
 export const shellState = {
@@ -34,9 +50,11 @@ export function setLeftRailState(state) {
 export function initShellState() {
   const savedLeft  = localStorage.getItem("shell.leftRail") || "open";
   initRailWidth();
+  initContextWidth();
   setLeftRailState(savedLeft);
   shell.dataset.rightRail = shellState.rightRail;
   initRailResizeDrag();
+  initContextResizeDrag();
 }
 
 export function toggleLeftRail() {
@@ -81,6 +99,38 @@ function initRailResizeDrag() {
     const onUp = () => {
       handle.classList.remove("is-dragging");
       shell.classList.remove("is-resizing-rail");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  });
+}
+
+function initContextResizeDrag() {
+  const handle = document.getElementById("rightRailResizeHandle");
+  if (!handle) return;
+
+  handle.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    if (shell.getAttribute("data-right-rail") === "closed") return;
+    if (document.querySelector(".workspace-shell")?.classList.contains("is-context-hidden")) return;
+
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startW = document.querySelector(".right-rail").getBoundingClientRect().width;
+
+    handle.classList.add("is-dragging");
+    shell.classList.add("is-resizing-right-rail");
+
+    // Drag left = wider (delta inverted vs. left rail)
+    const onMove = (e) => setContextWidth(startW - (e.clientX - startX));
+
+    const onUp = () => {
+      handle.classList.remove("is-dragging");
+      shell.classList.remove("is-resizing-right-rail");
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };

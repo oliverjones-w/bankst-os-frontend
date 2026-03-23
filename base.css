@@ -155,7 +155,10 @@
   --left-rail-min-w:  160px;
   --left-rail-max-w:  480px;
   --left-rail-w: var(--left-rail-base-w);
-  --right-rail-w: 17.5rem;   /* 280px */
+  --right-rail-base-w: 280px;
+  --right-rail-min-w:  200px;
+  --right-rail-max-w:  540px;
+  --right-rail-w: var(--right-rail-base-w);
   --topbar-h: 2.75rem;       /* 44px */
 
   /* Shell domain tokens */
@@ -538,8 +541,13 @@ hr {
   transition: none;
 }
 
-.app-shell.is-resizing-rail * {
+.app-shell.is-resizing-rail *,
+.app-shell.is-resizing-right-rail * {
   user-select: none !important;
+}
+
+.app-shell.is-resizing-right-rail .workspace-shell {
+  transition: none;
 }
 
 /* Subtle top gloss — light source from above, no gradient math to band */
