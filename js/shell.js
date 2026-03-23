@@ -16,6 +16,7 @@ function setRailWidth(px) {
   document.documentElement.style.setProperty("--left-rail-w", `${clamped}px`);
   document.documentElement.style.setProperty("--left-rail-base-w", `${clamped}px`);
   localStorage.setItem(RAIL_WIDTH_KEY, String(clamped));
+  return clamped;
 }
 
 function initRailWidth() {
@@ -28,6 +29,7 @@ function setContextWidth(px) {
   document.documentElement.style.setProperty("--right-rail-w", `${clamped}px`);
   document.documentElement.style.setProperty("--right-rail-base-w", `${clamped}px`);
   localStorage.setItem(CONTEXT_WIDTH_KEY, String(clamped));
+  return clamped;
 }
 
 function initContextWidth() {
@@ -94,11 +96,15 @@ function initRailResizeDrag() {
     handle.classList.add("is-dragging");
     shell.classList.add("is-resizing-rail");
 
-    const onMove = (e) => setRailWidth(startW + (e.clientX - startX));
+    const onMove = (e) => {
+      const w = setRailWidth(startW + (e.clientX - startX));
+      shell.style.gridTemplateColumns = `${w}px minmax(0, 1fr)`;
+    };
 
     const onUp = () => {
       handle.classList.remove("is-dragging");
       shell.classList.remove("is-resizing-rail");
+      shell.style.gridTemplateColumns = "";  // hand back to CSS var
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
@@ -125,12 +131,18 @@ function initContextResizeDrag() {
     handle.classList.add("is-dragging");
     shell.classList.add("is-resizing-right-rail");
 
+    const workspaceShell = document.querySelector(".workspace-shell");
+
     // Drag left = wider (delta inverted vs. left rail)
-    const onMove = (e) => setContextWidth(startW - (e.clientX - startX));
+    const onMove = (e) => {
+      const w = setContextWidth(startW - (e.clientX - startX));
+      workspaceShell.style.gridTemplateColumns = `minmax(0, 1fr) ${w}px`;
+    };
 
     const onUp = () => {
       handle.classList.remove("is-dragging");
       shell.classList.remove("is-resizing-right-rail");
+      workspaceShell.style.gridTemplateColumns = "";  // hand back to CSS var
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
