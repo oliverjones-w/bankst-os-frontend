@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=52" />
-  <link rel="stylesheet" href="./base.css?v=52" />
-  <link rel="stylesheet" href="./css/navigation.css?v=52" />
-  <link rel="stylesheet" href="./css/shell.css?v=52" />
-  <link rel="stylesheet" href="./css/workspace.css?v=52" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=52" />
-  <link rel="stylesheet" href="./css/data-views.css?v=52" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=52" />
+  <link rel="stylesheet" href="./css/fonts.css?v=53" />
+  <link rel="stylesheet" href="./base.css?v=53" />
+  <link rel="stylesheet" href="./css/navigation.css?v=53" />
+  <link rel="stylesheet" href="./css/shell.css?v=53" />
+  <link rel="stylesheet" href="./css/workspace.css?v=53" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=53" />
+  <link rel="stylesheet" href="./css/data-views.css?v=53" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=53" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -31,15 +31,12 @@
 <body>
   <div class="app-shell" data-right-rail="open" data-left-rail="open">
 
-    <!-- Rail-open ghost — visible only when left rail is collapsed -->
-    <button id="leftRailToggle" class="rail-open-btn" aria-label="Open navigation">☰</button>
-
     <!-- Left rail — grid-area: rail -->
     <aside class="left-rail">
 
-      <!-- Top: logo + icon actions -->
+      <!-- Top: logo (toggle) + icon actions -->
       <div class="rail-header">
-        <div class="rail-logo">B</div>
+        <button id="leftRailToggle" class="rail-logo" aria-label="Toggle navigation">B</button>
         <div class="rail-header-actions">
           <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
           <button id="rightRailToggle" class="icon-button" aria-label="Toggle context panel">⊟</button>

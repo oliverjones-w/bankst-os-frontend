@@ -38,30 +38,25 @@
   opacity: 0;
 }
 
-/* Rail-open ghost button — visible only when left rail is collapsed */
-.rail-open-btn {
-  display: none;
-  position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  z-index: 30;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: var(--background-primary-alt);
-  color: var(--text-faint);
-  font-size: 14px;
-  cursor: pointer;
+/* Slim mode — hide content, keep logo + avatar centred */
+.app-shell[data-left-rail="closed"] .rail-header {
+  justify-content: center;
+  padding: 8px 0;
 }
-.rail-open-btn:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-primary);
+.app-shell[data-left-rail="closed"] .rail-header-actions { display: none; }
+.app-shell[data-left-rail="closed"] .command-trigger     { display: none; }
+.app-shell[data-left-rail="closed"] .rail-group          { display: none; }
+.app-shell[data-left-rail="closed"] .user-profile {
+  justify-content: center;
+  padding: 8px 0;
 }
-.app-shell[data-left-rail="closed"] .rail-open-btn {
-  display: grid;
+.app-shell[data-left-rail="closed"] .user-name           { display: none; }
+.app-shell[data-left-rail="closed"] .rail-footer {
+  justify-content: center;
+  padding: 0;
 }
+.app-shell[data-left-rail="closed"] .version-tag         { display: none; }
+.app-shell[data-left-rail="closed"] .rail-collapse-btn   { display: none; }
 
 /* =========================
    Right rail resize handle
@@ -209,6 +204,13 @@
   font-weight: 700;
   letter-spacing: -0.5px;
   flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.rail-logo:hover {
+  opacity: 0.85;
 }
 
 .rail-header-actions {

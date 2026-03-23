@@ -563,7 +563,11 @@ hr {
 }
 
 .app-shell[data-left-rail="closed"] {
-  --left-rail-w: 0px;
+  --left-rail-w: 48px;
+}
+
+.app-shell[data-left-rail="closed"] .left-rail {
+  overflow: hidden;
 }
 
 .left-rail {
