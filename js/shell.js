@@ -3,26 +3,10 @@
 
 const shell = document.querySelector(".app-shell");
 
-const RAIL_MIN = 160;
-const RAIL_MAX = 480;
-const RAIL_WIDTH_KEY = "shell.leftRailWidth";
-
 const CONTEXT_MIN = 200;
 const CONTEXT_MAX = 540;
 const CONTEXT_WIDTH_KEY = "shell.rightRailWidth";
 
-function setRailWidth(px) {
-  const clamped = Math.round(Math.min(RAIL_MAX, Math.max(RAIL_MIN, px)));
-  document.documentElement.style.setProperty("--left-rail-w", `${clamped}px`);
-  document.documentElement.style.setProperty("--left-rail-base-w", `${clamped}px`);
-  localStorage.setItem(RAIL_WIDTH_KEY, String(clamped));
-  return clamped;
-}
-
-function initRailWidth() {
-  const saved = localStorage.getItem(RAIL_WIDTH_KEY);
-  if (saved) setRailWidth(Number(saved));
-}
 
 function setContextWidth(px) {
   const clamped = Math.round(Math.min(CONTEXT_MAX, Math.max(CONTEXT_MIN, px)));
@@ -51,11 +35,9 @@ export function setLeftRailState(state) {
 
 export function initShellState() {
   const savedLeft  = localStorage.getItem("shell.leftRail") || "open";
-  initRailWidth();
   initContextWidth();
   setLeftRailState(savedLeft);
   shell.dataset.rightRail = shellState.rightRail;
-  initRailResizeDrag();
   initContextResizeDrag();
 }
 
@@ -80,39 +62,6 @@ export function toggleZenMode() {
   }
 }
 
-function initRailResizeDrag() {
-  const handle = document.getElementById("railResizeHandle");
-  if (!handle) return;
-
-  handle.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return;
-    if (shell.getAttribute("data-left-rail") === "closed") return;
-
-    e.preventDefault();
-
-    const startX = e.clientX;
-    const startW = document.querySelector(".left-rail").getBoundingClientRect().width;
-
-    handle.classList.add("is-dragging");
-    shell.classList.add("is-resizing-rail");
-
-    const onMove = (e) => {
-      const w = setRailWidth(startW + (e.clientX - startX));
-      shell.style.gridTemplateColumns = `${w}px minmax(0, 1fr)`;
-    };
-
-    const onUp = () => {
-      handle.classList.remove("is-dragging");
-      shell.classList.remove("is-resizing-rail");
-      shell.style.gridTemplateColumns = "";  // hand back to CSS var
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  });
-}
 
 function initContextResizeDrag() {
   const handle = document.getElementById("rightRailResizeHandle");

@@ -4,57 +4,16 @@
    Left rail
    ========================= */
 
-/* Resize handle — direct child of .app-shell (position:relative), tracks --left-rail-w via CSS.
-   Kept outside .left-rail to avoid overflow:auto swallowing pointer events. */
-.rail-resize-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(var(--left-rail-w) - 2px);
-  width: 8px;
-  cursor: ew-resize;
-  z-index: 50;
-  background: transparent;
+/* Static 1px demarcation line between nav rail and workspace */
+.left-rail {
+  border-right: 1px solid var(--border-strong);
 }
 
-.rail-resize-handle::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 3px;
-  width: 1px;
-  background: transparent;
-  transition: background 120ms ease;
-}
-
-.rail-resize-handle:hover::after,
-.rail-resize-handle.is-dragging::after {
-  background: var(--interactive-accent);
-}
-
-.app-shell[data-left-rail="closed"] .rail-resize-handle {
-  pointer-events: none;
-  opacity: 0;
-}
-
-/* Slim mode — hide content, keep logo + avatar centred */
-.app-shell[data-left-rail="closed"] .rail-header {
-  justify-content: center;
-  padding: 8px 0;
-}
+/* Slim mode — hide content, logo + avatar stay in place (no layout shift) */
 .app-shell[data-left-rail="closed"] .rail-header-actions { display: none; }
 .app-shell[data-left-rail="closed"] .command-trigger     { display: none; }
 .app-shell[data-left-rail="closed"] .rail-group          { display: none; }
-.app-shell[data-left-rail="closed"] .user-profile {
-  justify-content: center;
-  padding: 8px 0;
-}
 .app-shell[data-left-rail="closed"] .user-name           { display: none; }
-.app-shell[data-left-rail="closed"] .rail-footer {
-  justify-content: center;
-  padding: 0;
-}
 .app-shell[data-left-rail="closed"] .version-tag         { display: none; }
 .app-shell[data-left-rail="closed"] .rail-collapse-btn   { display: none; }
 
@@ -82,7 +41,7 @@
   bottom: 0;
   right: 3px;
   width: 1px;
-  background: transparent;
+  background: var(--border-strong);
   transition: background 120ms ease;
 }
 
@@ -107,7 +66,11 @@
 }
 
 .left-rail > * {
-  min-width: var(--left-rail-base-w);
+  min-width: var(--left-rail-w);
+}
+
+.app-shell[data-left-rail="closed"] .left-rail > * {
+  min-width: 0;
 }
 
 .rail-section {
@@ -613,14 +576,10 @@
 }
 
 /* =========================
-   Collapsed state
+   Collapsed state (slim — 48px, not hidden)
    ========================= */
 
-/* Fade out and disable pointer events as column animates to 0 */
 .app-shell[data-left-rail="closed"] .left-rail {
-  opacity: 0;
-  border-color: transparent; /* prevents 1px layout jump at animation end */
-  pointer-events: none;
-  transition: opacity 150ms ease, border-color 150ms ease;
+  border-color: transparent;
 }
 
