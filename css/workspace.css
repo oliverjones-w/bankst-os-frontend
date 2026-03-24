@@ -41,7 +41,7 @@
 .tabbar {
   display: flex;
   align-items: stretch;
-  height: 36px;
+  height: 40px;
   background: var(--background-primary-alt);
   border-bottom: 1px solid var(--border-subtle);
   padding: 0 4px;
@@ -64,9 +64,7 @@
   padding: 0 0 0 12px;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   border: 1px solid var(--border-subtle);
-  border-top-width: 2px;
-  border-top-color: transparent;
-  border-bottom: none;
+  border-bottom: 2px solid transparent;
   background: var(--background-primary-alt);
   position: relative;
   user-select: none;
@@ -84,9 +82,8 @@
 .tab-wrap.is-active {
   background: var(--background-primary);
   border-color: var(--border-subtle);
-  border-top-color: var(--interactive-accent);
+  border-bottom-color: var(--interactive-accent);
   z-index: 2;
-  box-shadow: 0 1px 0 var(--background-primary);
 }
 
 .tab-wrap.is-dragging {

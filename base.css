@@ -151,11 +151,11 @@
      Shell / layout tokens
      ========================= */
 
-  --left-rail-base-w: 250px;
-  --left-rail-min-w:  160px;
-  --left-rail-max-w:  480px;
-  --left-rail-w: var(--left-rail-base-w);
-  --right-rail-w: 17.5rem;   /* 280px */
+  --left-rail-w: 250px;
+  --right-rail-base-w: 280px;
+  --right-rail-min-w:  200px;
+  --right-rail-max-w:  540px;
+  --right-rail-w: var(--right-rail-base-w);
   --topbar-h: 2.75rem;       /* 44px */
 
   /* Shell domain tokens */
@@ -520,10 +520,8 @@ hr {
 .app-shell {
   display: grid;
   grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "topbar topbar"
-    "rail   main";
+  grid-template-rows: 1fr;
+  grid-template-areas: "rail main";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -532,14 +530,13 @@ hr {
   transition: grid-template-columns 200ms cubic-bezier(0.05, 0, 0, 1);
 }
 
-/* Suppress transition during live drag so resize feels instant.
-   Global col-resize cursor prevents flicker when pointer moves off the handle. */
-.app-shell.is-resizing-rail {
-  transition: none;
+/* Suppress text selection during right rail drag */
+.app-shell.is-resizing-right-rail * {
+  user-select: none !important;
 }
 
-.app-shell.is-resizing-rail * {
-  user-select: none !important;
+.app-shell.is-resizing-right-rail .workspace-shell {
+  transition: none;
 }
 
 /* Subtle top gloss — light source from above, no gradient math to band */
@@ -557,8 +554,9 @@ hr {
 }
 
 .app-shell[data-left-rail="closed"] {
-  --left-rail-w: 0px;
+  --left-rail-w: 48px;
 }
+
 
 .left-rail {
   grid-area: rail;
@@ -568,8 +566,7 @@ hr {
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  border-right: 1px solid var(--border-subtle);
-  background: var(--background-primary-alt);
+  background: var(--background-primary);
   backface-visibility: hidden;
 }
 
@@ -615,7 +612,7 @@ hr {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border-strong);
   background: var(--background-primary);
 }
 
