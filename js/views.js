@@ -2008,6 +2008,279 @@ function encoreFilterCandidates(candidates, filter, query) {
   return list;
 }
 
+// ── View: context.ingest ──────────────────────────────────────────────────────
+
+const MOCK_INGEST_PROPOSAL = {
+  sourceText: "Kai Lu spoke to Dan Gottlander about joining the high yield desk. He is currently a quantitative strategist that reports to Dan.",
+  sourceType: "call_note",
+  entities: [
+    {
+      id: "entity-kai-lu",
+      detectedName: "Kai Lu",
+      detectedContext: "Quantitative Strategist · reports to Dan Gottlander",
+      match: {
+        confidence: 0.94,
+        person_id: "kai-lu-001",
+        display_name: "Kai Lu",
+        current_firm: "Barclays",
+        current_title: "Quantitative Strategist",
+        function: "Rates",
+        reasoning: "Name + firm match confirmed. Role and reporting structure consistent with Barclays rates desk.",
+      },
+      diffs: [
+        {
+          id: "diff-kai-manager",
+          table: "work_history",
+          field: "manager",
+          label: "Reports To",
+          proposed: "Dan Gottlander",
+          action: "update",
+          enabled: true,
+        },
+        {
+          id: "diff-kai-note",
+          table: "person_notes",
+          field: "content",
+          label: "Note",
+          proposed: "Expressed interest in high yield desk. Currently quant strat reporting to Dan Gottlander.",
+          action: "insert",
+          enabled: true,
+        },
+      ],
+    },
+    {
+      id: "entity-dan-g",
+      detectedName: "Dan Gottlander",
+      detectedContext: "Senior role · Kai Lu reports to him · High yield desk",
+      match: {
+        confidence: 0.91,
+        person_id: "dan-g-001",
+        display_name: "Dan Gottlander",
+        current_firm: "Barclays",
+        current_title: "Managing Director, Rates",
+        function: "Rates",
+        reasoning: "Co-occurrence with Kai Lu (Barclays rates) confirms rates MD. Disambiguates from other records.",
+      },
+      diffs: [
+        {
+          id: "diff-dan-note",
+          table: "person_notes",
+          field: "content",
+          label: "Note",
+          proposed: "Spoke with Kai Lu (quant strat) re: high yield desk opportunity.",
+          action: "insert",
+          enabled: true,
+        },
+      ],
+    },
+  ],
+};
+
+function triggerIngestProcess(text) {
+  updateActiveTabState({ phase: "processing", sourceText: text, proposal: null });
+  // Simulated delay — replace with real backend call
+  setTimeout(() => {
+    updateActiveTabState({ phase: "proposal", proposal: MOCK_INGEST_PROPOSAL });
+  }, 1800);
+}
+
+registerWorkspaceView({
+  id: "context.ingest",
+  hasContext: true,
+  match: (tab) => tab.type === "context.ingest",
+  toolbar: () => ({
+    left:  [{ id: "context.ingest.view", label: "Context Drop", active: true }],
+    right: [],
+  }),
+  render: (tab) => {
+    const phase    = tab.state?.phase    || "idle";
+    const proposal = tab.state?.proposal || null;
+
+    if (phase === "idle") {
+      return `
+        <div class="ingest-view">
+          <div class="ingest-drop-zone" id="contextDropZone">
+            <div class="ingest-drop-icon">↓</div>
+            <div class="ingest-drop-title">Drop context here</div>
+            <div class="ingest-drop-sub">Call notes, CVs, LinkedIn profiles, emails — any text</div>
+            <div class="ingest-drop-hint">Ctrl+V to paste · drag a file · or use the sample below</div>
+            <button class="ingest-btn-discard" id="ingestLoadSample" style="margin-top:14px;">Try sample</button>
+          </div>
+        </div>`;
+    }
+
+    if (phase === "processing") {
+      return `
+        <div class="ingest-view">
+          <div class="ingest-processing">
+            <div class="ingest-processing-spinner"></div>
+            <div class="ingest-processing-label">Resolving entities…</div>
+            <div class="ingest-processing-steps">Reading context<br>Searching profiles<br>Building proposal</div>
+          </div>
+          <div class="ingest-drop-zone ingest-drop-zone--compact" id="contextDropZone">
+            <div class="ingest-drop-compact-label">Drop another</div>
+          </div>
+        </div>`;
+    }
+
+    if (phase === "confirmed") {
+      const count = (proposal?.entities || []).reduce((n, e) => n + e.diffs.filter(d => d.enabled).length, 0);
+      const names = (proposal?.entities || []).map(e => e.match.display_name).join(" · ");
+      return `
+        <div class="ingest-view">
+          <div class="ingest-processing">
+            <div class="ingest-processing-label" style="color:#4ade80;">Written to Core DB</div>
+            <div class="ingest-processing-steps">
+              ${count} field${count !== 1 ? "s" : ""} written<br>
+              ${escapeHtml(names)}
+            </div>
+            <button class="ingest-btn-discard" id="ingestReset" style="margin-top:18px;">Drop another</button>
+          </div>
+          <div class="ingest-drop-zone ingest-drop-zone--compact" id="contextDropZone">
+            <div class="ingest-drop-compact-label">Drop another</div>
+          </div>
+        </div>`;
+    }
+
+    // phase === "proposal"
+    if (!proposal) return `<div class="ingest-view"><div class="ingest-processing"><div class="ingest-processing-label">No proposal data.</div></div></div>`;
+
+    const totalEnabled = proposal.entities.reduce((n, e) => n + e.diffs.filter(d => d.enabled).length, 0);
+
+    const entityRows = proposal.entities.map(e => `
+      <div class="ingest-entity-row">
+        <div>
+          <div class="ingest-entity-detected">${escapeHtml(e.detectedName)}</div>
+          <div class="ingest-entity-context">${escapeHtml(e.detectedContext)}</div>
+        </div>
+        <div class="ingest-match-card">
+          <div class="ingest-match-header">
+            <div class="ingest-match-name">${escapeHtml(e.match.display_name)}</div>
+            <div class="ingest-match-confidence">${Math.round(e.match.confidence * 100)}%</div>
+          </div>
+          <div class="ingest-match-meta">${escapeHtml(e.match.current_firm)} · ${escapeHtml(e.match.current_title)}</div>
+          <div class="ingest-match-reasoning">${escapeHtml(e.match.reasoning)}</div>
+        </div>
+      </div>
+    `).join("");
+
+    const diffGroups = proposal.entities.map(e => `
+      <div class="ingest-diff-entity">${escapeHtml(e.match.display_name)}</div>
+      ${e.diffs.map(d => `
+        <div class="ingest-diff-row${d.enabled ? "" : " is-disabled"}">
+          <div class="ingest-diff-table">${escapeHtml(d.table)}</div>
+          <div class="ingest-diff-field">${escapeHtml(d.field)}</div>
+          <div class="ingest-diff-value" title="${escapeHtml(d.proposed)}">${escapeHtml(d.proposed)}</div>
+          <div class="ingest-diff-action ingest-diff-action--${d.action}">${d.action}</div>
+          <button class="ingest-diff-toggle${d.enabled ? " is-active" : ""}"
+            data-toggle-diff="${escapeHtml(d.id)}"
+            data-entity-id="${escapeHtml(e.id)}"
+            title="${d.enabled ? "Exclude this field" : "Include this field"}">✓</button>
+        </div>
+      `).join("")}
+    `).join("");
+
+    return `
+      <div class="ingest-view">
+        <div class="ingest-proposal">
+          <div class="ingest-section">
+            <div class="ingest-section-label">Detected Entities</div>
+            ${entityRows}
+          </div>
+          <div class="ingest-section">
+            <div class="ingest-section-label">Proposed Changes</div>
+            ${diffGroups}
+          </div>
+          <div class="ingest-source-preview" id="ingestSourcePreview">
+            <button class="ingest-source-toggle" id="ingestSourceToggle">▶ source text</button>
+            <div class="ingest-source-text">${escapeHtml(proposal.sourceText)}</div>
+          </div>
+        </div>
+        <div class="ingest-actions">
+          <button class="ingest-btn-confirm" id="ingestConfirm">Confirm &amp; Write</button>
+          <button class="ingest-btn-discard" id="ingestDiscard">Discard</button>
+          <div class="ingest-field-count" id="ingestFieldCount">${totalEnabled} field${totalEnabled !== 1 ? "s" : ""} selected</div>
+        </div>
+        <div class="ingest-drop-zone ingest-drop-zone--compact" id="contextDropZone">
+          <div class="ingest-drop-compact-label">Drop another</div>
+        </div>
+      </div>`;
+  },
+
+  onActivate: async (tab) => {
+    const phase    = tab.state?.phase    || "idle";
+    const proposal = tab.state?.proposal || null;
+
+    // Wire drop zone
+    const dropZone = document.getElementById("contextDropZone");
+    if (dropZone) {
+      dropZone.addEventListener("dragover",  (e) => { e.preventDefault(); dropZone.classList.add("ingest-drop-zone--over"); });
+      dropZone.addEventListener("dragleave", ()  => { dropZone.classList.remove("ingest-drop-zone--over"); });
+      dropZone.addEventListener("drop",      (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("ingest-drop-zone--over");
+        const text = e.dataTransfer.getData("text/plain");
+        const file = e.dataTransfer.files?.[0];
+        if (text)      triggerIngestProcess(text);
+        else if (file) triggerIngestProcess(`[File dropped: ${file.name}]`);
+      });
+    }
+
+    // Paste handler — only fires once per activation, only when this tab is active and not in proposal review
+    document.addEventListener("paste", function onPaste(e) {
+      const active = getActiveTab();
+      if (active?.type !== "context.ingest") { document.removeEventListener("paste", onPaste); return; }
+      if (active?.state?.phase === "proposal") return;
+      const text = e.clipboardData?.getData("text/plain");
+      if (text?.trim()) { document.removeEventListener("paste", onPaste); triggerIngestProcess(text.trim()); }
+    });
+
+    // Sample button
+    const sampleBtn = document.getElementById("ingestLoadSample");
+    if (sampleBtn) sampleBtn.addEventListener("click", () => triggerIngestProcess(MOCK_INGEST_PROPOSAL.sourceText));
+
+    // Reset button (confirmed state)
+    const resetBtn = document.getElementById("ingestReset");
+    if (resetBtn) resetBtn.addEventListener("click", () => updateActiveTabState({ phase: "idle", proposal: null }));
+
+    if (phase !== "proposal" || !proposal) return;
+
+    // Diff toggles
+    document.querySelectorAll("[data-toggle-diff]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const diffId   = btn.dataset.toggleDiff;
+        const entityId = btn.dataset.entityId;
+        const updated  = {
+          ...proposal,
+          entities: proposal.entities.map(e => {
+            if (e.id !== entityId) return e;
+            return { ...e, diffs: e.diffs.map(d => d.id === diffId ? { ...d, enabled: !d.enabled } : d) };
+          }),
+        };
+        updateActiveTabState({ proposal: updated });
+      });
+    });
+
+    // Source toggle
+    const srcToggle  = document.getElementById("ingestSourceToggle");
+    const srcPreview = document.getElementById("ingestSourcePreview");
+    if (srcToggle && srcPreview) {
+      srcToggle.addEventListener("click", () => {
+        const open = srcPreview.classList.toggle("is-expanded");
+        srcToggle.textContent = (open ? "▼" : "▶") + " source text";
+      });
+    }
+
+    // Confirm
+    const confirmBtn = document.getElementById("ingestConfirm");
+    if (confirmBtn) confirmBtn.addEventListener("click", () => updateActiveTabState({ phase: "confirmed" }));
+
+    // Discard
+    const discardBtn = document.getElementById("ingestDiscard");
+    if (discardBtn) discardBtn.addEventListener("click", () => updateActiveTabState({ phase: "idle", proposal: null }));
+  },
+});
+
 registerWorkspaceView({
   id: "encore.sync",
   hasContext: false,

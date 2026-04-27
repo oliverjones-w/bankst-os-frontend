@@ -1,6 +1,6 @@
 """
 BankSt OS — Main API
-FastAPI on port 8765, connects to PostgreSQL via SSH tunnel on localhost:5432.
+FastAPI on port 8765, connects to PostgreSQL on 127.0.0.1:5432.
 Start with: python -m uvicorn api:app --port 8765 --reload
 """
 
@@ -13,7 +13,7 @@ import psycopg2.extras
 import json
 import os
 
-DB_URL = "postgresql://oliverjones:mac337@localhost:5432/bankst_os"
+DB_URL = "postgresql://oliverjones:mac337@127.0.0.1:5432/bankst_os"
 
 app = FastAPI(title="BankSt OS API")
 

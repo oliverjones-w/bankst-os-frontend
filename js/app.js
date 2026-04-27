@@ -12,7 +12,7 @@ import {
 } from "./workspace.js";
 import { renderRightRail } from "./widgets.js";
 import { setNavHandlers, closeTopCard, openCard } from "./cards.js";
-import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab, openEncoreSyncTab } from "./nav.js";
+import { openPersonTab, openFirmTab, openFirmCard, openFinraTab, openBbgFirmsTab, openBbgFirmTab, openEncoreSyncTab, openContextIngestTab } from "./nav.js";
 import { loadFirmsIndex, loadRecentlyViewed, loadTrending, setApiRailRenderer, mappingGet, mappingUpload, mappingUploadStream, encorePatch } from "./api.js";
 import { togglePalette, closePalette, paletteIsOpen, handlePaletteKeydown } from "./palette.js";
 import { actions } from "./actions.js";
@@ -273,8 +273,9 @@ document.addEventListener("click", (e) => {
     if (t === "hf.table")       openTab({ id: "tab-hf-table",       type: "hf.table",       title: "HF Map",     state: {} });
     if (t === "ir.table")       openTab({ id: "tab-ir-table",       type: "ir.table",       title: "IR Map",     state: {} });
     if (t === "perf.dashboard") openTab({ id: "tab-perf-dashboard", type: "perf.dashboard", title: "Performance", state: {} });
-    if (t === "bbg.firms") { openBbgFirmsTab(); return; }
-    if (t === "encore.sync") { openEncoreSyncTab(); return; }
+    if (t === "bbg.firms")       { openBbgFirmsTab();       return; }
+    if (t === "encore.sync")     { openEncoreSyncTab();     return; }
+    if (t === "context.ingest")  { openContextIngestTab();  return; }
     return;
   }
 
