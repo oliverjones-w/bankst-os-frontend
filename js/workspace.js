@@ -219,8 +219,9 @@ export function getActiveContext() {
     finraType: activeTab.type,
     tab:       activeTab,
   };
-  if (activeTab.type === "bbg.firms") return { type: "bbg.firms", tab: activeTab };
-  if (activeTab.type === "bbg.firm")  return { type: "bbg.firm",  tab: activeTab, firmId: activeTab.entityId, firmName: activeTab.title };
+  if (activeTab.type === "bbg.firms")       return { type: "bbg.firms",       tab: activeTab };
+  if (activeTab.type === "bbg.firm")        return { type: "bbg.firm",        tab: activeTab, firmId: activeTab.entityId, firmName: activeTab.title };
+  if (activeTab.type === "context.ingest")  return { type: "context.ingest",  tab: activeTab };
   return { type: "unknown", tab: activeTab };
 }
 

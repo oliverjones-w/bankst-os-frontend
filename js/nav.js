@@ -88,6 +88,10 @@ export function openEncoreSyncTab() {
   openTab({ id: "tab-encore-sync", type: "encore.sync", title: "Encore Sync", state: {} });
 }
 
+export function openContextIngestTab() {
+  openTab({ id: "tab-context-ingest", type: "context.ingest", title: "Context Drop", state: { phase: "idle" } });
+}
+
 export function runCommand(commandId) {
   if (commandId === "toggle-right-rail") {
     document.dispatchEvent(new CustomEvent("bankst:toggleRightRail"));

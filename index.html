@@ -12,14 +12,14 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=60" />
-  <link rel="stylesheet" href="./base.css?v=60" />
-  <link rel="stylesheet" href="./css/navigation.css?v=60" />
-  <link rel="stylesheet" href="./css/shell.css?v=60" />
-  <link rel="stylesheet" href="./css/workspace.css?v=60" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=60" />
-  <link rel="stylesheet" href="./css/data-views.css?v=60" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=60" />
+  <link rel="stylesheet" href="./css/fonts.css?v=61" />
+  <link rel="stylesheet" href="./base.css?v=61" />
+  <link rel="stylesheet" href="./css/navigation.css?v=61" />
+  <link rel="stylesheet" href="./css/shell.css?v=61" />
+  <link rel="stylesheet" href="./css/workspace.css?v=61" />
+  <link rel="stylesheet" href="./css/surfaces.css?v=61" />
+  <link rel="stylesheet" href="./css/data-views.css?v=61" />
+  <link rel="stylesheet" href="./css/theme-overrides.css?v=61" />
   <script>
     window.APP_CONFIG = {
       FINRA_API_BASE:   "/api/finra",
@@ -55,6 +55,7 @@
         </div>
         <div class="rail-group-content">
           <nav class="nav-list">
+            <button class="nav-row is-leaf" data-open-nav-tab="context.ingest"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Context Drop</span></button>
             <button class="nav-row is-leaf" data-open-nav-tab="people.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">People</span></button>
             <button class="nav-row is-leaf" data-open-nav-tab="firms.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Firms</span></button>
             <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Mandates</span></button>
@@ -158,7 +159,7 @@
     </div>
   </div>
 
-  <script type="module" src="./js/app.js?v=44"></script>
+  <script type="module" src="./js/app.js?v=45"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");

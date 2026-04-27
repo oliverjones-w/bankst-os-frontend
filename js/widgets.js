@@ -33,9 +33,52 @@ function renderFeed(items) {
 // ── Widget registry ────────────────────────────────────────────────────────────
 const rightRailWidgets = [];
 
+// ── Widget: context.ingest ────────────────────────────────────────────────────
+
 export function registerRightRailWidget(widget) {
   rightRailWidgets.push(widget);
 }
+
+registerRightRailWidget({
+  id: "context-ingest-entities",
+  order: 5,
+  when: (ctx) => ctx.type === "context.ingest",
+  render: (ctx) => {
+    const phase    = ctx.tab?.state?.phase    || "idle";
+    const proposal = ctx.tab?.state?.proposal || null;
+
+    if (phase === "idle") {
+      return renderContextCard("Context Drop", `
+        <div class="ingest-rail-hint">Drop call notes, CVs, or any text into the center view. The AI will resolve which profiles are referenced and propose structured updates.</div>
+      `);
+    }
+
+    if (phase === "processing") {
+      return renderContextCard("Resolving…", `
+        <div class="ingest-rail-hint">Searching profiles · Building proposal…</div>
+      `);
+    }
+
+    if (phase === "confirmed") {
+      return renderContextCard("Written", `
+        <div class="ingest-rail-hint">Changes confirmed and written to Core DB.</div>
+      `);
+    }
+
+    if (!proposal) return "";
+
+    const cards = proposal.entities.map(e => `
+      <div class="ingest-rail-entity">
+        <div class="ingest-rail-entity-name">${escapeHtml(e.match.display_name)}</div>
+        <div class="ingest-rail-entity-meta">${escapeHtml(e.match.current_firm)}</div>
+        <div class="ingest-rail-entity-meta">${escapeHtml(e.match.current_title)}</div>
+        <div class="ingest-rail-entity-confidence">${Math.round(e.match.confidence * 100)}% match · ${escapeHtml(e.match.function)}</div>
+      </div>
+    `).join("");
+
+    return renderContextCard("Matched Profiles", cards);
+  },
+});
 
 // ── Widgets: people.table ──────────────────────────────────────────────────────
 registerRightRailWidget({
