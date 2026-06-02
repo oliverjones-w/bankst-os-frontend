@@ -1,410 +1,5 @@
-:root {
-  color-scheme: dark;
-
-  /* =========================
-     Proton Carbon Palette
-     ========================= */
-
-  --bg-deep:     #0a0a0a;       /* Navigation / Left Rail */
-  --bg-stage:    #161616;       /* Main Content Workspace */
-  --bg-elevated: #1f1f1f;       /* Row Hovers / Secondary Cards */
-
-  --success: #00a87e;
-  --warning: #db5f00;
-  --danger:  #d50027;
-
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.12);
-
-  --navigation-current-item-background-color: rgba(0, 115, 255, 0.08);
-
-  /* =========================
-     Base palette (retained for light theme compat)
-     ========================= */
-
-  --color-base-00: #1e1e1e;
-  --color-base-05: #212121;
-  --color-base-10: #242424;
-  --color-base-20: #262626;
-  --color-base-25: #2a2a2a;
-  --color-base-30: #363636;
-  --color-base-35: #3f3f3f;
-  --color-base-40: #555555;
-  --color-base-50: #666666;
-  --color-base-60: #999999;
-  --color-base-70: #bababa;
-  --color-base-100: #dadada;
-
-  /* =========================
-     Accent system
-     Neutral / greyscale instead of purple
-     ========================= */
-
-  --accent-h: 212;
-  --accent-s: 42%;
-  --accent-l: 62%;
-
-  /* =========================
-     Accent semantics
-     ========================= */
-
-  --interactive-accent: #006eff;
-  --interactive-accent-hover: color-mix(in srgb, #006eff 80%, white);
-  --interactive-accent-hsl: var(--accent-h), var(--accent-s), var(--accent-l);
-
-  --text-accent: var(--interactive-accent);
-  --text-accent-hover: var(--interactive-accent-hover);
-
-  --background-accent-subtle: rgba(0, 115, 255, 0.12);
-  --background-accent-faint: rgba(0, 115, 255, 0.10);
-  --border-accent: rgba(0, 115, 255, 0.36);
-
-  /* =========================
-     Extended colors
-     Kept available for status + system states
-     ========================= */
-
-  --color-red: #f85149;
-  --color-orange: #e9973f;
-  --color-yellow: #d29922;
-  --color-green: #3fb950;
-  --color-cyan: #53dfdd;
-  --color-blue: #027aff;
-  --color-purple: #a882ff;
-  --color-pink: #fa99cd;
-
-  --color-red-rgb: 248, 81, 73;
-  --color-orange-rgb: 233, 151, 63;
-  --color-yellow-rgb: 210, 153, 34;
-  --color-green-rgb: 63, 185, 80;
-  --color-cyan-rgb: 83, 223, 221;
-  --color-blue-rgb: 2, 122, 255;
-  --color-purple-rgb: 168, 130, 255;
-  --color-pink-rgb: 250, 153, 205;
-
-  /* =========================
-     Mono helpers
-     ========================= */
-
-  --mono-rgb-0: 0, 0, 0;
-  --mono-rgb-100: 255, 255, 255;
-
-  /* =========================
-     Semantic surfaces
-     ========================= */
-
-  --background-primary:       var(--bg-stage);
-  --background-primary-alt:   var(--bg-deep);
-  --background-secondary:     var(--bg-elevated);
-  --background-secondary-alt: var(--bg-elevated);
-
-  --background-modifier-hover: rgba(var(--mono-rgb-100), 0.06);
-  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.08);
-
-  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.04);
-  --background-modifier-border: rgba(var(--mono-rgb-100), 0.06);
-  --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.14);
-  --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
-
-  --background-modifier-error-rgb: var(--color-red-rgb);
-  --background-modifier-error: rgba(var(--color-red-rgb), 0.14);
-  --background-modifier-error-hover: rgba(var(--color-red-rgb), 0.2);
-
-  --background-modifier-success-rgb: var(--color-green-rgb);
-  --background-modifier-success: rgba(var(--color-green-rgb), 0.14);
-
-  --background-modifier-message: rgba(var(--color-blue-rgb), 0.12);
-  --background-modifier-form-field: var(--bg-elevated);
-
-  /* =========================
-     Interactive colors
-     ========================= */
-
-  --interactive-normal: var(--color-base-20);
-  --interactive-hover: var(--color-base-25);
-
-  /* =========================
-     Text colors
-     ========================= */
-
-  --text-normal: #f0f0f0;
-  --text-primary: var(--text-normal);
-  --text-muted: #a0a0a0;
-  --text-faint: #606060;
-
-  --text-on-accent: #111111;
-  --text-on-accent-inverted: #ffffff;
-
-  --text-success: var(--color-green);
-  --text-warning: var(--color-yellow);
-  --text-error: var(--color-red);
-
-  /* =========================
-     Text background / caret
-     ========================= */
-
-  --text-selection: rgba(var(--mono-rgb-100), 0.12);
-  --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.18);
-  --caret-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
-
-  /* =========================
-     Shell / layout tokens
-     ========================= */
-
-  --left-rail-w: 250px;
-  --right-rail-base-w: 280px;
-  --right-rail-min-w:  200px;
-  --right-rail-max-w:  540px;
-  --right-rail-w: var(--right-rail-base-w);
-  --topbar-h: 2.75rem;       /* 44px */
-
-  /* Shell domain tokens */
-  --shell-topbar-bg:     rgba(var(--mono-rgb-0), 0.85); /* inverts correctly per theme */
-  --shell-topbar-border: var(--border-subtle);
-
-  /* =========================
-     Navigation domain tokens
-     ========================= */
-
-  --nav-item-padding-x:        8px;
-  --nav-item-active-border-w:  0px;  /* accent moves to text, not left bar */
-
-  --nav-item-bg:               transparent;
-  --nav-item-bg-hover:         var(--background-modifier-hover);
-  --nav-item-bg-active:        var(--background-modifier-active-hover);  /* neutral wash, was blue */
-
-  --nav-item-text:             var(--text-muted);   /* #a0a0a0 — was --text-faint #606060 */
-  --nav-item-text-hover:       var(--text-primary);
-  --nav-item-text-active:      var(--interactive-accent);  /* accent on text, not background */
-
-  --nav-item-border-active:    transparent;  /* left bar removed */
-
-  --nav-icon-color:            var(--text-faint);
-  --nav-icon-color-hover:      var(--text-primary);
-  --nav-icon-color-active:     var(--interactive-accent);
-
-  /* =========================
-     Control surface tokens
-     ========================= */
-
-  --control-surface-bg:           var(--background-secondary);
-  --control-surface-border:       var(--border-subtle);
-  --control-surface-border-hover: var(--border-strong);
-
-  /* =========================
-     Button — primary
-     ========================= */
-
-  --button-primary-bg:        var(--interactive-accent);
-  --button-primary-bg-hover:  var(--interactive-accent-hover);
-  --button-primary-bg-active: color-mix(in srgb, var(--interactive-accent) 75%, black);
-  --button-primary-text:      var(--text-on-accent);
-
-  /* =========================
-     Radius
-     ========================= */
-
-  --radius-xs: 2px;
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 10px;
-  --radius-2xl: 14px;  /* Command palette, large floating surfaces */
-
-  /* =========================
-     Z-index hierarchy
-     ========================= */
-
-  --z-topbar:   20;
-  --z-cards:   100;
-  --z-dragging: 200;
-  --z-modal:   300;
-  --z-palette:  400;
-
-  /* =========================
-     Spacing
-     ========================= */
-
-  /* Spacing scale — rem for proportional harmony */
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-
-  /* =========================
-     Shadows
-     ========================= */
-
-  --shadow-xs: 0 1px 2px rgba(var(--mono-rgb-0), 0.18);
-  --shadow-sm: 0 4px 12px rgba(var(--mono-rgb-0), 0.24);
-  --shadow-floating:
-    0 0 0 1px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 8px 20px -6px rgba(0, 0, 0, 0.5),
-    0 24px 50px -12px rgba(0, 0, 0, 0.5);
-
-  --shadow-card:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 4px 12px rgba(0, 0, 0, 0.3);
-
-  --shadow-lifted:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 12px 24px rgba(0, 0, 0, 0.3),
-    0 24px 64px rgba(0, 0, 0, 0.55);
-
-  /* =========================
-     Transitions
-     ========================= */
-
-  --transition-fast:    80ms  cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-ui:     180ms  cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow:   280ms  cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 360ms  cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-luxe:   250ms  cubic-bezier(0.16, 1, 0.3, 1); /* Palette, large surface reveals */
-
-  /* Needed by components that reference --accent-color */
-  --accent-color: var(--interactive-accent);
-
-  /* =========================
-     Typography
-     Font-family tokens are defined here as fallbacks.
-     css/fonts.css is the final authority when custom fonts are loaded.
-     ========================= */
-
-  --font-interface: 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  /* Data font: used for table cells, timestamps, counts, FINRA values */
-  --font-data: "SF Mono", "JetBrains Mono", "Menlo", "Fira Code",
-    "SFMono-Regular", Consolas, monospace;
-  --font-monospace: var(--font-data);
-
-  --font-ui-smaller: 0.6875rem;  /* 11px */
-  --font-ui-small: 0.75rem;      /* 12px */
-  --font-ui-medium: 0.875rem;    /* 14px */
-  --font-ui-large: 1rem;         /* 16px */
-  --line-height-workstation: 1.42857;
-
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.45;
-  --line-height-relaxed: 1.6;
-
-  /* =========================
-     Workstation constants
-     Shared across all table views for zero cognitive friction
-     ========================= */
-
-  --row-padding-v: 8px;
-  --row-hover-bg: var(--bg-elevated);
-  --font-size-data: 11px;
-  --font-size-label: 9px;
-  --font-weight-primary: 500;
-
-  --divider-subtle: 1px solid var(--border-subtle);
-  --divider-anchor: 1px solid var(--border-strong);
-
-  /* =========================
-     Category semantic colors
-     Data taxonomy — function / strategy / product
-     ========================= */
-
-  --category-function:        #ff8a3d;
-  --category-function-bg:     rgba(255, 138, 61, 0.12);
-  --category-function-border: rgba(255, 138, 61, 0.28);
-
-  --category-strategy:        #8b7dff;
-  --category-strategy-bg:     rgba(139, 125, 255, 0.12);
-  --category-strategy-border: rgba(139, 125, 255, 0.28);
-
-  --category-product:         #21b3ff;
-  --category-product-bg:      rgba(33, 179, 255, 0.12);
-  --category-product-border:  rgba(33, 179, 255, 0.28);
-
-  /* =========================
-     Overlay surfaces
-     ========================= */
-
-  /* Glass surface — command palette, system modal. Inverts in light mode. */
-  --surface-glass: rgba(10, 10, 10, 0.40);
-
-  /* Scrollbar — auto-adapts via --mono-rgb-100 (inverts per theme) */
-  --scrollbar-thumb:       rgba(var(--mono-rgb-100), 0.10);
-  --scrollbar-thumb-hover: rgba(var(--mono-rgb-100), 0.20);
-}
-
-[data-theme="light"] {
-  color-scheme: light;
-
-  /* Surface primitives — missing from original light block, causing all direct consumers to stay dark */
-  --bg-deep:     #f6f6f6;   /* nav rail, tabbar — matches color-base-20 */
-  --bg-stage:    #fafafa;   /* workspace, panes, toolbar — matches color-base-10 */
-  --bg-elevated: #ffffff;   /* row hover, cards, elevated panels — matches color-base-00 */
-
-  --surface-glass: rgba(248, 248, 248, 0.40);
-
-  --color-base-00: #ffffff;
-  --color-base-05: #fcfcfc;
-  --color-base-10: #fafafa;
-  --color-base-20: #f6f6f6;
-  --color-base-25: #e3e3e3;
-  --color-base-30: #e0e0e0;
-  --color-base-35: #d4d4d4;
-  --color-base-40: #bdbdbd;
-  --color-base-50: #ababab;
-  --color-base-60: #707070;
-  --color-base-70: #5a5a5a;
-  --color-base-100: #222222;
-
-  --mono-rgb-0: 255, 255, 255;
-  --mono-rgb-100: 0, 0, 0;
-
-  --background-primary: var(--color-base-00);
-  --background-primary-alt: var(--color-base-05);
-  --background-secondary: var(--color-base-10);
-  --background-secondary-alt: var(--color-base-20);
-
-  --background-modifier-hover: rgba(var(--mono-rgb-100), 0.04);
-  --background-modifier-active-hover: rgba(var(--mono-rgb-100), 0.04);
-
-  --background-modifier-border-faint: rgba(var(--mono-rgb-100), 0.06);
-  --background-modifier-border: rgba(var(--mono-rgb-100), 0.09);
-  --background-modifier-border-hover: rgba(var(--mono-rgb-100), 0.16);
-  --background-modifier-border-focus: hsl(var(--accent-h), var(--accent-s), 42%);
-
-  --background-modifier-error: rgba(var(--color-red-rgb), 0.12);
-  --background-modifier-error-hover: rgba(var(--color-red-rgb), 0.18);
-  --background-modifier-success: rgba(var(--color-green-rgb), 0.12);
-  --background-modifier-message: rgba(var(--color-blue-rgb), 0.1);
-  --background-modifier-form-field: var(--color-base-20);
-
-  --interactive-normal: var(--color-base-20);
-  --interactive-hover: var(--color-base-25);
-  --interactive-accent: #006eff;
-  --interactive-accent-hover: color-mix(in srgb, #006eff 80%, white);
-
-  --text-normal: var(--color-base-100);
-  --text-muted: var(--color-base-60);
-  --text-faint: var(--color-base-50);
-
-  --text-on-accent: #ffffff;
-  --text-on-accent-inverted: #111111;
-  --text-accent: #006eff;
-  --text-accent-hover: color-mix(in srgb, #006eff 80%, white);
-
-  --text-selection: rgba(var(--mono-rgb-100), 0.12);
-  --text-highlight-bg: rgba(var(--color-yellow-rgb), 0.22);
-  --caret-color: hsl(var(--accent-h), var(--accent-s), 38%);
-
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-
-  --background-accent-subtle: hsla(var(--accent-h), 52%, 45%, 0.10);
-  --background-accent-faint: hsla(var(--accent-h), 52%, 45%, 0.08);
-  --border-accent: hsla(var(--accent-h), 52%, 40%, 0.28);
-}
+/* Shared runtime tokens live in css/tokens.css.
+   This file now contains only the legacy/lab layout and component styles. */
 
 /* =========================
    Preload (suppress transitions on initial paint)
@@ -455,15 +50,33 @@ body {
   overflow: hidden;
   background: var(--background-primary);
   color: var(--text-normal);
-  font-family: var(--font-interface);
+  font-family: var(--font-text);
   line-height: var(--line-height-normal);
 }
 
 body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "cv05", "cv02", "ss01";
-  letter-spacing: -0.015em;
+  font-feature-settings: "kern" 1;
+  letter-spacing: -0.005em;
+}
+
+:where(
+  .table-header-grid,
+  .table-row-grid,
+  .firms-table-header-grid,
+  .firms-table-row-grid,
+  .master-table-header-grid,
+  .master-table-row-grid,
+  .data-table,
+  .data-table th,
+  .data-table td,
+  .meta-value,
+  .cell-mono,
+  .text-mono
+) {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
 }
 
 img,
@@ -573,7 +186,7 @@ hr {
 .workspace-shell {
   grid-area: main;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--right-rail-w);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   transition: grid-template-columns var(--transition-slow);

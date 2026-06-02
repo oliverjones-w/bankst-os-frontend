@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BankSt OS Shell</title>
+  <title>BankSt OS</title>
   <script>
     (() => {
       document.documentElement.classList.add("preload");
@@ -12,157 +12,80 @@
       document.documentElement.style.colorScheme = savedTheme;
     })();
   </script>
-  <link rel="stylesheet" href="./css/fonts.css?v=61" />
-  <link rel="stylesheet" href="./base.css?v=61" />
-  <link rel="stylesheet" href="./css/navigation.css?v=61" />
-  <link rel="stylesheet" href="./css/shell.css?v=61" />
-  <link rel="stylesheet" href="./css/workspace.css?v=61" />
-  <link rel="stylesheet" href="./css/surfaces.css?v=61" />
-  <link rel="stylesheet" href="./css/data-views.css?v=61" />
-  <link rel="stylesheet" href="./css/theme-overrides.css?v=61" />
+  <link rel="stylesheet" href="./css/fonts.css?v=64" />
+  <link rel="stylesheet" href="./css/tokens.css?v=1" />
+  <link rel="stylesheet" href="./css/overlays.css?v=1" />
+  <link rel="stylesheet" href="./css/app-shell.css?v=11" />
   <script>
+    const shadowParam = new URLSearchParams(window.location.search).get("shadow");
+    const opsApiBase = shadowParam === "1" ? "/api/ops-shadow" : "/api/ops";
+
     window.APP_CONFIG = {
-      FINRA_API_BASE:   "/api/finra",
-      BANKST_API_BASE:  "/api/core",
-      MAPPING_API_BASE: "/api/mapping"
+      FINRA_API_BASE: "/api/finra",
+      BANKST_API_BASE: "/api/core",
+      MAPPING_API_BASE: "/api/mapping",
+      OPS_API_BASE: opsApiBase,
+      PIPELINE_API_BASE: opsApiBase
     };
   </script>
 </head>
 <body>
-  <div class="app-shell" data-right-rail="open" data-left-rail="open">
-
-    <!-- Left rail — grid-area: rail -->
-    <aside class="left-rail">
-
-      <!-- Top: logo (toggle) + icon actions -->
-      <div class="rail-header">
-        <button id="leftRailToggle" class="rail-logo" aria-label="Toggle navigation">B</button>
-        <div class="rail-header-actions">
-          <button id="themeToggle" class="icon-button" aria-label="Toggle theme">◐</button>
-          <button id="rightRailToggle" class="icon-button" aria-label="Toggle context panel">⊟</button>
+  <div class="shell">
+    <main class="content">
+      <header class="content-header">
+        <div>
+          <h1 id="viewTitle">Platform</h1>
+          <p id="viewMeta" class="view-meta"></p>
         </div>
+        <div class="header-actions">
+          <button id="commandTrigger" class="command-trigger" type="button">
+            <span class="command-trigger-label">Search & Commands</span>
+            <kbd>Ctrl+P</kbd>
+          </button>
+          <button id="refreshBtn" class="refresh-btn" type="button">Refresh</button>
+          <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle theme"></button>
+        </div>
+      </header>
+
+      <div id="opsShadowBanner" class="ops-shadow-banner" hidden>
+        SHADOW DATA — NOT PRODUCTION
       </div>
 
-      <button id="commandTrigger" class="command-trigger">
-        <span class="command-trigger-label">Search & Commands</span>
-        <kbd class="command-trigger-kbd">Ctrl+P</kbd>
-      </button>
-
-      <div class="rail-group" data-group-id="core">
-        <div class="rail-group-header">
-          <span class="chevron">›</span>
-          <span class="rail-label">Core</span>
-        </div>
-        <div class="rail-group-content">
-          <nav class="nav-list">
-            <button class="nav-row is-leaf" data-open-nav-tab="context.ingest"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Context Drop</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="people.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">People</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="firms.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Firms</span></button>
-            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Mandates</span></button>
-            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Pipeline</span></button>
-            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Documents</span></button>
-            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Saved Searches</span></button>
-            <button class="nav-row is-leaf"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Graph</span></button>
-          </nav>
-        </div>
-      </div>
-
-      <div class="rail-group" data-group-id="tools">
-        <div class="rail-group-header">
-          <span class="chevron">›</span>
-          <span class="rail-label">Tools</span>
-        </div>
-        <div class="rail-group-content">
-          <nav class="nav-list">
-            <button class="nav-row is-leaf" data-open-nav-tab="master.search"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Reference</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="hf.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">HF Map</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="ir.table"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">IR Map</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="bbg.firms"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">BBG Extraction</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="encore.sync"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Encore Sync</span></button>
-            <button class="nav-row is-leaf" data-open-nav-tab="perf.dashboard"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">Performance</span></button>
-            <button class="nav-row is-leaf" data-open-finra-tab="finra.monitor"><span class="nav-row-chevron">›</span><span class="nav-row-icon"></span><span class="nav-row-label">FINRA Monitor</span></button>
-          </nav>
-        </div>
-      </div>
-
-      <div class="rail-group" data-group-id="workspaces">
-        <div class="rail-group-header">
-          <span class="chevron">›</span>
-          <span class="rail-label">Workspaces</span>
-        </div>
-        <div class="rail-group-content">
-          <div id="workspaceSnapshotList" class="saved-list"></div>
-          <button id="saveWorkspaceSnapshotBtn" class="saved-item">+ Save Current</button>
-        </div>
-      </div>
-
-      <!-- User profile — anchored to bottom -->
-      <div class="user-profile">
-        <div class="user-avatar">OJ</div>
-        <div class="user-name">Oliver Jones</div>
-      </div>
-
-      <div class="rail-footer">
-        <div class="version-tag">v2.4.12-beta</div>
-        <button id="railCollapseBtn" class="rail-collapse-btn" aria-label="Collapse sidebar">
-          <span class="chevron-icon">«</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main — grid-area: main -->
-    <div class="workspace-shell">
-      <main class="workspace"></main>
-
-      <aside class="right-rail">
-        <div class="right-rail-header">
-          <div>
-            <div class="eyebrow">Context</div>
-            <div id="rightRailTitle" class="right-rail-title">Context</div>
-          </div>
-          <button id="rightRailClose" class="icon-button" aria-label="Close right rail">×</button>
-        </div>
-        <section id="rightRailContent" class="context-panel"></section>
-      </aside>
-    </div>
-
-    <!-- Right rail resize handle — direct child of app-shell, same reason as left rail handle -->
-    <div class="right-rail-resize-handle" id="rightRailResizeHandle" aria-hidden="true"></div>
-
-    <!-- Overlay root -->
-    <div class="overlay-root">
-      <section id="commandPalette" class="command-palette is-hidden" aria-label="Command palette">
-        <div class="command-input-row">
-          <span class="command-prefix">&gt;</span>
-          <input
-            id="commandInput"
-            class="command-input"
-            type="text"
-            value=""
-            aria-label="Command search"
-            placeholder="Search people, firms, commands..."
-            autocomplete="off"
-          />
-        </div>
-        <div class="palette-reveal-wrapper">
-          <div id="commandResults" class="command-results"></div>
-        </div>
-        <footer class="palette-footer">
-          <span class="kbd-hint"><kbd class="kbd-key">↵</kbd><span>open</span></span>
-          <span class="kbd-hint"><kbd class="kbd-key">Ctrl</kbd><kbd class="kbd-key">↵</kbd><span>open card</span></span>
-          <span class="kbd-hint"><kbd class="kbd-key">Esc</kbd><span>dismiss</span></span>
-        </footer>
-      </section>
-
-      <div id="cardLayer" class="card-layer"></div>
-      <div class="scrim"></div>
-    </div>
+      <section id="viewRoot" class="view-root" aria-live="polite"></section>
+    </main>
   </div>
 
-  <script type="module" src="./js/app.js?v=45"></script>
+  <div class="overlay-root">
+    <div id="cardLayer" class="card-layer"></div>
+    <section id="commandPalette" class="command-palette is-hidden" aria-label="Command palette">
+      <div class="command-input-row">
+        <span class="command-prefix">&gt;</span>
+        <input
+          id="commandInput"
+          class="command-input"
+          type="text"
+          value=""
+          aria-label="Command search"
+          placeholder="Open a view or run a command..."
+          autocomplete="off"
+        />
+      </div>
+      <div id="commandResults" class="command-results"></div>
+      <footer class="command-footer">
+        <span><kbd>Enter</kbd> open</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+        <span><kbd>Esc</kbd> close</span>
+      </footer>
+    </section>
+  </div>
+
+  <script type="module" src="./js/app.js?v=113"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");
+      const opsBase = window.APP_CONFIG?.OPS_API_BASE || window.APP_CONFIG?.PIPELINE_API_BASE || "/api/ops";
+      const shadowBanner = document.getElementById("opsShadowBanner");
+      if (shadowBanner) shadowBanner.hidden = opsBase !== "/api/ops-shadow";
     });
   </script>
 </body>
