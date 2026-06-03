@@ -19,8 +19,8 @@
 .outlook-articles-table thead {
   position: sticky;
   top: 0;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-base);
+  border-bottom: 1px solid var(--border-subtle);
   z-index: 10;
 }
 
@@ -28,30 +28,35 @@
   padding: 10px 14px;
   text-align: left;
   font-weight: 600;
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.outlook-articles-table th:last-child {
+  text-align: right;
+}
+
 .outlook-articles-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .outlook-articles-table tbody tr:hover {
-  background-color: var(--bg-hover);
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .outlook-article-row td {
   padding: 12px 14px;
   vertical-align: top;
   font-size: 14px;
+  color: var(--text-primary);
 }
 
 .outlook-subject {
   cursor: pointer;
   text-align: left;
-  color: var(--color-blue);
+  color: var(--interactive-accent);
   background: none;
   border: none;
   padding: 0;
@@ -64,88 +69,110 @@
 }
 
 .outlook-sender {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .outlook-date {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 13px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .outlook-mentions {
-  text-align: center;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .mention-count-badge {
   display: inline-block;
   min-width: 24px;
   padding: 2px 6px;
-  background-color: var(--bg-tertiary);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
-/* Detail Row */
+/* Detail Row Container */
 
 .outlook-detail-row td {
   padding: 0 !important;
-  background-color: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--surface-base);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.outlook-detail {
+.outlook-detail-split {
+  display: flex;
+  gap: 16px;
   padding: 16px 20px;
+  min-height: 400px;
+}
+
+/* Left Pane (420px Fixed) */
+
+.outlook-detail-left {
+  flex: 0 0 420px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
+  border-left: 2px solid var(--interactive-accent);
+  padding-left: 16px;
 }
 
-.outlook-detail-header {
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 12px;
-}
+/* Right Pane (Fluid) */
 
-.outlook-detail-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.outlook-metadata {
-  background-color: var(--bg-secondary);
-  padding: 12px;
-  border-radius: 4px;
-  font-size: 13px;
+.outlook-detail-right {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+/* Section Headers */
+
+.outlook-metadata-header,
+.outlook-urls-header,
+.outlook-mentions-header,
+.outlook-body-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* Metadata Section */
+
+.outlook-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .meta-item {
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .meta-item strong {
   color: var(--text-primary);
+  font-weight: 500;
 }
+
+/* URLs Section */
 
 .outlook-urls {
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-}
-
-.outlook-urls strong {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .url-list {
@@ -157,8 +184,9 @@
 .url-badge {
   display: inline-block;
   padding: 6px 10px;
-  background-color: var(--bg-tertiary);
-  color: var(--color-blue);
+  background-color: var(--surface-raised);
+  color: var(--interactive-accent);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-size: 12px;
   text-decoration: none;
@@ -169,178 +197,47 @@
 }
 
 .url-badge:hover {
-  background-color: var(--bg-quaternary, rgba(255, 255, 255, 0.1));
+  background-color: rgba(107, 155, 209, 0.1);
   text-decoration: underline;
 }
 
 /* Mentions Section */
 
 .outlook-mentions-section {
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-}
-
-.outlook-mentions-section strong {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.mentions-stub {
-  padding: 8px;
-  background-color: var(--bg-tertiary);
-  border-left: 2px solid var(--color-yellow);
-  border-radius: 2px;
-}
-
-.mentions-stub p {
-  margin: 0 0 6px 0;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.mention-status {
   display: flex;
-  gap: 12px;
-  font-size: 12px;
-  margin: 8px 0;
+  flex-direction: column;
+  gap: 8px;
 }
-
-.mention-status span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mention-status .approved {
-  color: var(--color-green);
-}
-
-.mention-status .pending {
-  color: var(--color-yellow);
-}
-
-.mention-status .rejected {
-  color: var(--color-red);
-}
-
-.stub-note {
-  margin: 4px 0 0 0 !important;
-  font-size: 12px;
-  color: var(--text-faint);
-  font-style: italic;
-}
-
-/* Body Text */
-
-.outlook-show-body-btn {
-  display: inline-block;
-  padding: 8px 12px;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 13px;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.outlook-show-body-btn:hover {
-  background-color: var(--bg-tertiary);
-}
-
-.outlook-body {
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.outlook-body pre {
-  margin: 0;
-  font-family: "SF Mono", monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* Candidates Section */
-
-.outlook-candidates-section {
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-}
-
-.outlook-candidates-section strong {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.candidates-stub {
-  padding: 8px;
-  background-color: var(--bg-tertiary);
-  border-left: 2px solid var(--color-blue);
-  border-radius: 2px;
-}
-
-/* Entity Creation Section */
-
-.outlook-creation-section {
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.outlook-create-entity-btn {
-  padding: 8px 12px;
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* Mentions with Candidates */
 
 .mentions-with-candidates {
   display: grid;
   gap: 12px;
-  padding: 8px 0;
+  padding: 0;
 }
 
 .mention-item {
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
-  border-radius: 4px;
+  border-left: 2px solid var(--interactive-accent);
+  border-radius: 0;
   padding: 12px;
-  background: var(--background-secondary, rgba(255, 255, 255, 0.02));
+  padding-left: 12px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .mention-header {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .mention-entity-type {
   display: inline-block;
   padding: 2px 6px;
-  background: var(--color-yellow, #d4a944);
-  color: black;
+  background: var(--interactive-accent);
+  color: white;
   border-radius: 3px;
   font-size: 10px;
   font-weight: 600;
@@ -350,9 +247,10 @@
 
 .mention-text {
   font-weight: 500;
-  color: var(--text-normal);
+  color: var(--text-primary);
   flex: 1;
-  min-width: 200px;
+  min-width: 150px;
+  word-break: break-word;
 }
 
 .mention-status-badge {
@@ -364,18 +262,19 @@
 }
 
 .mention-status-badge.resolved {
-  background: rgba(61, 166, 103, 0.2);
-  color: var(--color-green, #3da667);
+  background: rgba(61, 166, 103, 0.15);
+  color: var(--status-active);
 }
 
 .mention-status-badge.pending_resolution {
-  background: rgba(212, 169, 68, 0.2);
-  color: var(--color-yellow, #d4a944);
+  background: rgba(212, 169, 68, 0.15);
+  color: var(--status-warning);
 }
 
 .candidates-list {
   display: grid;
   gap: 8px;
+  padding-left: 0;
 }
 
 .candidate-proposal {
@@ -383,9 +282,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: var(--background-primary, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 3px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  gap: 12px;
 }
 
 .candidate-info {
@@ -395,28 +295,30 @@
 
 .candidate-label {
   font-weight: 500;
-  color: var(--text-normal);
+  color: var(--text-primary);
   margin-bottom: 3px;
   word-break: break-word;
+  font-size: 13px;
 }
 
 .candidate-score {
   font-size: 12px;
   color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .approve-candidate-btn {
   padding: 4px 12px;
-  margin-left: 12px;
-  background: var(--interactive-accent, #6b9bd1);
+  background: var(--interactive-accent);
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.15s;
+  flex-shrink: 0;
 }
 
 .approve-candidate-btn:hover {
@@ -435,6 +337,41 @@
   font-style: italic;
 }
 
+/* Body Text Section */
+
+.outlook-body-header {
+  margin-bottom: 8px;
+}
+
+.outlook-body {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.outlook-body pre {
+  margin: 0;
+  font-family: "SF Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.outlook-body-loading {
+  padding: 12px;
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Empty & Loading States */
+
 .empty-section {
   padding: 8px;
   color: var(--text-faint);
@@ -452,8 +389,19 @@
 
 .outlook-articles-meta {
   padding: 8px 14px;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--surface-base);
   font-size: 12px;
   color: var(--text-faint);
+}
+
+/* View Error */
+
+.view-error {
+  padding: 12px 14px;
+  background-color: rgba(200, 0, 0, 0.1);
+  border: 1px solid rgba(200, 0, 0, 0.3);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
 }

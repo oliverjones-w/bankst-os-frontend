@@ -289,58 +289,59 @@ function renderDetail(article, selectedForBody, bodyLoading, data) {
   return `
     <tr class="outlook-detail-row">
       <td colspan="5">
-        <div class="outlook-detail">
+        <div class="outlook-detail-split">
 
-          <!-- Header -->
-          <div class="outlook-detail-header">
-            <h3>${escapeHtml(article.headline || "(no subject)")}</h3>
-          </div>
+          <!-- Left Pane (420px): Metadata, Links, Mentions/Candidates -->
+          <div class="outlook-detail-left">
 
-          <!-- Metadata -->
-          <div class="outlook-metadata">
-            <div class="meta-item">
-              <strong>From:</strong> ${escapeHtml(metadata.sender_name || "")}${sender_email ? ` &lt;${escapeHtml(sender_email)}&gt;` : ""}
-            </div>
-            <div class="meta-item">
-              <strong>Received:</strong> ${formatDateTime(article.published_at)}
-            </div>
-            <div class="meta-item">
-              <strong>Source:</strong> ${escapeHtml(metadata.source_folder || article.source_name)}
-            </div>
-          </div>
-
-          <!-- Extracted URLs -->
-          ${urls.length > 0 ? `
-            <div class="outlook-urls">
-              <strong>Links:</strong>
-              <div class="url-list">
-                ${urls.map(url => `
-                  <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="url-badge">
-                    ${escapeHtml(url.slice(0, 60))}${url.length > 60 ? '…' : ''}
-                  </a>
-                `).join("")}
+            <!-- Metadata -->
+            <div class="outlook-metadata">
+              <div class="outlook-metadata-header">Metadata</div>
+              <div class="meta-item">
+                <strong>From:</strong> ${escapeHtml(metadata.sender_name || "")}${sender_email ? ` &lt;${escapeHtml(sender_email)}&gt;` : ""}
+              </div>
+              <div class="meta-item">
+                <strong>Received:</strong> ${formatDateTime(article.published_at)}
+              </div>
+              <div class="meta-item">
+                <strong>Source:</strong> ${escapeHtml(metadata.source_folder || article.source_name)}
               </div>
             </div>
-          ` : ""}
 
-          <!-- Mentions Section with Proposed Matches -->
-          <div class="outlook-mentions-section">
-            <strong>Mentions & Proposed Matches:</strong>
-            ${article.mentions_count === 0
-              ? `<div class="empty-section">No mentions found</div>`
-              : mentionsLoading
-                ? `<div class="loading-section">Loading mentions...</div>`
-                : renderMentionsWithCandidates(mentions, article.id, data)
-            }
+            <!-- Extracted URLs -->
+            ${urls.length > 0 ? `
+              <div class="outlook-urls">
+                <div class="outlook-urls-header">Links</div>
+                <div class="url-list">
+                  ${urls.map(url => `
+                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="url-badge">
+                      ${escapeHtml(truncateUrl(url))}
+                    </a>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
+
+            <!-- Mentions Section with Proposed Matches -->
+            <div class="outlook-mentions-section">
+              <div class="outlook-mentions-header">Mentions & Candidates</div>
+              ${article.mentions_count === 0
+                ? `<div class="empty-section">No mentions found</div>`
+                : mentionsLoading
+                  ? `<div class="loading-section">Loading mentions...</div>`
+                  : renderMentionsWithCandidates(mentions, article.id, data)
+              }
+            </div>
+
           </div>
 
-          <!-- Body Text (Lazy-loaded) -->
-          <div class="outlook-body-section">
-            <strong>Body:</strong>
+          <!-- Right Pane (Fluid): Body Text Viewport -->
+          <div class="outlook-detail-right">
+            <div class="outlook-body-header">Body</div>
             ${isBodyLoading
-              ? `<div class="outlook-body-loading">Loading...</div>`
+              ? `<div class="outlook-body-loading">Loading…</div>`
               : `<div class="outlook-body">
-                   <pre>${escapeHtml(article.body_text || "(loading...)")}</pre>
+                   <pre>${escapeHtml(article.body_text || "(no body text)")}</pre>
                  </div>`
             }
           </div>
@@ -389,6 +390,16 @@ function renderMentionsWithCandidates(mentions, articleId, data) {
       `;
     }).join("")}
   </div>`;
+}
+
+function truncateUuid(uuid) {
+  if (!uuid || typeof uuid !== "string") return "";
+  return uuid.length > 8 ? uuid.slice(0, 8) + "..." : uuid;
+}
+
+function truncateUrl(url) {
+  if (!url || typeof url !== "string") return "";
+  return url.length > 50 ? url.slice(0, 47) + "..." : url;
 }
 
 function formatDate(isoString) {
