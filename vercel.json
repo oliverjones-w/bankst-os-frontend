@@ -1,11 +1,13 @@
 {
+  "version": 2,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://bankst.co/api/:path*"
     },
     {
-      "source": "/:path*",
+      "source": "/((?!js|css|fonts|assets|.*\\.).*)",
       "destination": "/index.html"
     }
   ]
