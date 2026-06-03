@@ -14,8 +14,8 @@ _Last verified: 2026-04-24_
   K:\Market Maps\                         FINRA.org ──[7am cron]──▶ finra_scraper   [LIVE]
     Hedge Fund Map (K).xlsm                                           :8001
     Interest Rates Map (K).xlsm
-    │                                     Firecrawl ──────────────▶ bankst-swarm     [LIVE]
-    ▼  [Task Scheduler · hourly]          Serper API                  :5050
+    │
+    ▼  [Task Scheduler · hourly]
   C:\dev\tools\mapping_tools\scripts\
     sync_hf_map.py    (sheet: Master)     Encore ─────────────────▶ encore_scraper   [LIVE]
     sync_ir_map.py    (sheet: People                                  :5050
@@ -31,7 +31,7 @@ _Last verified: 2026-04-24_
   TRANSPORT (hourly · SCP over Tailscale)
   Known failure mode: Tailscale re-auth timeout — Mac silently serves stale data
 
-  hf_map.db       ──[SCP → macdev:]────▶  services/mapping_tools/  (runtime copy)
+  hf_map.db       ──[SCP → macdev:]────▶  data/mapping/  (runtime copy)
   ir_map.db       ──[SCP → macdev:]────▶  hf_map.db / ir_map.db / bbg_results.db
   bbg_results.db  ──[SCP → macdev:]────▶
 
@@ -74,11 +74,10 @@ _Last verified: 2026-04-24_
 | Component | Status | Notes |
 |-----------|--------|-------|
 | mapping_tools HF/IR SQLite + hourly Task Scheduler sync | **Live** | K: drive Excel → hf_map.db / ir_map.db → SCP → Mac |
-| Dell → Mac SCP over Tailscale | **Live** | Target: `macdev:/Users/dev-server/workspace/services/mapping_tools` |
+| Dell → Mac SCP over Tailscale | **Live** | Target: `macdev:/Users/dev-server/workspace/data/mapping` |
 | BBG FastAPI backend (:8003) + bbg_results.db | **Live** | |
 | BBG frontend UI | **Live** | `bbg.firms` summary + `bbg.firm` detail; drag-drop CSV → `POST /api/bbg/upload` |
 | finra_scraper :8001 | **Live** | 7am daily cron |
-| bankst-swarm :5050 | **Live** | CrewAI agents, Firecrawl + Serper |
 | encore_scraper :5050 | **Live** | |
 | core API :8765 → PostgreSQL | **Live** | |
 | bankst-os-frontend :3000 | **Live** | Authoritative; Mac is source of truth |
@@ -101,4 +100,3 @@ _Last verified: 2026-04-24_
 |-------|----------|
 | No authentication on gateway — bankst.co is currently wide open | High |
 | No freshness signal on Mac for mapping DB sync age | Medium |
-| Port :5050 shared between bankst-swarm and encore_scraper — only one can hold it | Medium |
