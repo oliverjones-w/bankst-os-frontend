@@ -5,8 +5,8 @@
     {
       "source": "/api/:path*",
       "headers": [
-        { "key": "CF_Access_Client_Id", "value": "$CF_CLIENT_ID" },
-        { "key": "CF_Access_Client_Secret", "value": "$CF_ACCESS_CLIENT_SECRET" }
+        { "key": "CF-Access-Client-Id", "value": "$CF_CLIENT_ID" },
+        { "key": "CF-Access-Client-Secret", "value": "$CF_ACCESS_CLIENT_SECRET" }
       ]
     }
   ],
