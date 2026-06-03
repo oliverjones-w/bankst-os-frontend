@@ -1,9 +1,7 @@
-// === ui-states.js ===
 // Single source of truth for supported UI states per component type.
-// Used by component-lab to generate state grids.
 // Keep this in sync with actual CSS state implementations.
 
-const UI_STATES = {
+export const UI_STATES = {
   button: {
     primary:  ["default", "hover", "active", "disabled"],
     icon:     ["default", "hover", "active", "disabled"],
@@ -20,7 +18,7 @@ const UI_STATES = {
 };
 
 // Canonical state labels shown as column headers
-const STATE_LABELS = {
+export const STATE_LABELS = {
   default:  "Default",
   hover:    "Hover",
   active:   "Active",

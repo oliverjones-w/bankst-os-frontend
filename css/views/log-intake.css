@@ -1,0 +1,212 @@
+/* Log Intake Review view — scoped to .log-intake-view */
+
+.log-intake-view { max-width: 1100px; }
+
+/* ── Header ──────────────────────────────────────────────────────────────────── */
+
+.li-pending-badge {
+  background: var(--interactive-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ── Dead tab classes (kept for selector safety; tab bar now uses .tab-bar-*) ── */
+
+.li-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.li-tab {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.li-tab.is-active {
+  background: var(--interactive-accent);
+  color: #fff;
+  border-color: var(--interactive-accent);
+}
+.li-tab-count { margin-left: 4px; font-size: 10px; opacity: 0.75; }
+
+/* ── Card list ───────────────────────────────────────────────────────────────── */
+
+.li-proposal-list { display: flex; flex-direction: column; gap: 12px; }
+
+.li-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 14px 16px;
+  background: var(--surface-raised);
+}
+
+.li-card--pending  { border-left: 3px solid var(--interactive-accent); }
+.li-card--executed { border-left: 3px solid var(--color-green);   opacity: 0.80; }
+.li-card--rejected { border-left: 3px solid var(--color-red);     opacity: 0.72; }
+.li-card--skipped  { border-left: 3px solid var(--border-strong); opacity: 0.60; }
+
+/* ── Card header ─────────────────────────────────────────────────────────────── */
+
+.li-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Type badges ─────────────────────────────────────────────────────────────── */
+
+.li-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.li-badge--mandate  { background: rgba(var(--color-blue-rgb),   0.14); color: var(--color-blue); }
+.li-badge--pool     { background: rgba(var(--color-green-rgb),  0.14); color: var(--color-green); }
+.li-badge--pipeline { background: rgba(var(--color-purple-rgb), 0.14); color: var(--color-purple); }
+.li-badge--activity { background: rgba(var(--color-orange-rgb), 0.14); color: var(--color-orange); }
+
+/* ── Confidence badges ───────────────────────────────────────────────────────── */
+
+.li-conf {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.li-conf--high   { background: rgba(var(--color-green-rgb),  0.12); color: var(--color-green); }
+.li-conf--medium { background: rgba(var(--color-yellow-rgb), 0.12); color: var(--color-yellow); }
+.li-conf--low    { background: rgba(var(--color-red-rgb),    0.12); color: var(--color-red); }
+
+/* ── Source file + status chip ───────────────────────────────────────────────── */
+
+.li-source-file {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-style: italic;
+  margin-left: auto;
+}
+
+.li-card-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.li-card-status--pending  { display: none; }
+.li-card-status--executed { color: var(--color-green); }
+.li-card-status--rejected { color: var(--color-red); }
+.li-card-status--skipped  { color: var(--text-faint); }
+
+/* ── Card body ───────────────────────────────────────────────────────────────── */
+
+.li-action-summary {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.li-person-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.li-person-name { font-weight: 600; color: var(--text-primary); }
+.li-person-firm { color: var(--text-muted); }
+.li-linkedin    { color: var(--interactive-accent); font-size: 11px; text-decoration: none; }
+
+.li-target-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.li-target-label      { color: var(--text-faint); }
+.li-target-name       { color: var(--text-muted); font-weight: 500; }
+.li-target-id         { font-size: 10px; color: var(--text-faint); }
+.li-target-unresolved { font-size: 10px; color: var(--color-orange); }
+
+.li-action-notes {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* ── Source excerpt ──────────────────────────────────────────────────────────── */
+
+.li-excerpt-toggle { margin-top: 8px; }
+.li-excerpt-btn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+.li-excerpt {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: var(--surface-base);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* ── Feedback banner ─────────────────────────────────────────────────────────── */
+
+.li-feedback {
+  margin-top: 8px;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+.li-feedback--ok  { background: var(--feedback-success-bg); color: var(--feedback-success-text); }
+.li-feedback--err { background: var(--feedback-error-bg);   color: var(--feedback-error-text);   }
+
+/* ── Action buttons ──────────────────────────────────────────────────────────── */
+
+.li-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.li-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.li-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.li-btn--approve { background: var(--feedback-success-bg); color: var(--feedback-success-text); border-color: var(--feedback-success-border); }
+.li-btn--approve:hover:not(:disabled) { background: rgba(var(--color-green-rgb), 0.22); }
+
+.li-btn--reject  { background: var(--feedback-error-bg);   color: var(--feedback-error-text);   border-color: var(--feedback-error-border);   }
+.li-btn--reject:hover:not(:disabled)  { background: rgba(var(--color-red-rgb),   0.22); }
+
+.li-btn--skip    { background: transparent; color: var(--text-faint); border-color: var(--border-subtle); }
+.li-btn--skip:hover:not(:disabled)    { background: var(--surface-hover); }
+
+/* ── Run history ─────────────────────────────────────────────────────────────── */
+
+.li-runs summary { padding: 8px 0; }

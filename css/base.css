@@ -1,0 +1,314 @@
+/* Shared runtime tokens live in css/tokens.css.
+   This file now contains only the legacy/lab layout and component styles. */
+
+/* =========================
+   Preload (suppress transitions on initial paint)
+   ========================= */
+
+.preload *,
+.preload *::before,
+.preload *::after {
+  transition: none !important;
+}
+
+/* =========================
+   Reset
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Transitions only on interactive elements, not every node in the tree */
+button,
+.nav-item,
+.saved-item,
+.recent-item,
+.stack-item,
+.tab,
+.tab-wrap,
+.icon-button,
+.toolbar-button,
+.command-result,
+.action-btn,
+.row-ghost-btn,
+.window-action,
+.cell-link {
+  transition:
+    background-color var(--transition-fast),
+    color           var(--transition-fast),
+    border-color    var(--transition-fast),
+    box-shadow      var(--transition-fast);
+}
+
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  line-height: var(--line-height-normal);
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "kern" 1;
+  letter-spacing: -0.005em;
+}
+
+:where(
+  .meta-value
+) {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  background: var(--background-modifier-form-field);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
+}
+
+a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--text-accent-hover);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* =========================
+   App shell layout
+   ========================= */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--left-rail-w) minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  grid-template-areas: "rail main";
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background: var(--background-primary-alt);
+  transition: grid-template-columns 200ms cubic-bezier(0.05, 0, 0, 1);
+}
+
+/* Suppress text selection during right rail drag */
+.app-shell.is-resizing-right-rail * {
+  user-select: none !important;
+}
+
+.app-shell.is-resizing-right-rail .workspace-shell {
+  transition: none;
+}
+
+/* Subtle top gloss — light source from above, no gradient math to band */
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(var(--mono-rgb-100), 0.03) 0%,
+    transparent 70%
+  );
+}
+
+.app-shell[data-left-rail="closed"] {
+  --left-rail-w: 48px;
+}
+
+
+.left-rail {
+  grid-area: rail;
+  display: flex !important;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--background-primary);
+  backface-visibility: hidden;
+}
+
+.workspace-shell {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  transition: grid-template-columns var(--transition-slow);
+}
+
+.app-shell[data-right-rail="closed"] .workspace-shell {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+
+.app-shell[data-right-rail="closed"] .right-rail {
+  overflow: hidden;
+  border-left: none;
+}
+
+/* View-driven context suppression — independent of user rail toggle */
+.workspace-shell.is-context-hidden {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+
+.workspace-shell.is-context-hidden .right-rail {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.workspace {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.right-rail {
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-left: 1px solid var(--border-strong);
+  background: var(--background-primary);
+}
+
+/* =========================
+   Overlay root
+   ========================= */
+
+.overlay-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-cards);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+/* =========================
+   Small utilities
+   ========================= */
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.is-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* =========================
+   Scrollbars
+   ========================= */
+
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  *::-webkit-scrollbar {
+    width: 0.625rem;   /* 10px */
+    height: 0.625rem;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 0.3125rem;
+    border: 0.125rem solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+    background-clip: padding-box;
+  }
+}
+
+/* =========================
+   Responsive layout
+   Workstation-first: rails collapse via grid, never display:none
+   ========================= */
+
+@media (max-width: 1180px) {
+  .app-shell {
+    --right-rail-w: 0px;
+  }
+
+  .right-rail {
+    border-left: none;
+  }
+}

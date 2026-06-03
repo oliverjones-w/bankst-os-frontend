@@ -124,30 +124,6 @@
   to   { opacity: 1; }
 }
 
-/* BBG CSV file drop — full-pane highlight */
-.pane.bbg-file-drop {
-  position: relative;
-}
-
-.pane.bbg-file-drop::after {
-  content: "Drop CSV to run BBG extraction";
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--background-accent-faint);
-  border: 2px dashed var(--interactive-accent);
-  color: var(--interactive-accent);
-  font-family: var(--font-interface);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  pointer-events: none;
-  z-index: 10;
-  animation: fadeIn 120ms ease-out;
-}
-
 .pane-toolbar {
   display: flex;
   justify-content: space-between;

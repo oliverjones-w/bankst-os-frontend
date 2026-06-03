@@ -1,5 +1,5 @@
 import { registerWorkspaceView, updateActiveTabState, updateTabTitle, getActiveTab, fetchingTabs, workspaceState } from "./workspace.js";
-import { finraGet, bankstGet, mappingGet, mappingUpload, setFinraChangesCache, encoreGet } from "./api.js";
+import { finraGet, bankstGet, mappingGet, pipelineGet, mandatesGet, clientRequestsGet, researchTasksGet, opsGet, setFinraChangesCache, encoreGet } from "./api.js";
 import { escapeHtml, debounce, metaHTML } from "./utils.js";
 import { entityData } from "./mock-data.js";
 
@@ -99,6 +99,992 @@ function finraStatusBadge(status) {
   return `<div class="status-indicator" style="color:var(--color-green)"><span class="status-dot dot--active"></span>Active</div>`;
 }
 
+function finraMoveType(change) {
+  const oldStatus = String(change?.old_status || "").toUpperCase();
+  const newStatus = String(change?.new_status || "").toUpperCase();
+  if (newStatus.includes("INACTIVE")) return "to_inactive";
+  if (oldStatus.includes("INACTIVE") && newStatus && !newStatus.includes("INACTIVE")) return "reactivated";
+  return "firm_to_firm";
+}
+
+function finraMoveTypeLabel(type) {
+  if (type === "to_inactive") return "To Inactive";
+  if (type === "reactivated") return "Reactivated / New Firm";
+  return "Firm-to-Firm";
+}
+
+function finraMoveTypeBadge(type) {
+  const label = finraMoveTypeLabel(type);
+  const cls = type === "to_inactive"
+    ? "finra-move-type-badge--inactive"
+    : type === "reactivated"
+      ? "finra-move-type-badge--reactivated"
+      : "finra-move-type-badge--moved";
+  return `<span class="finra-move-type-badge ${cls}">${label}</span>`;
+}
+
+function finraDestinationBadge(status) {
+  const s = String(status || "").toUpperCase();
+  if (s.includes("INACTIVE")) return `<span class="finra-destination-badge finra-destination-badge--inactive">Inactive</span>`;
+  if (!s) return `<span class="finra-destination-badge finra-destination-badge--unknown">Unknown</span>`;
+  return `<span class="finra-destination-badge finra-destination-badge--moved">Moved</span>`;
+}
+
+function finraDetectedTimestamp(value) {
+  if (!value) return 0;
+  const t = Date.parse(String(value).replace(" ", "T"));
+  return Number.isFinite(t) ? t : 0;
+}
+
+function finraDetectedDate(value) {
+  if (!value) return "—";
+  const d = new Date(String(value).replace(" ", "T"));
+  if (Number.isNaN(d.getTime())) return String(value).slice(0, 10) || "—";
+  return d.toLocaleDateString("en-CA");
+}
+
+function bindFinraMonitorControls(tab) {
+  const tabId = tab?.id;
+  if (!tabId) return;
+
+  const tabSelector = String(tabId).replaceAll(`"`, '\\"');
+  const searchInput = document.querySelector(`.finra-moves-search[data-tab-id="${tabSelector}"]`);
+  if (searchInput && searchInput.dataset.bound !== "1") {
+    searchInput.dataset.bound = "1";
+    searchInput.addEventListener("input", debounce((e) => {
+      const active = getActiveTab();
+      if (active?.id !== tabId) return;
+      updateActiveTabState({ movesQuery: e.target.value || "" }, tabId);
+    }, 120));
+  }
+
+  document
+    .querySelectorAll(`.finra-moves-filter-btn[data-tab-id="${tabSelector}"]`)
+    .forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => {
+        const active = getActiveTab();
+        if (active?.id !== tabId) return;
+        updateActiveTabState({ movesFilter: btn.dataset.finraMovesFilter || "all" }, tabId);
+      });
+    });
+}
+
+function formatShortDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function pipelineStatusClass(status) {
+  const s = String(status || "").toLowerCase();
+  if (s === "contacted") return "alias-tag--pipeline-contacted";
+  if (s === "responded") return "alias-tag--pipeline-responded";
+  if (s === "in_process") return "alias-tag--pipeline-in-process";
+  if (s === "placed") return "alias-tag--pipeline-placed";
+  if (s === "passed") return "alias-tag--blacklist";
+  return "";
+}
+
+function mandateStatusClass(status) {
+  const s = String(status || "").toLowerCase();
+  if (s === "active" || s === "open") return "alias-tag--pipeline-in-process";
+  if (s === "on_hold" || s === "paused") return "alias-tag--pipeline-contacted";
+  if (s === "filled" || s === "closed" || s === "completed") return "alias-tag--pipeline-placed";
+  return "";
+}
+
+function mandatePriorityLabel(priority) {
+  const p = String(priority || "").trim();
+  return p || "—";
+}
+
+function mandateUpdatedLabel(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function opsDateLabel(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function opsStatusClass(status) {
+  const s = String(status || "").toLowerCase();
+  if (s === "open" || s === "queued" || s === "new") return "alias-tag--pipeline-contacted";
+  if (s === "live") return "alias-tag--pipeline-responded";
+  if (s === "in_progress" || s === "active" || s === "working") return "alias-tag--pipeline-in-process";
+  if (s === "completed" || s === "closed" || s === "done") return "alias-tag--pipeline-placed";
+  return "";
+}
+
+function opsCellText(value) {
+  if (value == null || value === "") return "—";
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "object" ? JSON.stringify(item) : String(item)))
+      .filter(Boolean)
+      .join(", ") || "—";
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function opsDateValue(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return opsCellText(value);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function opsPickValue(row, keys) {
+  if (!row || !Array.isArray(keys)) return null;
+  for (const key of keys) {
+    const value = row[key];
+    if (value == null) continue;
+    if (typeof value === "string" && !value.trim()) continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    return value;
+  }
+  return null;
+}
+
+function opsGetRowValue(row, column) {
+  if (typeof column.value === "function") return column.value(row);
+  return opsPickValue(row, column.keys || []);
+}
+
+function opsGridTemplate(columns) {
+  if (!Array.isArray(columns) || !columns.length) return "";
+  return columns
+    .map((column, index) => {
+      if (column.width) return column.width;
+      if (index === 0) return "minmax(160px, 1.3fr)";
+      if (index === columns.length - 1) return "minmax(180px, 1.2fr)";
+      return "minmax(110px, 1fr)";
+    })
+    .join(" ");
+}
+
+function renderOpsTableRows(rows, columns) {
+  const template = opsGridTemplate(columns);
+  return rows.map((row) => `
+    <div class="table-row-grid" style="${template ? `grid-template-columns:${template};` : ""}">
+      ${columns.map((column) => {
+        const raw = opsGetRowValue(row, column);
+        const text = column.format ? column.format(raw, row) : opsCellText(raw);
+        const cls = column.className ? ` class="${column.className}"` : "";
+        return `<div${cls}>${escapeHtml(text)}</div>`;
+      }).join("")}
+    </div>
+  `).join("");
+}
+
+function registerOpsTableView({ id, title, path, columns, emptyText }) {
+  registerWorkspaceView({
+    id,
+    hasContext: false,
+    match: (tab) => tab.type === id,
+    toolbar: () => ({
+      left: [{ id: `${id}.view`, label: title, active: true }],
+      right: [{ id: `${id}.refresh`, label: "Refresh" }],
+    }),
+    onActivate: async (tab) => {
+      if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+      fetchingTabs.add(tab.id);
+      try {
+        const data = await opsGet(path, id);
+        const rowsRaw = data?.rows || data || [];
+        const rows = Array.isArray(rowsRaw) ? rowsRaw : [];
+        updateActiveTabState({ rows, error: null }, tab.id);
+      } catch (e) {
+        updateActiveTabState({ rows: null, error: e.message }, tab.id);
+      } finally {
+        fetchingTabs.delete(tab.id);
+      }
+    },
+    render: (tab) => {
+      const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+      const error = tab.state?.error;
+      const template = opsGridTemplate(columns);
+
+      if (error) {
+        return `
+          <div class="detail-view-shell view-placeholder">
+            <span>${escapeHtml(title)}</span>
+            <p>Ops layer API is not connected yet.</p>
+            <p class="text-error">${escapeHtml(error)}</p>
+          </div>`;
+      }
+
+      if (!rows.length) {
+        return `
+          <div class="detail-view-shell view-placeholder">
+            <span>${escapeHtml(title)}</span>
+            <p>${escapeHtml(emptyText || `No rows returned from ${path}.`)}</p>
+          </div>`;
+      }
+
+      return `
+        <div class="table-shell">
+          <div class="table-header-grid" style="${template ? `grid-template-columns:${template};` : ""}">
+            ${columns.map((column) => `<div>${escapeHtml(column.label)}</div>`).join("")}
+          </div>
+          ${renderOpsTableRows(rows, columns)}
+        </div>
+      `;
+    },
+  });
+}
+
+const OPS_LAYER_VIEWS = [
+  {
+    id: "events.table",
+    title: "Events",
+    path: "/events",
+    emptyText: "No events found in ops.db.",
+    columns: [
+      { label: "Date", keys: ["capture_date", "event_date", "created_at", "updated_at"], format: opsDateValue },
+      { label: "Person", keys: ["person", "entity_name", "candidate_name", "name"] },
+      { label: "Firm", keys: ["firm", "firm_name", "related_firm"] },
+      { label: "Type", keys: ["type", "event_type", "category", "action_type"] },
+      { label: "Action", keys: ["action", "notes", "summary", "description"] },
+      { label: "Source", keys: ["source", "source_type", "origin"] },
+    ],
+  },
+  {
+    id: "mandate-candidates.table",
+    title: "Mandate Candidates",
+    path: "/mandate-candidates",
+    emptyText: "No mandate candidates found.",
+    columns: [
+      { label: "Candidate", keys: ["imported_candidate_name", "candidate_name", "person", "name"] },
+      { label: "Firm", keys: ["imported_firm", "firm_name", "current_firm", "firm"] },
+      { label: "Stage", keys: ["candidate_stage", "stage", "status"] },
+      { label: "Pipeline", keys: ["pipeline_id", "pipeline_person_id", "pipeline"] },
+      { label: "Vault", keys: ["vault_id", "vault_current_firm"] },
+      { label: "Updated", keys: ["updated_at", "last_updated", "created_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "mandate-link-suggestions.table",
+    title: "Link Suggestions",
+    path: "/mandate-link-suggestions",
+    emptyText: "No link suggestions are waiting.",
+    columns: [
+      { label: "Candidate", keys: ["imported_candidate_name", "candidate_name", "person", "name"] },
+      { label: "Target", keys: ["vault_id", "target_vault_id", "suggested_vault_id"] },
+      { label: "Status", keys: ["status", "decision", "review_status"] },
+      { label: "Score", keys: ["score", "confidence", "match_score"] },
+      { label: "Reason", keys: ["reason", "notes", "explanation"] },
+      { label: "Updated", keys: ["updated_at", "created_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "mandate-activity.table",
+    title: "Mandate Activity",
+    path: "/mandate-activity",
+    emptyText: "No mandate activity rows found.",
+    columns: [
+      { label: "Date", keys: ["activity_date", "captured_at", "created_at"], format: opsDateValue },
+      { label: "Mandate", keys: ["mandate_name", "name", "mandate_id"] },
+      { label: "Activity", keys: ["activity_type", "type", "action"] },
+      { label: "Counterparty", keys: ["counterparty", "person", "firm"] },
+      { label: "Notes", keys: ["notes", "summary", "description"] },
+      { label: "Updated", keys: ["updated_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "mandate-activity-suggestions.table",
+    title: "Activity Suggestions",
+    path: "/mandate-activity-suggestions",
+    emptyText: "No activity suggestions are waiting.",
+    columns: [
+      { label: "Date", keys: ["activity_date", "captured_at", "created_at"], format: opsDateValue },
+      { label: "Mandate", keys: ["mandate_name", "name", "mandate_id"] },
+      { label: "Activity", keys: ["activity_type", "type", "action"] },
+      { label: "Status", keys: ["status", "review_status", "decision"] },
+      { label: "Reason", keys: ["reason", "notes", "explanation"] },
+      { label: "Updated", keys: ["updated_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "team-move-groups.table",
+    title: "Team Moves",
+    path: "/team-move-groups",
+    emptyText: "No team move groups found.",
+    columns: [
+      { label: "Group", keys: ["team_move_group_id", "group_name", "name"] },
+      { label: "Role", keys: ["team_move_role", "role_title"] },
+      { label: "Firm", keys: ["firm", "imported_firm", "client_firm_name"] },
+      { label: "Candidates", keys: ["candidate_count", "row_count", "total_candidates"] },
+      { label: "Status", keys: ["status", "review_status"] },
+      { label: "Updated", keys: ["updated_at", "created_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "candidate-profile-proposals.table",
+    title: "Profile Proposals",
+    path: "/candidate-profile-proposals",
+    emptyText: "No profile proposals found.",
+    columns: [
+      { label: "Proposal", keys: ["proposal_id", "id", "name", "title"] },
+      { label: "Candidate", keys: ["candidate_name", "person", "profile_name"] },
+      { label: "Status", keys: ["status", "review_status", "decision"] },
+      { label: "Score", keys: ["score", "confidence", "match_score"] },
+      { label: "Reviewer", keys: ["reviewer", "owner", "assignee"] },
+      { label: "Updated", keys: ["updated_at", "created_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "profile-match-proposals.table",
+    title: "Match Proposals",
+    path: "/profile-match-proposals",
+    emptyText: "No match proposals found.",
+    columns: [
+      { label: "Proposal", keys: ["proposal_id", "id", "name", "title"] },
+      { label: "Candidate", keys: ["candidate_name", "person", "profile_name"] },
+      { label: "Match", keys: ["match_name", "matched_name", "linked_name"] },
+      { label: "Status", keys: ["status", "review_status", "decision"] },
+      { label: "Score", keys: ["score", "confidence", "match_score"] },
+      { label: "Updated", keys: ["updated_at", "created_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "review-decisions.table",
+    title: "Review Decisions",
+    path: "/review-decisions",
+    emptyText: "No review decisions found.",
+    columns: [
+      { label: "Target", keys: ["target_name", "candidate_name", "person", "entity_name", "proposal_id", "id"] },
+      { label: "Decision", keys: ["decision", "status", "review_status"] },
+      { label: "Reviewer", keys: ["reviewer", "owner", "assignee"] },
+      { label: "Notes", keys: ["notes", "reason", "summary"] },
+      { label: "Created", keys: ["created_at", "updated_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "article-email-staging.table",
+    title: "Article Emails",
+    path: "/article-email-staging",
+    emptyText: "No staged article emails found.",
+    columns: [
+      { label: "Email", keys: ["email_id", "id", "message_id"] },
+      { label: "Subject", keys: ["subject", "title", "headline"] },
+      { label: "Sender", keys: ["sender", "from_email", "from_name"] },
+      { label: "Status", keys: ["status", "review_status", "decision"] },
+      { label: "Received", keys: ["received_at", "created_at"], format: opsDateValue },
+      { label: "Updated", keys: ["updated_at"], format: opsDateValue },
+    ],
+  },
+  {
+    id: "article-mentions.table",
+    title: "Article Mentions",
+    path: "/article-mentions",
+    emptyText: "No article mentions found.",
+    columns: [
+      { label: "Article", keys: ["article_title", "headline", "subject", "title"] },
+      { label: "Mention", keys: ["mention_text", "mention", "excerpt"] },
+      { label: "Entity", keys: ["entity_name", "person", "firm", "target_name"] },
+      { label: "Type", keys: ["entity_type", "type", "category"] },
+      { label: "Status", keys: ["status", "review_status", "decision"] },
+      { label: "Updated", keys: ["updated_at", "created_at"], format: opsDateValue },
+    ],
+  },
+];
+
+for (const view of OPS_LAYER_VIEWS) {
+  registerOpsTableView(view);
+}
+
+function renderMandateFunnel(sections, totalCandidates) {
+  if (!Array.isArray(sections) || !sections.length) {
+    const count = Number.isFinite(totalCandidates) ? totalCandidates : 0;
+    return `<span class="mandate-funnel-pill">${count} total</span>`;
+  }
+
+  const ordered = [...sections].sort((a, b) => {
+    const pa = Number(a.section_position ?? a.position ?? 9999);
+    const pb = Number(b.section_position ?? b.position ?? 9999);
+    return pa - pb;
+  });
+
+  return ordered.map((section) => {
+    const name = section.section_name || section.name || "Section";
+    const count = Number(section.candidate_count ?? section.count ?? 0);
+    return `<span class="mandate-funnel-pill">${escapeHtml(name)} ${count}</span>`;
+  }).join("");
+}
+
+// ── View: platform.overview ───────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "platform.overview",
+  hasContext: false,
+  match: (tab) => tab.type === "platform.overview",
+  toolbar: () => ({
+    left:  [{ id: "platform.overview.view", label: "Platform", active: true }],
+    right: [{ id: "platform.overview.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.firms !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const firms = await bankstGet("/firms");
+      updateActiveTabState({ firms, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ firms: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const firms = tab.state?.firms;
+    const error = tab.state?.error;
+    const count = Array.isArray(firms) ? firms.length : null;
+    const rows = Array.isArray(firms) ? firms.slice(0, 12) : [];
+
+    return `
+      <div class="detail-view-shell detail-view-shell--compact">
+        <div class="detail-header">
+          <div>
+            <div class="detail-title">Platform</div>
+            <div class="detail-subtitle">Postgres-backed platform view. YAML construction layer pending.</div>
+          </div>
+        </div>
+        <div class="bbg-stat-row">
+          <div class="meta-item"><div class="meta-label">Mode</div><div class="meta-value">Read-only</div></div>
+          <div class="meta-item"><div class="meta-label">Source</div><div class="meta-value">Postgres</div></div>
+          <div class="meta-item"><div class="meta-label">Firms</div><div class="meta-value">${count == null ? "..." : count.toLocaleString()}</div></div>
+          <div class="meta-item"><div class="meta-label">Build</div><div class="meta-value">YAML pending</div></div>
+        </div>
+        ${error ? `<p class="text-error">Postgres placeholder failed: ${escapeHtml(error)}</p>` : ""}
+        <div class="floating-section">
+          <div class="floating-section-title">Placeholder Scope</div>
+          <p class="floating-copy">This page keeps the existing Postgres connection and sample firm data visible while the canonical Platform view is rebuilt from YAML. No write controls are exposed here.</p>
+        </div>
+        ${rows.length ? `
+          <div class="table-shell">
+            <div class="firms-table-header-grid">
+              <div>Firm</div><div>Key</div><div>Aliases</div><div>Platforms</div><div>Blacklist</div>
+            </div>
+            ${rows.map(f => `
+              <div class="firms-table-row-grid">
+                <div>${escapeHtml(f.name || "—")}</div>
+                <div class="text-mono text-muted">${escapeHtml(f.firm_key || "—")}</div>
+                <div>${f.alias_count > 0 ? `<span class="count-badge">${f.alias_count}</span>` : `<span class="text-faint">—</span>`}</div>
+                <div>${f.platform_count > 0 ? `<span class="count-badge count-badge--platform">${f.platform_count}</span>` : `<span class="text-faint">—</span>`}</div>
+                <div>${f.blacklist_count > 0 ? `<span class="count-badge count-badge--warn">${f.blacklist_count}</span>` : `<span class="text-faint">—</span>`}</div>
+              </div>
+            `).join("")}
+          </div>` : `<div class="table-shell view-placeholder"><span>Platform</span><p>Loading Postgres placeholder data...</p></div>`}
+      </div>
+    `;
+  },
+});
+
+// ── View: pipeline.table ──────────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "pipeline.table",
+  hasContext: false,
+  match: (tab) => tab.type === "pipeline.table",
+  toolbar: () => ({
+    left:  [{ id: "pipeline.table.view", label: "Pipeline", active: true }],
+    right: [{ id: "pipeline.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const statusOpts = ["all", "contacted", "responded", "in_process", "passed", "placed"];
+      const requestedContext = tab.state?.selectedContext || "all";
+      const requestedStatus = tab.state?.selectedStatus || "all";
+
+      const contextsData = await pipelineGet("/pipeline/contexts");
+
+      const contexts = Array.isArray(contextsData?.rows)
+        ? contextsData.rows
+        : Array.isArray(contextsData)
+          ? contextsData
+          : [];
+
+      const contextValues = contexts
+        .map((c) => typeof c === "string" ? c : c?.context)
+        .filter(Boolean);
+
+      const context = requestedContext !== "all" && !contextValues.includes(requestedContext)
+        ? "all"
+        : requestedContext;
+      const status = statusOpts.includes(requestedStatus) ? requestedStatus : "all";
+
+      const params = new URLSearchParams();
+      if (context !== "all") params.set("context", context);
+      if (status !== "all") params.set("status", status);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const data = await pipelineGet(`/pipeline${suffix}`);
+
+      updateActiveTabState({
+        rows: data.rows || data,
+        contexts: contextValues,
+        selectedContext: context,
+        selectedStatus: status,
+        error: null,
+      }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ rows: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+    const contexts = Array.isArray(tab.state?.contexts) ? tab.state.contexts : [];
+    const selectedContext = tab.state?.selectedContext || "all";
+    const selectedStatus = tab.state?.selectedStatus || "all";
+    const error = tab.state?.error;
+    const statusOpts = ["all", "contacted", "responded", "in_process", "passed", "placed"];
+
+    const contextBar = `
+      <div class="pipeline-filter-shell">
+        <div class="pipeline-filter-group">
+          <div class="pipeline-filter-label">Campaign</div>
+          <button class="pipeline-filter-btn ${selectedContext === "all" ? "is-active" : ""}" data-pipeline-context="all">All</button>
+          ${contexts.map((ctx) => `
+            <button class="pipeline-filter-btn ${selectedContext === ctx ? "is-active" : ""}" data-pipeline-context="${escapeHtml(ctx)}">${escapeHtml(ctx)}</button>
+          `).join("")}
+        </div>
+        <div class="pipeline-filter-group">
+          <div class="pipeline-filter-label">Status</div>
+          ${statusOpts.map((s) => `
+            <button class="pipeline-filter-btn ${selectedStatus === s ? "is-active" : ""}" data-pipeline-status="${s}">${s === "all" ? "All" : s.replace("_", " ")}</button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    if (error) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          ${contextBar}
+          <span>Pipeline</span>
+          <p>Ops pipeline API is not connected yet.</p>
+          <p class="text-error">${escapeHtml(error)}</p>
+        </div>`;
+    }
+    if (!rows.length) {
+      const filtered = selectedContext !== "all" || selectedStatus !== "all";
+      return `
+        <div class="detail-view-shell view-placeholder">
+          ${contextBar}
+          <span>Pipeline</span>
+          <p>${filtered
+            ? `No rows match current filters (campaign: ${escapeHtml(selectedContext)}, status: ${escapeHtml(selectedStatus)}).`
+            : "Read-only outreach pipeline view placeholder. This will render data from /api/ops/pipeline once the Dell ops API is live."
+          }</p>
+        </div>`;
+    }
+    return `
+      <div class="table-shell">
+        ${contextBar}
+        <div class="table-header-grid pipeline-table-grid">
+          <div>Person</div><div>Firm</div><div>Status</div><div>Type</div><div>First</div><div>Last</div><div>Days</div><div>Notes</div>
+        </div>
+        ${rows.map(r => `
+          <div class="table-row-grid pipeline-table-grid ${String(r.status || "").toLowerCase() === "contacted" && Number(r.days_since || 0) >= 3 ? "pipeline-row--stale" : ""}">
+            <div>${escapeHtml(r.person || "—")}</div>
+            <div>${escapeHtml(r.firm || "—")}</div>
+            <div><span class="alias-tag ${pipelineStatusClass(r.status)}">${escapeHtml(r.status || "—")}</span></div>
+            <div>${escapeHtml(r.contact_type || "—")}</div>
+            <div class="cell-mono">${escapeHtml(r.first_outreach_date || "—")}</div>
+            <div class="cell-mono">${escapeHtml(r.last_action_date || "—")}</div>
+            <div class="cell-mono ${Number(r.days_since || 0) >= 3 ? "pipeline-days--stale" : ""}">${escapeHtml(String(r.days_since ?? "—"))}</div>
+            <div>
+              ${escapeHtml(r.notes || "")}
+              ${r.follow_up_date ? `<span class="pipeline-followup-badge">📅 ${escapeHtml(formatShortDate(r.follow_up_date))}</span>` : ""}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── View: followups.queue ─────────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "followups.queue",
+  hasContext: false,
+  match: (tab) => tab.type === "followups.queue",
+  toolbar: () => ({
+    left:  [{ id: "followups.queue.view", label: "Follow-ups", active: true }],
+    right: [{ id: "followups.queue.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const data = await pipelineGet("/pipeline/follow-ups");
+      updateActiveTabState({ rows: data.rows || data, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ rows: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+    const error = tab.state?.error;
+
+    if (error) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Follow-ups</span>
+          <p>Ops follow-up queue API is not connected yet.</p>
+          <p class="text-error">${escapeHtml(error)}</p>
+        </div>`;
+    }
+    if (!rows.length) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Follow-ups</span>
+          <p>No scheduled follow-ups found in the read-only pipeline feed.</p>
+        </div>`;
+    }
+
+    return `
+      <div class="table-shell">
+        <div class="table-header-grid followups-table-grid">
+          <div>Person</div><div>Firm</div><div>Campaign</div><div>Status</div><div>Follow-up</div><div>Days</div><div>Notes</div>
+        </div>
+        ${rows.map(r => `
+          <div class="table-row-grid followups-table-grid ${String(r.status || "").toLowerCase() === "contacted" && Number(r.days_since || 0) >= 3 ? "pipeline-row--stale" : ""}">
+            <div>${escapeHtml(r.person || "—")}</div>
+            <div>${escapeHtml(r.firm || "—")}</div>
+            <div>${escapeHtml(r.context || "—")}</div>
+            <div><span class="alias-tag ${pipelineStatusClass(r.status)}">${escapeHtml(r.status || "—")}</span></div>
+            <div class="cell-mono">${escapeHtml(formatShortDate(r.follow_up_date) || "—")}</div>
+            <div class="cell-mono ${Number(r.days_since || 0) >= 3 ? "pipeline-days--stale" : ""}">${escapeHtml(String(r.days_since ?? "—"))}</div>
+            <div>${escapeHtml(r.notes || "")}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── View: mandates.table ───────────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "mandates.table",
+  hasContext: false,
+  match: (tab) => tab.type === "mandates.table",
+  toolbar: () => ({
+    left: [{ id: "mandates.table.view", label: "Mandates", active: true }],
+    right: [{ id: "mandates.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const status = tab.state?.selectedStatus || "all";
+      const params = new URLSearchParams();
+      if (status !== "all") params.set("status", status);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const data = await mandatesGet(`/mandates${suffix}`);
+      const rowsRaw = data?.rows || data || [];
+      const rows = Array.isArray(rowsRaw) ? rowsRaw.map((r) => ({
+        mandate_id: r.mandate_id || r.id || r.mandateId || "",
+        mandate_name: r.mandate_name || r.name || r.title || "Untitled Mandate",
+        client_firm_name: r.client_firm_name || r.client_firm || r.client || r.firm || "—",
+        status: String(r.status || "active").toLowerCase(),
+        priority: r.priority || "",
+        owner_name: r.owner_name || r.owner || "—",
+        total_candidates: Number(r.total_candidates ?? r.candidate_count ?? r.candidates ?? 0),
+        updated_at: r.updated_at || r.last_updated || r.updated || "",
+        sections: Array.isArray(r.sections) ? r.sections : (Array.isArray(r.funnel) ? r.funnel : []),
+      })) : [];
+      updateActiveTabState({ rows, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ rows: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+    const error = tab.state?.error;
+    const selectedStatus = tab.state?.selectedStatus || "all";
+    const statusOpts = ["all", "active", "on_hold", "closed"];
+
+    const statusBar = `
+      <div class="pipeline-filter-shell">
+        <div class="pipeline-filter-group">
+          <div class="pipeline-filter-label">Status</div>
+          ${statusOpts.map((s) => `
+            <button class="pipeline-filter-btn ${selectedStatus === s ? "is-active" : ""}" data-mandate-status="${s}">${s === "all" ? "All" : s.replace("_", " ")}</button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    if (error) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          ${statusBar}
+          <span>Mandates</span>
+          <p>Ops mandates API is not connected yet.</p>
+          <p class="text-error">${escapeHtml(error)}</p>
+        </div>`;
+    }
+
+    if (!rows.length) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          ${statusBar}
+          <span>Mandates</span>
+          <p>No mandates available yet from /api/ops/mandates.</p>
+        </div>`;
+    }
+
+    return `
+      <div class="table-shell">
+        ${statusBar}
+        <div class="table-header-grid mandates-table-grid">
+          <div>Mandate</div><div>Client</div><div>Status</div><div>Priority</div><div>Owner</div><div>Candidates</div><div>Updated</div><div>Funnel</div>
+        </div>
+        ${rows.map((r) => `
+          <div class="table-row-grid mandates-table-grid">
+            <div>${escapeHtml(r.mandate_name || "—")}</div>
+            <div>${escapeHtml(r.client_firm_name || "—")}</div>
+            <div><span class="alias-tag ${mandateStatusClass(r.status)}">${escapeHtml(r.status || "—")}</span></div>
+            <div>${escapeHtml(mandatePriorityLabel(r.priority))}</div>
+            <div>${escapeHtml(r.owner_name || "—")}</div>
+            <div class="cell-mono">${escapeHtml(String(r.total_candidates ?? 0))}</div>
+            <div class="cell-mono">${escapeHtml(mandateUpdatedLabel(r.updated_at))}</div>
+            <div class="mandate-funnel-cell">${renderMandateFunnel(r.sections, r.total_candidates)}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── View: client-requests.table ───────────────────────────────────────────────
+registerWorkspaceView({
+  id: "client-requests.table",
+  hasContext: false,
+  match: (tab) => tab.type === "client-requests.table",
+  toolbar: () => ({
+    left: [{ id: "client-requests.table.view", label: "Client Requests", active: true }],
+    right: [{ id: "client-requests.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const data = await clientRequestsGet("/client-requests");
+      const rowsRaw = data?.rows || data || [];
+      const rows = Array.isArray(rowsRaw) ? rowsRaw.map((r) => ({
+        request_id: r.request_id || r.client_request_id || r.id || "",
+        request_name: r.request_name || r.request || r.title || r.subject || r.request_type || "Request",
+        firm_name: r.firm_name || r.client_firm_name || r.client_firm || r.client || r.firm || "—",
+        request_type: r.request_type || r.type || r.category || r.context || "—",
+        status: String(r.status || "open").toLowerCase(),
+        priority: String(r.priority || "").trim() || "—",
+        owner_name: r.owner_name || r.owner || r.assignee || r.assigned_to || "—",
+        due_date: r.due_date || r.target_date || r.deadline || r.follow_up_date || "",
+        updated_at: r.updated_at || r.last_updated || r.updated || "",
+      })) : [];
+      updateActiveTabState({ rows, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ rows: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+    const error = tab.state?.error;
+
+    if (error) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Client Requests</span>
+          <p>Ops client request API is not connected yet.</p>
+          <p class="text-error">${escapeHtml(error)}</p>
+        </div>`;
+    }
+
+    if (!rows.length) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Client Requests</span>
+          <p>No rows returned from /api/ops/client-requests.</p>
+        </div>`;
+    }
+
+    return `
+      <div class="table-shell">
+        <div class="table-header-grid client-requests-table-grid">
+          <div>Request</div><div>Firm</div><div>Type</div><div>Status</div><div>Priority</div><div>Owner</div><div>Due</div><div>Updated</div>
+        </div>
+        ${rows.map((r) => `
+          <div class="table-row-grid client-requests-table-grid">
+            <div>${escapeHtml(r.request_name || "—")}</div>
+            <div>${escapeHtml(r.firm_name || "—")}</div>
+            <div>${escapeHtml(r.request_type || "—")}</div>
+            <div><span class="alias-tag ${opsStatusClass(r.status)}">${escapeHtml(r.status || "—")}</span></div>
+            <div>${escapeHtml(r.priority || "—")}</div>
+            <div>${escapeHtml(r.owner_name || "—")}</div>
+            <div class="cell-mono">${escapeHtml(opsDateLabel(r.due_date))}</div>
+            <div class="cell-mono">${escapeHtml(opsDateLabel(r.updated_at))}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── View: research-tasks.table ────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "research-tasks.table",
+  hasContext: false,
+  match: (tab) => tab.type === "research-tasks.table",
+  toolbar: () => ({
+    left: [{ id: "research-tasks.table.view", label: "Research Tasks", active: true }],
+    right: [{ id: "research-tasks.table.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.rows !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const data = await researchTasksGet("/research-tasks");
+      const rowsRaw = data?.rows || data || [];
+      const rows = Array.isArray(rowsRaw) ? rowsRaw.map((r) => ({
+        task_id: r.task_id || r.research_task_id || r.id || "",
+        task_name: r.task_name || r.task || r.title || r.subject || r.topic || "Research Task",
+        firm_name: r.firm_name || r.related_firm || r.client_firm_name || r.client_firm || r.client || r.firm || "—",
+        mandate_name: r.mandate_name || r.mandate || r.mandate_id || r.context || "—",
+        status: String(r.status || "open").toLowerCase(),
+        priority: String(r.priority || "").trim() || "—",
+        owner_name: r.owner_name || r.owner || r.assignee || r.assigned_to || "—",
+        due_date: r.due_date || r.target_date || r.deadline || "",
+        updated_at: r.updated_at || r.last_updated || r.updated || "",
+      })) : [];
+      updateActiveTabState({ rows, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ rows: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const rows = Array.isArray(tab.state?.rows) ? tab.state.rows : [];
+    const error = tab.state?.error;
+
+    if (error) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Research Tasks</span>
+          <p>Ops research task API is not connected yet.</p>
+          <p class="text-error">${escapeHtml(error)}</p>
+        </div>`;
+    }
+
+    if (!rows.length) {
+      return `
+        <div class="detail-view-shell view-placeholder">
+          <span>Research Tasks</span>
+          <p>No rows returned from /api/ops/research-tasks.</p>
+        </div>`;
+    }
+
+    return `
+      <div class="table-shell">
+        <div class="table-header-grid research-tasks-table-grid">
+          <div>Task</div><div>Firm</div><div>Mandate</div><div>Status</div><div>Priority</div><div>Owner</div><div>Due</div><div>Updated</div>
+        </div>
+        ${rows.map((r) => `
+          <div class="table-row-grid research-tasks-table-grid">
+            <div>${escapeHtml(r.task_name || "—")}</div>
+            <div>${escapeHtml(r.firm_name || "—")}</div>
+            <div>${escapeHtml(r.mandate_name || "—")}</div>
+            <div><span class="alias-tag ${opsStatusClass(r.status)}">${escapeHtml(r.status || "—")}</span></div>
+            <div>${escapeHtml(r.priority || "—")}</div>
+            <div>${escapeHtml(r.owner_name || "—")}</div>
+            <div class="cell-mono">${escapeHtml(opsDateLabel(r.due_date))}</div>
+            <div class="cell-mono">${escapeHtml(opsDateLabel(r.updated_at))}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+});
+
+// ── View: system.health ───────────────────────────────────────────────────────
+registerWorkspaceView({
+  id: "system.health",
+  hasContext: false,
+  match: (tab) => tab.type === "system.health",
+  toolbar: () => ({
+    left:  [{ id: "system.health.view", label: "System Health", active: true }],
+    right: [{ id: "system.health.refresh", label: "Refresh" }],
+  }),
+  onActivate: async (tab) => {
+    if (tab.state?.freshness !== undefined || fetchingTabs.has(tab.id)) return;
+    fetchingTabs.add(tab.id);
+    try {
+      const freshness = await mappingGet("/freshness");
+      updateActiveTabState({ freshness, error: null }, tab.id);
+    } catch (e) {
+      updateActiveTabState({ freshness: null, error: e.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
+    }
+  },
+  render: (tab) => {
+    const freshness = tab.state?.freshness;
+    const error = tab.state?.error;
+    const dbKeys = ["hf_map", "ir_map", "bbg_results"];
+    return `
+      <div class="detail-view-shell detail-view-shell--compact">
+        <div class="detail-header">
+          <div>
+            <div class="detail-title">System Health</div>
+            <div class="detail-subtitle">Read-only runtime signals surfaced from existing health endpoints.</div>
+          </div>
+        </div>
+        ${error ? `<p class="text-error">Health check failed: ${escapeHtml(error)}</p>` : ""}
+        ${freshness ? `
+          <div class="table-shell">
+            <div class="table-header-grid system-health-grid">
+              <div>Database</div><div>Status</div><div>Age</div><div>Last Modified</div>
+            </div>
+            ${dbKeys.map(key => {
+              const item = freshness[key] || {};
+              const age = item.age_seconds == null ? "—" : `${Math.round(item.age_seconds / 60)}m`;
+              const status = item.stale ? "Stale" : "Fresh";
+              return `
+                <div class="table-row-grid system-health-grid">
+                  <div>${escapeHtml(key)}</div>
+                  <div><span class="alias-tag ${item.stale ? "alias-tag--blacklist" : ""}">${status}</span></div>
+                  <div class="cell-mono">${age}</div>
+                  <div class="cell-mono">${escapeHtml(item.modified_at || "—")}</div>
+                </div>`;
+            }).join("")}
+          </div>` : `
+          <div class="table-shell view-placeholder">
+            <span>System Health</span>
+            <p>Loading freshness data...</p>
+          </div>`}
+      </div>
+    `;
+  },
+});
+
 // ── Master search helper ───────────────────────────────────────────────────────
 async function runMasterSearch(q) {
   const resultsEl = document.getElementById("masterSearchResults");
@@ -124,7 +1110,7 @@ async function runMasterSearch(q) {
     resultsEl.innerHTML = `
       <div class="master-table-header-grid">
         <div>Name</div><div>Firm</div><div>Title</div>
-        <div>Function</div><div>Strategy</div><div>Location</div><div></div>
+        <div>Function</div><div>Strategy</div><div>Location</div>
       </div>
       ${data.results.map(r => `
         <div class="master-table-row-grid">
@@ -134,11 +1120,6 @@ async function runMasterSearch(q) {
           <div>${escapeHtml(r.Function || "—")}</div>
           <div>${escapeHtml(r.Strategy || "—")}</div>
           <div>${escapeHtml(r.Location || "—")}</div>
-          <div>
-            <button class="toolbar-button master-import-btn"
-              data-master-import="${escapeHtml(r.ID)}"
-              title="Import ${escapeHtml(r.Name)} into BankSt OS">Import</button>
-          </div>
         </div>
       `).join("")}
       ${data.total > 100 ? `<div class="master-empty">Showing 100 of ${data.total.toLocaleString()} — refine your search to narrow results.</div>` : ""}
@@ -179,11 +1160,6 @@ registerWorkspaceView({
           <div>${strategy}</div>
           <div>${location}</div>
           <div>${updated}</div>
-        </div>
-        <div class="row-actions">
-          <button class="action-btn row-ghost-btn" data-action="log"    data-entity-id="${id}" data-entity-type="person">Log</button>
-          <button class="action-btn row-ghost-btn" data-action="note"   data-entity-id="${id}" data-entity-type="person">Note</button>
-          <button class="action-btn row-ghost-btn" data-action="remind" data-entity-id="${id}" data-entity-type="person">Remind</button>
         </div>
       </div>
     `;
@@ -404,6 +1380,7 @@ registerWorkspaceView({
     right: [{ id: "finra.monitor.refresh", label: "Refresh" }],
   }),
   onActivate: async (tab) => {
+    bindFinraMonitorControls(tab);
     if (tab.state?.data !== undefined || fetchingTabs.has(tab.id)) return;
     fetchingTabs.add(tab.id);
     try {
@@ -412,15 +1389,15 @@ registerWorkspaceView({
         finraGet("/firms/arrivals?limit=12"),
         finraGet("/firms/departures?limit=12"),
         finraGet("/runs"),
-        finraGet("/changes?limit=100"),
+        finraGet("/changes?limit=500"),
         finraGet("/individuals"),
       ]);
       setFinraChangesCache(changes);
-      fetchingTabs.delete(tab.id);
       updateActiveTabState({ data: { summary, arrivals, departures, runs, changes, individuals }, error: null }, tab.id);
     } catch (err) {
-      fetchingTabs.delete(tab.id);
       updateActiveTabState({ data: null, error: err.message }, tab.id);
+    } finally {
+      fetchingTabs.delete(tab.id);
     }
   },
   render: (tab) => {
@@ -428,6 +1405,8 @@ registerWorkspaceView({
     if (tab.state?.data === undefined) return finraLoadingHTML();
 
     const { summary, arrivals, departures, runs, changes, individuals } = tab.state.data;
+    const movesQuery = String(tab.state?.movesQuery || "");
+    const movesFilter = tab.state?.movesFilter || "all";
 
     const lastRun = runs?.[0];
     const lastRunLabel = lastRun?.completed_at
@@ -441,6 +1420,34 @@ registerWorkspaceView({
 
     const maxArrival   = Math.max(1, ...(arrivals  || []).map(f => f.count));
     const maxDeparture = Math.max(1, ...(departures || []).map(f => f.count));
+    const allMoves = Array.isArray(changes) ? [...changes] : [];
+    allMoves.sort((a, b) => {
+      const dt = finraDetectedTimestamp(b.detected_at) - finraDetectedTimestamp(a.detected_at);
+      if (dt !== 0) return dt;
+      return Number(b.id || 0) - Number(a.id || 0);
+    });
+
+    const movesCounts = allMoves.reduce((acc, row) => {
+      const type = finraMoveType(row);
+      if (type === "to_inactive") acc.toInactive += 1;
+      else acc.moved += 1;
+      return acc;
+    }, { toInactive: 0, moved: 0 });
+
+    const query = movesQuery.trim().toLowerCase();
+    const visibleMoves = allMoves.filter((row) => {
+      const type = finraMoveType(row);
+      if (movesFilter === "to_inactive" && type !== "to_inactive") return false;
+      if (movesFilter === "moved" && type === "to_inactive") return false;
+      if (!query) return true;
+      const haystack = [
+        row.name,
+        row.finra_id,
+        row.old_status,
+        row.new_status,
+      ].map(v => String(v || "").toLowerCase()).join(" ");
+      return haystack.includes(query);
+    });
 
     const lbRows = (items, maxVal, barClass = "") => (items || []).map((f, i) => `
       <div class="finra-lb-row">
@@ -475,22 +1482,47 @@ registerWorkspaceView({
           </div>
         </div>
 
-        <!-- Recent changes (full width) -->
+        <!-- All moves (full width) -->
         <div>
-          <div class="finra-section-hdr">Recent Changes</div>
+          <div class="finra-section-hdr">All Moves (${allMoves.length.toLocaleString()})</div>
           <div class="table-shell" style="margin-top:6px;padding:0;">
-            <div class="table-header-grid finra-changes-compact-grid">
-              <div>Name</div><div>From</div><div>To</div><div>Function</div><div>Detected</div>
-            </div>
-            ${(changes || []).slice(0, 50).length ? (changes || []).slice(0, 50).map(r => `
-              <div class="table-row-grid finra-changes-compact-grid">
-                <div class="truncate" style="color:var(--text-normal);font-weight:500;">${escapeHtml(r.name || "—")}</div>
-                <div class="text-muted truncate" style="font-size:12px;">${escapeHtml(r.old_status || "—")}</div>
-                <div>${finraStatusBadge(r.new_status)}</div>
-                <div class="text-muted truncate" style="font-size:11px;">${r.function || "—"}</div>
-                <div class="text-faint" style="font-family:var(--font-data);font-size:11px;">${r.detected_at?.slice(0, 10) || "—"}</div>
+            <div class="finra-moves-toolbar">
+              <input
+                class="finra-moves-search"
+                data-tab-id="${escapeHtml(tab.id)}"
+                type="text"
+                value="${escapeHtml(movesQuery)}"
+                placeholder="Search name, FINRA ID, former/current firm..."
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <div class="finra-moves-filters">
+                <button class="finra-moves-filter-btn ${movesFilter === "all" ? "is-active" : ""}" data-tab-id="${escapeHtml(tab.id)}" data-finra-moves-filter="all">All · ${allMoves.length}</button>
+                <button class="finra-moves-filter-btn ${movesFilter === "to_inactive" ? "is-active" : ""}" data-tab-id="${escapeHtml(tab.id)}" data-finra-moves-filter="to_inactive">To Inactive · ${movesCounts.toInactive}</button>
+                <button class="finra-moves-filter-btn ${movesFilter === "moved" ? "is-active" : ""}" data-tab-id="${escapeHtml(tab.id)}" data-finra-moves-filter="moved">Moved · ${movesCounts.moved}</button>
               </div>
-            `).join("") : `<div class="table-row-grid" style="grid-column:1/-1;padding:12px;color:var(--text-faint);">No changes recorded yet.</div>`}
+              <span class="finra-moves-count">${visibleMoves.length.toLocaleString()} shown</span>
+            </div>
+            <div class="table-header-grid finra-moves-grid">
+              <div>Name</div><div>FINRA ID</div><div>Former Firm</div><div>Current Firm / Status</div><div>Move Type</div><div>Detected</div>
+            </div>
+            ${visibleMoves.length ? visibleMoves.map(r => {
+              const destination = r.new_status || "—";
+              const moveType = finraMoveType(r);
+              return `
+              <div class="table-row-grid finra-moves-grid">
+                <div class="truncate" style="color:var(--text-normal);font-weight:500;">${escapeHtml(r.name || "—")}</div>
+                <div class="text-mono text-muted">${escapeHtml(r.finra_id || "—")}</div>
+                <div class="text-muted truncate" style="font-size:12px;" title="${escapeHtml(r.old_status || "—")}">${escapeHtml(r.old_status || "—")}</div>
+                <div class="finra-move-current-cell">
+                  <div class="finra-move-destination truncate" title="${escapeHtml(destination)}">${escapeHtml(destination)}</div>
+                  ${finraDestinationBadge(destination)}
+                </div>
+                <div>${finraMoveTypeBadge(moveType)}</div>
+                <div class="text-faint cell-mono">${escapeHtml(finraDetectedDate(r.detected_at))}</div>
+              </div>
+            `;
+            }).join("") : `<div class="table-row-grid" style="grid-column:1/-1;padding:12px;color:var(--text-faint);">No moves match the current search/filter.</div>`}
           </div>
         </div>
 
@@ -508,7 +1540,7 @@ registerWorkspaceView({
                 <div>${finraStatusBadge(r.status)}</div>
                 <div class="text-muted truncate" style="font-size:11px;">${r.function || "—"}</div>
                 <div class="text-muted truncate" style="font-size:11px;">${r.group || "—"}</div>
-                <div class="text-faint" style="font-family:var(--font-data);font-size:11px;">${r.last_checked?.slice(0, 10) || "—"}</div>
+                <div class="text-faint" style="font-family:var(--font-monospace);font-size:11px;">${r.last_checked?.slice(0, 10) || "—"}</div>
               </div>
             `).join("") : `<div class="table-row-grid" style="grid-column:1/-1;padding:12px;color:var(--text-faint);">No individuals loaded.</div>`}
           </div>
@@ -761,7 +1793,7 @@ registerWorkspaceView({
     const filters    = tab.state?.filters || {};
     const hasFilters = Object.values(filters).some(Boolean);
     const filtered   = records ? applyMapFilters(records, query, filters, "hf.table") : null;
-    const bodyHTML   = records ? hfTableBody(filtered, records.length) : skeletonGrid(9, "hf-table-grid");
+    const bodyHTML   = records ? hfTableBody(filtered, records.length) : skeletonGrid(8, "hf-table-grid");
     return `
       <div class="master-search-shell">
         <div class="master-search-bar">
@@ -781,7 +1813,7 @@ registerWorkspaceView({
           <div class="master-table-header-grid hf-table-grid">
             <div>Name</div><div>Firm</div><div>Title</div>
             <div>Function</div><div>Strategy</div><div>Products</div>
-            <div>Location</div><div>Reports To</div><div></div>
+            <div>Location</div><div>Reports To</div>
           </div>
           ${bodyHTML}
         </div>
@@ -809,12 +1841,6 @@ function hfTableBody(filtered, total) {
       <div class="truncate">${escapeHtml(r.products || "—")}</div>
       <div class="truncate">${escapeHtml(r.location || "—")}</div>
       <div class="truncate" style="color:var(--text-faint);font-size:10px;">${escapeHtml(r.reports_to || "—")}</div>
-      <div>
-        <button class="master-import-btn"
-          data-master-import="${escapeHtml(r.id)}"
-          data-map-source="hf"
-          title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
-      </div>
     </div>
   `).join("") + overflow;
 }
@@ -888,7 +1914,7 @@ registerWorkspaceView({
     const filters    = tab.state?.filters || {};
     const hasFilters = Object.values(filters).some(Boolean);
     const filtered   = records ? applyMapFilters(records, query, filters, "ir.table") : null;
-    const bodyHTML   = records ? irTableBody(filtered, records.length) : skeletonGrid(9, "ir-table-grid");
+    const bodyHTML   = records ? irTableBody(filtered, records.length) : skeletonGrid(8, "ir-table-grid");
     return `
       <div class="master-search-shell">
         <div class="master-search-bar">
@@ -908,7 +1934,7 @@ registerWorkspaceView({
           <div class="master-table-header-grid ir-table-grid">
             <div>Name</div><div>Current Firm</div><div>Title</div>
             <div>Function</div><div>Group</div><div>Joined</div>
-            <div title="Linked HF record">HF</div><div title="Has note"></div><div></div>
+            <div title="Linked HF record">HF</div><div title="Has note"></div>
           </div>
           ${bodyHTML}
         </div>
@@ -947,17 +1973,11 @@ function irTableBody(filtered, total) {
       <div class="truncate">${escapeHtml(r.current_title || "—")}</div>
       <div class="truncate">${escapeHtml(r.function || "—")}</div>
       <div class="truncate">${escapeHtml(r.group || "—")}</div>
-      <div style="font-family:var(--font-data);font-size:10px;color:var(--text-faint);">${escapeHtml(joined)}</div>
+      <div style="font-family:var(--font-monospace);font-size:10px;color:var(--text-faint);">${escapeHtml(joined)}</div>
       <div>${r.hf_id
         ? `<button class="hfid-link" data-open-hf-record="${escapeHtml(r.hf_id)}" title="Open HF Map record">HF↗</button>`
         : ""}</div>
       <div>${r.note ? `<span class="note-indicator" title="${escapeHtml(r.note)}"></span>` : ""}</div>
-      <div>
-        <button class="master-import-btn"
-          data-master-import="${escapeHtml(r.id)}"
-          data-map-source="ir"
-          title="Import ${escapeHtml(r.name || "")} into BankSt OS">Import</button>
-      </div>
     </div>
   `}).join("") + overflow;
 }
@@ -998,7 +2018,7 @@ function svgDonut(entries, size = 110) {
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}" />
     ${arcs}
     <text x="${cx}" y="${cy - 6}" text-anchor="middle"
-      style="font-size:${Math.round(size * 0.16)}px;font-family:var(--font-data);fill:var(--text-normal);font-weight:600;">${total}</text>
+      style="font-size:${Math.round(size * 0.16)}px;font-family:var(--font-display);fill:var(--text-normal);font-weight:600;">${total}</text>
     <text x="${cx}" y="${cy + 9}" text-anchor="middle"
       style="font-size:${Math.round(size * 0.1)}px;font-family:var(--font-interface);fill:var(--text-faint);">total</text>
   </svg>`;
@@ -1310,67 +2330,13 @@ registerWorkspaceView({
     right: [{ id: "bbg.firms.refresh", label: "Refresh" }],
   }),
   render: (tab) => {
-    const firms       = tab.state?.data;
-    const uploadState = tab.state?.uploadState || "idle";
-    const uploadMsg   = tab.state?.uploadMessage || "";
-
-    // Upload zone + terminal block — state-driven appearance
-    const uploadResult = tab.state?.uploadResult;
-    const uploadLog    = tab.state?.uploadLog;
-
-    const zoneBorder = {
-      idle:      "border-color:var(--border-subtle);background:transparent;",
-      dragging:  "border-color:var(--interactive-accent);background:rgba(0,115,255,.04);",
-      streaming: "border-color:var(--interactive-accent);background:rgba(0,115,255,.04);",
-      success:   "border-color:hsla(133,49%,49%,.4);background:hsla(133,49%,49%,.05);",
-      error:     "border-color:hsla(0,72%,60%,.4);background:hsla(0,72%,60%,.05);",
-    };
-
-    let zoneLabel = "";
-    if      (uploadState === "success" && uploadResult) {
-      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4ade80;">
-        ✓ Run complete — ${escapeHtml(uploadResult.firm_name)}
-        <span style="margin-left:16px;color:var(--text-muted);font-weight:400;">
-          ${uploadResult.confirmed_count} conf · ${uploadResult.discrepancy_count} disc · ${uploadResult.addition_count} add · run #${uploadResult.run_id}
-          <button class="cell-link" data-open-bbg-firm="${escapeHtml(uploadResult.firm_id)}" data-firm-name="${escapeHtml(uploadResult.firm_name)}"
-            style="margin-left:12px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-accent);">View →</button>
-        </span>
-      </div>`;
-    } else if (uploadState === "streaming") {
-      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--interactive-accent);">⟳ Extraction running…</div>`;
-    } else if (uploadState === "error") {
-      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef4444;">✗ Extraction failed</div>`;
-    } else if (uploadState === "dragging") {
-      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--interactive-accent);">⊛ Release to upload</div>`;
-    } else {
-      zoneLabel = `<div style="font-size:var(--font-size-label,9px);font-family:var(--font-interface);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);">⊛ Drop a BBG CSV here to run extraction</div>`;
-    }
-
-    // Terminal block — shown during streaming (empty, lines appended via DOM) and after (log from state)
-    let terminalBlock = "";
-    if (uploadState === "streaming") {
-      terminalBlock = `<div class="bbg-terminal" id="bbg-terminal-${escapeHtml(tab.id)}"></div>`;
-    } else if (uploadLog?.length) {
-      terminalBlock = `<div class="bbg-terminal bbg-terminal--done">${uploadLog.map(l =>
-        `<div class="tl tl-${escapeHtml(l.type)}">${escapeHtml(l.msg)}</div>`
-      ).join("")}</div>`;
-    }
-
-    const uploadZone = `
-      <div class="bbg-upload-zone" data-tab-id="${escapeHtml(tab.id)}"
-        style="margin-bottom:${terminalBlock ? "0" : "16px"};padding:10px 14px;border:1px dashed;border-radius:6px;
-               cursor:default;transition:border-color 120ms,background 120ms;${zoneBorder[uploadState] || zoneBorder.idle}">
-        ${zoneLabel}
-      </div>
-      ${terminalBlock ? `<div style="margin-bottom:16px;">${terminalBlock}</div>` : ""}
-    `;
+    const firms = tab.state?.data;
 
     if (!firms) {
       return `
         <div class="table-shell" style="padding:16px 24px;">
-          ${uploadZone}
           <div class="view-placeholder" style="padding:32px 0;">
-            <span>BBG Extraction</span><p>Loading firms…</p>
+            <span>BBG Monitor</span><p>Loading firms…</p>
           </div>
         </div>
       `;
@@ -1417,9 +2383,6 @@ registerWorkspaceView({
 
     return `
       <div class="table-shell" style="padding-top:16px;">
-        <div style="padding:0 24px;">
-          ${uploadZone}
-        </div>
         ${statTiles}
         <div class="table-header-grid bbg-firms-grid">
           <div>Firm</div>
@@ -1646,18 +2609,6 @@ registerWorkspaceView({
     const selRunId = tab.state?.selectedRunId;
     const firmName = tab.title || "Firm";
 
-    // Terminal panel — shown during/after upload when this firm's tab is active
-    const uploadState = tab.state?.uploadState;
-    const uploadLog   = tab.state?.uploadLog;
-    let firmTerminal = "";
-    if (uploadState === "streaming") {
-      firmTerminal = `<div class="bbg-terminal" id="bbg-terminal-${escapeHtml(tab.id)}" style="margin-bottom:12px;"></div>`;
-    } else if (uploadLog?.length) {
-      firmTerminal = `<div class="bbg-terminal bbg-terminal--done" style="margin-bottom:12px;">${uploadLog.map(l =>
-        `<div class="tl tl-${escapeHtml(l.type)}">${escapeHtml(l.msg)}</div>`
-      ).join("")}</div>`;
-    }
-
     if (!runs) {
       return `<div class="detail-view-shell view-placeholder"><span>${escapeHtml(firmName)}</span><p>Loading extraction data…</p></div>`;
     }
@@ -1810,7 +2761,7 @@ registerWorkspaceView({
       `;
 
       if (!deltaData) {
-        return `<div class="detail-view-shell">${firmTerminal}${selectors}</div>`;
+        return `<div class="detail-view-shell">${selectors}</div>`;
       }
 
       const { confirmed, discrepancies, additions, run_a, run_b } = deltaData;
@@ -1833,7 +2784,6 @@ registerWorkspaceView({
 
       return `
         <div class="detail-view-shell detail-view-shell--compact">
-          ${firmTerminal}
           <div class="detail-header">
             <div class="detail-title">${esc(firmName)} — Run Delta</div>
             <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
@@ -1876,7 +2826,6 @@ registerWorkspaceView({
 
       return `
         <div class="detail-view-shell detail-view-shell--compact">
-          ${firmTerminal}
           <div class="detail-header">
             <div class="detail-title">${esc(firmName)} — Discrepancy Persistence</div>
             <div class="detail-subtitle" style="margin-top:4px;font-size:11px;opacity:.6;">
@@ -1920,7 +2869,6 @@ registerWorkspaceView({
         </div>` : "";
       return `
         <div class="detail-view-shell detail-view-shell--analytics">
-          ${firmTerminal}
           ${runSelector}
           ${analyticsStats}
           ${sec("Extraction Trends — All Runs", _bbgTrendChart(runs))}
@@ -1937,7 +2885,6 @@ registerWorkspaceView({
 
     return `
       <div class="detail-view-shell detail-view-shell--compact">
-        ${firmTerminal}
         ${runSelector}
         ${statRow}
         ${searchInput}
@@ -1987,7 +2934,7 @@ const ENCORE_STATUS_CFG = {
 
 function encoreStatusBadge(status) {
   const cfg = ENCORE_STATUS_CFG[status] || { label: status || "Pending", color: "var(--text-faint)" };
-  return `<span style="display:inline-block;font-family:var(--font-data);font-size:10px;font-weight:600;border-radius:4px;padding:2px 6px;background:${cfg.color}22;color:${cfg.color};">${escapeHtml(cfg.label)}</span>`;
+  return `<span style="display:inline-block;font-family:var(--font-text);font-size:10px;font-weight:600;border-radius:4px;padding:2px 6px;background:${cfg.color}22;color:${cfg.color};">${escapeHtml(cfg.label)}</span>`;
 }
 
 function encoreFilterCandidates(candidates, filter, query) {
@@ -2322,7 +3269,7 @@ registerWorkspaceView({
       <div class="table-shell view-placeholder">
         <span>Encore Sync</span>
         <p style="color:var(--text-error,#f87171);">${escapeHtml(error)}</p>
-        <p style="font-size:11px;color:var(--text-faint);">Is the encore_scraper API running?<br><code style="font-family:var(--font-data);font-size:10px;">uvicorn api:app --port 5050</code></p>
+        <p style="font-size:11px;color:var(--text-faint);">Is the encore_scraper API running?<br><code style="font-family:var(--font-monospace);font-size:10px;">uvicorn api:app --port 5050</code></p>
       </div>`;
 
     const loading = !candidates;
@@ -2366,7 +3313,7 @@ registerWorkspaceView({
           style="margin-left:8px;max-width:260px;height:28px;padding:0 10px;font-family:var(--font-interface);
                  font-size:12px;border-radius:4px;background:var(--surface-2,rgba(255,255,255,.05));
                  border:1px solid var(--border-subtle);color:var(--text-normal);" />
-        <span style="font-family:var(--font-data);font-size:10px;color:var(--text-faint);margin-left:auto;">${countLabel}</span>
+        <span style="font-family:var(--font-text);font-size:10px;color:var(--text-faint);margin-left:auto;">${countLabel}</span>
       </div>`;
 
     if (loading) {

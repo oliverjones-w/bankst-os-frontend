@@ -344,6 +344,13 @@ export function splitPane(tabId) {
 // ── Toolbar action dispatch ────────────────────────────────────────────────────
 export function handleToolbarAction(actionId) {
   switch (actionId) {
+    case "platform.overview.refresh": updateActiveTabState({ firms: undefined, error: null }); break;
+    case "pipeline.table.refresh":    updateActiveTabState({ rows: undefined, error: null }); break;
+    case "mandates.table.refresh":    updateActiveTabState({ rows: undefined, error: null }); break;
+    case "client-requests.table.refresh": updateActiveTabState({ rows: undefined, error: null }); break;
+    case "research-tasks.table.refresh":  updateActiveTabState({ rows: undefined, error: null }); break;
+    case "followups.queue.refresh":   updateActiveTabState({ rows: undefined, error: null }); break;
+    case "system.health.refresh":     updateActiveTabState({ freshness: undefined, error: null }); break;
     case "people.table.mode.table":    updateActiveTabState({ mode: "table" });    break;
     case "people.table.mode.timeline": updateActiveTabState({ mode: "timeline" }); break;
     case "people.table.mode.graph":    updateActiveTabState({ mode: "graph" });    break;
@@ -458,8 +465,27 @@ export function loadWorkspaceState() {
   }
 }
 
+const RESTORABLE_TAB_TYPES = new Set([
+  "platform.overview",
+  "pipeline.table",
+  "mandates.table",
+  "client-requests.table",
+  "research-tasks.table",
+  "followups.queue",
+  "hf.table",
+  "ir.table",
+  "ir.firm",
+  "finra.monitor",
+  "bbg.firms",
+  "bbg.firm",
+  "system.health",
+]);
+
 export function isValidRestoredTab(tab) {
-  return tab && typeof tab.id === "string" && typeof tab.type === "string";
+  return tab &&
+    typeof tab.id === "string" &&
+    typeof tab.type === "string" &&
+    RESTORABLE_TAB_TYPES.has(tab.type);
 }
 
 export function restoreWorkspaceState(snapshot) {

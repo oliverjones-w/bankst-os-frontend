@@ -13,7 +13,7 @@ export function debounce(fn, ms) {
 
 export const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-// Labels that contain IDs, keys, or codes → render value in --font-data
+// Labels that contain IDs, keys, or codes → render value in --font-monospace
 const ID_LABELS = /crd|id|key|code|ref|crn|ein|ticker/i;
 
 export function metaHTML(meta) {

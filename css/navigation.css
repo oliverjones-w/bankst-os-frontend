@@ -512,7 +512,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
   background: var(--background-primary);
-  font-family: var(--font-data);
+  font-family: var(--font-monospace);
   font-size: 10px;
   font-weight: 400;
   color: var(--text-faint);
@@ -535,7 +535,7 @@
 
 .version-tag {
   font-size: 9px;
-  font-family: var(--font-data);
+  font-family: var(--font-monospace);
   color: var(--text-faint);
   opacity: 0.7;
 }
@@ -582,4 +582,3 @@
 .app-shell[data-left-rail="closed"] .left-rail {
   border-color: transparent;
 }
-

@@ -20,7 +20,6 @@ import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
 import { createFinraView, FINRA_VIEW_ID } from "./views/finra.js";
 import { createEncoreView, ENCORE_VIEW_ID } from "./views/encore.js";
-import { createPeopleApprovalView, PEOPLE_APPROVAL_VIEW_ID } from "./views/people_approval.js";
 
 const ACTIVE_VIEW_KEY = "bankst.simple.active-view";
 const DEFAULT_VIEW_ID = "platform.overview";
@@ -164,7 +163,6 @@ const VIEWS = [
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet, outlookPost),
   createEncoreView(encoreGet),
-  createPeopleApprovalView(opsGet, opsPost),
 ];
 
 const VIEW_BY_ID = new Map(VIEWS.map((view) => [view.id, view]));
@@ -237,14 +235,6 @@ function wireMainActions() {
     const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
     const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
     if (encoreView && encoreData) encoreView.onSearchInput(input.value || "", encoreData, renderActiveView);
-  });
-
-  elements.viewRoot.addEventListener("input", (event) => {
-    const input = event.target.closest("[data-reviewer-email]");
-    if (!input || state.activeViewId !== PEOPLE_APPROVAL_VIEW_ID) return;
-    const peopleView = VIEW_BY_ID.get(PEOPLE_APPROVAL_VIEW_ID);
-    const peopleData = state.cache.get(PEOPLE_APPROVAL_VIEW_ID)?.data;
-    if (peopleView && peopleData) peopleView.onReviewerEmailChange(input.value || "", peopleData, renderActiveView);
   });
 
   elements.viewRoot.addEventListener("click", (event) => {
@@ -485,36 +475,6 @@ function wireMainActions() {
           articleData,
           renderActiveView,
         );
-        return;
-      }
-    }
-
-    // ── People Approval ────────────────────────────────────────────────────
-    if (state.activeViewId === PEOPLE_APPROVAL_VIEW_ID) {
-      const peopleView = VIEW_BY_ID.get(PEOPLE_APPROVAL_VIEW_ID);
-      const peopleData = state.cache.get(PEOPLE_APPROVAL_VIEW_ID)?.data;
-      if (!peopleView || !peopleData) return;
-
-      const personSelect = event.target.closest("[data-person-select]");
-      if (personSelect) {
-        peopleView.onSelectCandidate(Number(personSelect.dataset.personSelect), peopleData, renderActiveView);
-        return;
-      }
-
-      const approveBtn = event.target.closest("[data-approve-vault]");
-      if (approveBtn) {
-        peopleView.onApproveMatch(
-          peopleData.selectedCandidateId,
-          approveBtn.dataset.approveVault,
-          peopleData,
-          renderActiveView,
-        );
-        return;
-      }
-
-      const dismissBtn = event.target.closest("[data-person-dismiss-modal]");
-      if (dismissBtn) {
-        peopleView.onDismissModal(peopleData, renderActiveView);
         return;
       }
     }

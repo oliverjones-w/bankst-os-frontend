@@ -1,12 +1,31 @@
 import { entityData } from "./mock-data.js";
 import { openTab } from "./workspace.js";
 import { createCard, findExistingCard, focusCard } from "./cards.js";
-import { bankstGet, recordView } from "./api.js";
+import { bankstGet } from "./api.js";
+
+const NAV_TABS = {
+  "platform.overview": { id: "tab-platform-overview", type: "platform.overview", title: "Platform" },
+  "pipeline.table": { id: "tab-pipeline-table", type: "pipeline.table", title: "Pipeline" },
+  "mandates.table": { id: "tab-mandates-table", type: "mandates.table", title: "Mandates" },
+  "client-requests.table": { id: "tab-client-requests-table", type: "client-requests.table", title: "Client Requests" },
+  "research-tasks.table": { id: "tab-research-tasks-table", type: "research-tasks.table", title: "Research Tasks" },
+  "followups.queue": { id: "tab-followups-queue", type: "followups.queue", title: "Follow-ups" },
+  "system.health": { id: "tab-system-health", type: "system.health", title: "System Health" },
+  "finra.monitor": { id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor" },
+  "hf.table": { id: "tab-hf-table", type: "hf.table", title: "HF Map" },
+  "ir.table": { id: "tab-ir-table", type: "ir.table", title: "IR Map" },
+  "bbg.firms": { id: "tab-bbg-firms", type: "bbg.firms", title: "BBG Monitor" },
+};
+
+export function openNavTab(tabKey) {
+  const tab = NAV_TABS[tabKey];
+  if (!tab) return;
+  openTab({ ...tab, state: {} });
+}
 
 export function openPersonTab(entityId) {
   const entity = entityData[entityId];
   if (!entity) return;
-  recordView(entityId, "person", entity.title || entityId);
   openTab({
     id:         `tab-person-${entityId}`,
     type:       "person.detail",
@@ -20,7 +39,6 @@ export function openPersonTab(entityId) {
 export function openFirmTab(entityId, firmName) {
   const entity = entityData[entityId];
   const label  = entity?.title || firmName || "Firm";
-  recordView(entityId, "firm", label);
   openTab({
     id:         `tab-firm-${entityId}`,
     type:       "firm.detail",
@@ -56,23 +74,6 @@ export async function openFirmCard(firmId, firmName) {
   }
 }
 
-export function openFinraTab() {
-  openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
-}
-
-export function openHfTab() {
-  openTab({ id: "tab-hf-table", type: "hf.table", title: "HF Map", state: {} });
-}
-
-export function openBbgFirmsTab() {
-  openTab({
-    id:    "tab-bbg-firms",
-    type:  "bbg.firms",
-    title: "BBG Extraction",
-    state: {},
-  });
-}
-
 export function openBbgFirmTab(firmId, firmName) {
   openTab({
     id:         `tab-bbg-firm-${firmId}`,
@@ -84,28 +85,26 @@ export function openBbgFirmTab(firmId, firmName) {
   });
 }
 
-export function openEncoreSyncTab() {
-  openTab({ id: "tab-encore-sync", type: "encore.sync", title: "Encore Sync", state: {} });
-}
-
-export function openContextIngestTab() {
-  openTab({ id: "tab-context-ingest", type: "context.ingest", title: "Context Drop", state: { phase: "idle" } });
-}
-
 export function runCommand(commandId) {
-  if (commandId === "toggle-right-rail") {
-    document.dispatchEvent(new CustomEvent("bankst:toggleRightRail"));
-  } else if (commandId === "open-people") {
-    openTab({ id: "tab-people-table", type: "people.table", title: "People Table", state: { mode: "table" } });
-  } else if (commandId === "open-firms") {
-    openTab({ id: "tab-firms-table",  type: "firms.table",  title: "Firms Table",  state: {} });
-  } else if (commandId === "open-finra") {
-    openTab({ id: "tab-finra-monitor", type: "finra.monitor", title: "FINRA Monitor", state: {} });
-  } else if (commandId === "open-hf-map") {
-    openHfTab();
-  } else if (commandId === "open-trending") {
-    openTab({ id: "tab-trending", type: "trending", title: "Trending", state: {} });
-  } else {
-    console.log("Run command:", commandId);
+  const commandMap = {
+    "open-platform": "platform.overview",
+    "open-pipeline": "pipeline.table",
+    "open-mandates": "mandates.table",
+    "open-client-requests": "client-requests.table",
+    "open-research-tasks": "research-tasks.table",
+    "open-followups": "followups.queue",
+    "open-bbg": "bbg.firms",
+    "open-finra": "finra.monitor",
+    "open-hf-map": "hf.table",
+    "open-ir-map": "ir.table",
+    "open-system-health": "system.health",
+  };
+
+  const tabKey = commandMap[commandId];
+  if (tabKey) {
+    openNavTab(tabKey);
+    return;
   }
+
+  console.log("Run command:", commandId);
 }

@@ -1,4 +1,4 @@
-import { getActiveTab, reorderTabsInPane } from "./workspace.js";
+import { reorderTabsInPane } from "./workspace.js";
 
 // Track whether a tab drag is in progress so dragover can branch correctly
 let isDraggingTab  = false;
@@ -38,7 +38,7 @@ export function initDragHandlers() {
     requestAnimationFrame(() => tabWrap.classList.add("is-dragging"));
   });
 
-  // ── Tab drag / file hover ────────────────────────────────────────────────────
+  // ── Tab drag ─────────────────────────────────────────────────────────────────
   workspace.addEventListener("dragover", (e) => {
     if (isDraggingTab) {
       const targetTabWrap = e.target.closest(".tab-wrap[data-tab-id]");
@@ -62,19 +62,9 @@ export function initDragHandlers() {
       });
       return;
     }
-
-    // BBG file drop: highlight pane when hovering with a file
-    if (!e.dataTransfer.types.includes("Files")) return;
-    const pane      = e.target.closest(".pane");
-    const activeTab = getActiveTab();
-    if (pane && activeTab?.type?.startsWith("bbg.")) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "copy";
-      pane.classList.add("bbg-file-drop");
-    }
   });
 
-  // ── File hover: leave ────────────────────────────────────────────────────────
+  // ── File hover: leave ───────────────────────────────────────────────────────
   workspace.addEventListener("dragleave", (e) => {
     if (isDraggingTab) return;
     const pane = e.target.closest(".pane");
@@ -108,14 +98,5 @@ export function initDragHandlers() {
 
     const pane = e.target.closest(".pane");
     if (pane) pane.classList.remove("bbg-file-drop");
-
-    const files     = e.dataTransfer?.files;
-    const activeTab = getActiveTab();
-    if (files?.length && activeTab?.type?.startsWith("bbg.")) {
-      e.preventDefault();
-      document.dispatchEvent(new CustomEvent("bankst:bbgCsvDrop", {
-        detail: { file: files[0], tabId: activeTab.id },
-      }));
-    }
   });
 }

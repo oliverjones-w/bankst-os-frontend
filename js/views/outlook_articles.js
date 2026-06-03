@@ -25,7 +25,7 @@ const SOURCES = [
 export function createOutlookArticlesView(apiGet, apiPost) {
   async function fetchArticleBody(articleId) {
     try {
-      return await apiGet(`/articles/${articleId}`);
+      return await apiGet(`/articles/${articleId}?include_body=true`);
     } catch (err) {
       console.error(`Failed to fetch body for article ${articleId}:`, err);
       return null;

@@ -82,6 +82,25 @@
   --background-elevated: var(--background-secondary);
   --surface-2: var(--background-secondary);
   --surface-3: var(--background-secondary-alt);
+
+  /* Surface & border semantic tokens */
+  --surface-base:   var(--bg-stage);
+  --surface-raised: var(--bg-elevated);
+  --surface-hover:  var(--background-modifier-hover);
+  --border-subtle:  rgba(var(--mono-rgb-100), 0.12);
+  --border-strong:  rgba(var(--mono-rgb-100), 0.22);
+
+  /* Feedback state tokens */
+  --feedback-success-bg:     rgba(var(--color-green-rgb), 0.12);
+  --feedback-success-border: rgba(var(--color-green-rgb), 0.28);
+  --feedback-success-text:   var(--color-green);
+  --feedback-error-bg:       rgba(var(--color-red-rgb), 0.12);
+  --feedback-error-border:   rgba(var(--color-red-rgb), 0.28);
+  --feedback-error-text:     var(--color-red);
+  --feedback-info-bg:        rgba(var(--color-blue-rgb), 0.12);
+  --feedback-info-border:    rgba(var(--color-blue-rgb), 0.28);
+  --feedback-info-text:      var(--color-blue);
+
   --border: var(--border-subtle);
   --text-dim: var(--text-muted);
   --status-active: var(--color-green);
@@ -252,6 +271,25 @@
   --background-elevated: var(--background-secondary);
   --surface-2: var(--background-secondary);
   --surface-3: var(--background-secondary-alt);
+
+  /* Surface & border semantic tokens (light overrides) */
+  --surface-base:   var(--bg-stage);
+  --surface-raised: var(--bg-elevated);
+  --surface-hover:  var(--background-modifier-hover);
+  --border-subtle:  rgba(var(--mono-rgb-100), 0.12);
+  --border-strong:  rgba(var(--mono-rgb-100), 0.22);
+
+  /* Feedback state tokens (light — same structure, alpha adapts via mono-rgb-100) */
+  --feedback-success-bg:     rgba(var(--color-green-rgb), 0.10);
+  --feedback-success-border: rgba(var(--color-green-rgb), 0.24);
+  --feedback-success-text:   color-mix(in srgb, var(--color-green) 80%, black);
+  --feedback-error-bg:       rgba(var(--color-red-rgb), 0.10);
+  --feedback-error-border:   rgba(var(--color-red-rgb), 0.24);
+  --feedback-error-text:     color-mix(in srgb, var(--color-red) 80%, black);
+  --feedback-info-bg:        rgba(var(--color-blue-rgb), 0.10);
+  --feedback-info-border:    rgba(var(--color-blue-rgb), 0.24);
+  --feedback-info-text:      color-mix(in srgb, var(--color-blue) 80%, black);
+
   --border: var(--border-subtle);
   --text-dim: var(--text-muted);
   --status-active: var(--color-green);

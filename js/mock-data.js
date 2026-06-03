@@ -142,10 +142,15 @@ export const contextData = {
 };
 
 export const commandData = [
-  { id: "open-people",       type: "command", title: "Open People Table",   shortcut: "G P",      subtitle: "Navigation" },
-  { id: "open-firms",        type: "command", title: "Open Firms Table",    shortcut: "G F",      subtitle: "Navigation" },
-  { id: "open-finra",        type: "command", title: "Open FINRA Monitor",  shortcut: "G N",      subtitle: "Navigation" },
-  { id: "open-trending",     type: "command", title: "Open Trending",       shortcut: "G T",      subtitle: "Navigation" },
-  { id: "open-pipeline",     type: "command", title: "Open Pipeline Queue", shortcut: "G L",      subtitle: "Navigation" },
-  { id: "toggle-right-rail", type: "command", title: "Toggle Right Rail",   shortcut: "Ctrl+\\",  subtitle: "View"       },
+  { id: "open-platform",      type: "command", title: "Open Platform",      shortcut: "G P", subtitle: "Navigation" },
+  { id: "open-pipeline",      type: "command", title: "Open Pipeline",      shortcut: "G L", subtitle: "Navigation" },
+  { id: "open-mandates",      type: "command", title: "Open Mandates",      shortcut: "G M", subtitle: "Navigation" },
+  { id: "open-client-requests", type: "command", title: "Open Client Requests", shortcut: "G C", subtitle: "Navigation" },
+  { id: "open-research-tasks",  type: "command", title: "Open Research Tasks",  shortcut: "G R", subtitle: "Navigation" },
+  { id: "open-followups",     type: "command", title: "Open Follow-ups",    shortcut: "G F", subtitle: "Navigation" },
+  { id: "open-hf-map",        type: "command", title: "Open HF Map",        shortcut: "G H", subtitle: "Navigation" },
+  { id: "open-ir-map",        type: "command", title: "Open IR Map",        shortcut: "G I", subtitle: "Navigation" },
+  { id: "open-finra",         type: "command", title: "Open FINRA Monitor", shortcut: "G N", subtitle: "Navigation" },
+  { id: "open-bbg",           type: "command", title: "Open BBG Monitor",   shortcut: "G B", subtitle: "Navigation" },
+  { id: "open-system-health", type: "command", title: "Open System Health", shortcut: "G S", subtitle: "Navigation" },
 ];

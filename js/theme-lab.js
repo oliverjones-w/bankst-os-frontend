@@ -105,28 +105,22 @@ const TOKEN_GROUPS = [
 
 const FONT_PRESETS = {
   "--font-interface": [
-    { label: "SF Pro Display",  value: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" },
-    { label: "Inter",           value: "'InterVariable', 'Inter', sans-serif" },
-    { label: "System UI",       value: "system-ui, -apple-system, sans-serif" },
-    { label: "Geist",           value: "'Geist', 'Inter', sans-serif" },
-    { label: "DM Sans",         value: "'DM Sans', sans-serif" },
-    { label: "IBM Plex Sans",   value: "'IBM Plex Sans', sans-serif" },
+    { label: "SF Pro Text",     value: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" },
+    { label: "SF Pro Display",  value: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" },
+    { label: "Apple System",    value: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" },
     { label: "Custom…",         value: "" },
   ],
   "--font-data": [
-    { label: "SF Mono",         value: "'SF Mono', 'SFMono-Regular', monospace" },
-    { label: "JetBrains Mono",  value: "'JetBrains Mono', monospace" },
-    { label: "Fira Code",       value: "'Fira Code', monospace" },
-    { label: "IBM Plex Mono",   value: "'IBM Plex Mono', monospace" },
-    { label: "Cascadia Code",   value: "'Cascadia Code', monospace" },
-    { label: "Menlo",           value: "Menlo, Consolas, monospace" },
+    { label: "SF Pro Text",     value: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" },
+    { label: "SF Pro Display",  value: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" },
+    { label: "Apple System",    value: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" },
+    { label: "SF Mono",         value: "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace" },
     { label: "Custom…",         value: "" },
   ],
   "--font-monospace": [
-    { label: "SF Mono",         value: "'SF Mono', 'SFMono-Regular', monospace" },
-    { label: "JetBrains Mono",  value: "'JetBrains Mono', monospace" },
-    { label: "Fira Code",       value: "'Fira Code', monospace" },
-    { label: "IBM Plex Mono",   value: "'IBM Plex Mono', monospace" },
+    { label: "SF Mono",         value: "'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace" },
+    { label: "Menlo",           value: "Menlo, Monaco, Consolas, monospace" },
+    { label: "Apple Mono",      value: "ui-monospace, Menlo, Monaco, Consolas, monospace" },
     { label: "Custom…",         value: "" },
   ],
 };

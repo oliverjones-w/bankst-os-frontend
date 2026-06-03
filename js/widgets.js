@@ -289,7 +289,7 @@ registerRightRailWidget({
           const hasChanges = r.changes_detected > 0;
           return `
             <div class="feed-item">
-              <div class="feed-item-title" style="font-family:var(--font-data);font-size:11px;">
+              <div class="feed-item-title" style="font-family:var(--font-monospace);font-size:11px;">
                 ${ts}
                 ${hasChanges ? `<span style="color:var(--color-green);margin-left:6px;">+${r.changes_detected}</span>` : ""}
               </div>
@@ -325,7 +325,7 @@ registerRightRailWidget({
                 ${r.name || "—"}
               </div>
               <div class="feed-item-meta">${r.old_status || "—"} → ${r.new_status || "—"}</div>
-              <div class="feed-item-meta" style="font-family:var(--font-data);">${r.detected_at?.slice(0, 16).replace("T", " ") || ""}</div>
+              <div class="feed-item-meta" style="font-family:var(--font-monospace);">${r.detected_at?.slice(0, 16).replace("T", " ") || ""}</div>
             </div>
           `;
         }).join("")}
@@ -353,7 +353,7 @@ function mapChangeEntry(entry, prev) {
       const newVal = entry[field] != null ? String(entry[field]) : "—";
       return `
         <div style="font-size:10px;padding:2px 0;border-left:2px solid var(--divider-subtle);padding-left:6px;margin-top:3px;">
-          <span style="color:var(--text-faint);font-family:var(--font-data);">${escapeHtml(field)}</span><br>
+          <span style="color:var(--text-faint);font-family:var(--font-monospace);">${escapeHtml(field)}</span><br>
           <span style="color:var(--text-muted);text-decoration:line-through;">${escapeHtml(oldVal)}</span>
           <span style="color:var(--text-faint);margin:0 3px;">→</span>
           <span style="color:var(--text-normal);">${escapeHtml(newVal)}</span>
@@ -366,7 +366,7 @@ function mapChangeEntry(entry, prev) {
     <div class="feed-item">
       <div class="feed-item-title">
         <span style="color:${color};font-size:10px;font-weight:700;font-family:var(--font-data);">${entry.change_type}</span>
-        <span style="color:var(--text-faint);font-size:10px;font-family:var(--font-data);margin-left:6px;">${dateStr}</span>
+        <span style="color:var(--text-faint);font-size:10px;font-family:var(--font-monospace);margin-left:6px;">${dateStr}</span>
       </div>
       ${diffs}
     </div>
@@ -400,7 +400,7 @@ registerRightRailWidget({
             <div class="feed-item-title" style="font-weight:500;">${escapeHtml(entry.name || entry.record_id || "—")}</div>
             <div class="feed-item-meta">
               <span style="color:${color};font-weight:700;font-family:var(--font-data);font-size:10px;">${entry.change_type}</span>
-              <span style="font-family:var(--font-data);margin-left:6px;">${dateStr}</span>
+              <span style="font-family:var(--font-monospace);margin-left:6px;">${dateStr}</span>
             </div>
             ${fields}
           </div>

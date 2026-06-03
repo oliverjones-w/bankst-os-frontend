@@ -1,16 +1,4 @@
-// === component-lab.js ===
-
-// ── UI States registry ────────────────────────────────────────────────────────
-
-const UI_STATES = {
-  button:    ["default", "hover", "active", "disabled"],
-  navItem:   ["default", "hover", "active", "disabled"],
-  tag:       ["default"],
-  statusDot: ["active", "inactive", "null", "error"],
-  row:       ["default", "hover", "selected", "error"],
-  input:     ["default", "focus", "error", "disabled"],
-  card:      ["default", "focused", "dragging"],
-};
+import { UI_STATES } from "./ui-states.js";
 
 // ── Playground fixtures ───────────────────────────────────────────────────────
 
@@ -238,7 +226,7 @@ function renderCommandTrigger() {
   return stateGrid(["default", "hover"], (state) =>
     `<button class="command-trigger" style="max-width:220px;">
       <span class="command-trigger-label">Search or jump to…</span>
-      <span style="font-family:var(--font-data);font-size:11px;">⌘K</span>
+      <span style="font-family:var(--font-monospace);font-size:11px;">⌘K</span>
     </button>`,
     { cls: "state-demo--surface" }
   );
@@ -285,7 +273,7 @@ function renderEdgeCases() {
       </div>
       <div class="cl-table-row">
         <div class="cl-table-cell">Error message</div>
-        <div class="cl-table-cell" style="color:var(--color-red);font-family:var(--font-data);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e(FIXTURES.edge.errorMsg)}</div>
+        <div class="cl-table-cell" style="color:var(--color-red);font-family:var(--font-monospace);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e(FIXTURES.edge.errorMsg)}</div>
         <div class="cl-table-cell"><span class="fixture-note">error</span></div>
       </div>
     </div>
