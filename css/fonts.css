@@ -1,94 +1,44 @@
 /* === fonts.css ===
-   Local font declarations — loaded first so variables in base.css resolve correctly.
-   Weights: only the ones actively used in the UI (400/500/600).
+   CDN-optimized typography for cloud deployment.
+   Streams Apple SF Pro Display and SF Mono from optimized CDN,
+   with comprehensive system font fallbacks for offline resilience.
 */
 
-/* ── SF Pro Display (interface font) ── */
+/* Stream SF Pro Display from CDN */
+@import url('https://fonts.cdnfonts.com/css/sf-pro-display');
 
-@font-face {
-  font-family: "SF Pro Display";
-  src: url("../typography/SF-Pro-Display-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* Stream SF Mono from CDN */
+@import url('https://fonts.cdnfonts.com/css/sf-mono');
 
-@font-face {
-  font-family: "SF Pro Display";
-  src: url("../typography/SF-Pro-Display-RegularItalic.otf") format("opentype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Pro Display";
-  src: url("../typography/SF-Pro-Display-Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Pro Display";
-  src: url("../typography/SF-Pro-Display-Semibold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Pro Display";
-  src: url("../typography/SF-Pro-Display-Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ── SF Mono (data font) ── */
-
-@font-face {
-  font-family: "SF Mono";
-  src: url("../typography/SF-Mono-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Mono";
-  src: url("../typography/SF-Mono-RegularItalic.otf") format("opentype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Mono";
-  src: url("../typography/SF-Mono-Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "SF Mono";
-  src: url("../typography/SF-Mono-Semibold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ── Override font stack variables to prioritise local files ──
-   base.css defines these with system fonts first. Redefining here
-   (loaded before base.css) puts the local files at the front.
-   On macOS the system SF Pro would win anyway, but this ensures
-   consistent rendering on Windows/Linux servers and in Electron.
-*/
-/* Final font-family assignments. These intentionally override base.css fallbacks. */
 :root {
-  --font-interface: "SF Pro Display", -apple-system, BlinkMacSystemFont,
-    Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-data:      "SF Mono", ui-monospace, "Menlo", "Consolas", monospace;
-  --font-monospace: var(--font-data);
+  /* Primary text stack: SF Pro Text (system) + Apple system fonts + web-safe fallbacks */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* Display headlines: SF Pro Display + system fonts */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* Body text: SF Pro Text + system fonts */
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* Monospace for data, metrics, code: SF Mono + system monospace + fallbacks */
+  --font-monospace: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Compatibility aliases used across existing stylesheets */
+  --font-interface: var(--font-sans);
+  --font-data: var(--font-text);
+}
+
+/* Ensure SF Mono is available with tabular-nums support */
+body {
+  font-family: var(--font-text);
+}
+
+/* Enforce tabular-nums on numeric columns to prevent drift */
+.tabular-metrics,
+[data-finra-id],
+.finra-id,
+.finra-results-count,
+.candidate-score {
+  font-family: var(--font-monospace);
+  font-variant-numeric: tabular-nums;
 }
