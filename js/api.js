@@ -1,4 +1,4 @@
-import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE, ENCORE_API_BASE } from "./config.js";
+import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE, OPS_API_BASE, ENCORE_API_BASE, EQD_API_BASE, OUTLOOK_API_BASE } from "./config.js";
 import { escapeHtml, Timer } from "./utils.js";
 
 // ── Core fetch helpers ────────────────────────────────────────────────────────
@@ -21,54 +21,9 @@ export async function mappingGet(path) {
   return data;
 }
 
-export async function mappingUpload(path, formData) {
-  const timer = new Timer("api", `mapping:${path}`);
-  const res = await fetch(`${MAPPING_API_BASE}${path}`, { method: "POST", body: formData });
-  const data = await res.json();
-  timer.done({ status: res.status, ok: res.ok });
-  if (!res.ok) throw Object.assign(new Error(data?.detail || `Mapping API ${res.status}`), { detail: data?.detail });
-  return data;
-}
-
-export async function mappingUploadStream(path, formData, onEvent) {
-  const res = await fetch(`${MAPPING_API_BASE}${path}`, { method: "POST", body: formData });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(data?.detail || `Mapping API ${res.status}`), { detail: data?.detail });
-  }
-  const reader  = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop(); // hold incomplete trailing line
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        try { onEvent(JSON.parse(line.slice(6))); } catch {}
-      }
-    }
-  }
-}
-
 export async function encoreGet(path) {
   const timer = new Timer("api", `encore:${path}`);
   const res = await fetch(`${ENCORE_API_BASE}${path}`, { headers: { Accept: "application/json" } });
-  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Encore API ${res.status}: ${path}`); }
-  const data = await res.json();
-  timer.done({ status: res.status, ok: true });
-  return data;
-}
-
-export async function encorePatch(path, body) {
-  const timer = new Timer("api", `encore:${path}`);
-  const res = await fetch(`${ENCORE_API_BASE}${path}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-  });
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Encore API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -84,6 +39,83 @@ export async function bankstGet(path) {
   return data;
 }
 
+export async function opsGet(path, label = "ops") {
+  const timer = new Timer("api", `${label}:${path}`);
+  const res = await fetch(`${OPS_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function outlookGet(path) {
+  const timer = new Timer("api", `outlook:${path}`);
+  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Outlook API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function pipelineGet(path) {
+  return opsGet(path, "pipeline");
+}
+
+export async function mandatesGet(path) {
+  return opsGet(path, "mandates");
+}
+
+export async function mandatesPatch(path, body) {
+  const timer = new Timer("api", `mandates:PATCH:${path}`);
+  const res = await fetch(`${OPS_API_BASE}${path}`, {
+    method: "PATCH",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "x-idempotency-key": body.request_id,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function clientRequestsGet(path) {
+  return opsGet(path, "client-requests");
+}
+
+export async function researchTasksGet(path) {
+  return opsGet(path, "research-tasks");
+}
+
+export async function opsPost(path, body) {
+  const timer = new Timer("api", `ops:POST:${path}`);
+  const res = await fetch(`${OPS_API_BASE}${path}`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function outlookPost(path, body) {
+  const timer = new Timer("api", `outlook:POST:${path}`);
+  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Outlook API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
 // ── Injected rail renderer (breaks api ↔ widgets cycle) ──────────────────────
 
 let _renderRightRail = () => {};
@@ -93,19 +125,6 @@ export function setApiRailRenderer(fn) { _renderRightRail = fn; }
 
 let _trendingCache = [];
 export function getTrendingCache() { return _trendingCache; }
-
-export function recordView(entityId, entityType, entityLabel) {
-  fetch(`${BANKST_API_BASE}/viewed`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ entity_id: entityId, entity_type: entityType, entity_label: entityLabel }),
-  }).catch(() => {});
-  // Refresh sidebar + trending after write lands
-  setTimeout(() => {
-    loadRecentlyViewed();
-    loadTrending();
-  }, 400);
-}
 
 export async function loadRecentlyViewed() {
   try {
@@ -161,4 +180,28 @@ export async function loadFirmsIndex() {
   } catch (e) {
     console.warn("[palette] could not load firms index:", e.message);
   }
+}
+
+// ── EQD Market Map ────────────────────────────────────────────────────────────
+
+export async function eqdGet(path) {
+  const timer = new Timer("api", `eqd:${path}`);
+  const res = await fetch(`${EQD_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`EQD API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+export async function eqdPost(path, body) {
+  const timer = new Timer("api", `eqd:POST:${path}`);
+  const res = await fetch(`${EQD_API_BASE}${path}`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`EQD API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
 }

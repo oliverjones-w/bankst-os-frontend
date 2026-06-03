@@ -9,6 +9,7 @@ import {
   encoreGet,
   opsGet,
   outlookGet,
+  outlookPost,
 } from "./api.js";
 import { mandatesPatch, opsPost, eqdGet, eqdPost, eqdPatch } from "./api-os.js?v=3";
 import { escapeHtml } from "./utils.js";
@@ -18,6 +19,7 @@ import { createArticleReviewView, ARTICLE_REVIEW_VIEW_ID } from "./views/article
 import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
 import { createEncoreView, ENCORE_VIEW_ID } from "./views/encore.js";
+import { createOutlookResolutionView, OUTLOOK_RESOLUTION_VIEW_ID } from "./views/outlook-resolution.js";
 
 const ACTIVE_VIEW_KEY = "bankst.simple.active-view";
 const DEFAULT_VIEW_ID = "platform.overview";
@@ -161,6 +163,7 @@ const VIEWS = [
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet),
   createEncoreView(encoreGet),
+  createOutlookResolutionView(outlookGet, outlookPost),
 ];
 
 const VIEW_BY_ID = new Map(VIEWS.map((view) => [view.id, view]));
@@ -230,6 +233,24 @@ function wireMainActions() {
     const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
     const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
     if (encoreView && encoreData) encoreView.onSearchInput(input.value || "", encoreData, renderActiveView);
+  });
+
+  elements.viewRoot.addEventListener("input", (event) => {
+    const emailInput = event.target.closest("[data-outlook-reviewer-email]");
+    if (emailInput && state.activeViewId === OUTLOOK_RESOLUTION_VIEW_ID) {
+      const resView = VIEW_BY_ID.get(OUTLOOK_RESOLUTION_VIEW_ID);
+      const resData = state.cache.get(OUTLOOK_RESOLUTION_VIEW_ID)?.data;
+      if (resView && resData) resView.onReviewerEmailChange(emailInput.value, resData, renderActiveView);
+      return;
+    }
+
+    const notesInput = event.target.closest("[data-outlook-approval-notes]");
+    if (notesInput && state.activeViewId === OUTLOOK_RESOLUTION_VIEW_ID) {
+      const resView = VIEW_BY_ID.get(OUTLOOK_RESOLUTION_VIEW_ID);
+      const resData = state.cache.get(OUTLOOK_RESOLUTION_VIEW_ID)?.data;
+      if (resView && resData) resView.onNotesChange(notesInput.value, resData, renderActiveView);
+      return;
+    }
   });
 
   elements.viewRoot.addEventListener("click", (event) => {
@@ -467,6 +488,45 @@ function wireMainActions() {
           articleData,
           renderActiveView,
         );
+        return;
+      }
+    }
+
+    // ── Outlook Entity Resolution ───────────────────────────────────────────
+    if (state.activeViewId === OUTLOOK_RESOLUTION_VIEW_ID) {
+      const resView = VIEW_BY_ID.get(OUTLOOK_RESOLUTION_VIEW_ID);
+      const resData = state.cache.get(OUTLOOK_RESOLUTION_VIEW_ID)?.data;
+      if (!resView || !resData) return;
+
+      const articleSelect = event.target.closest("[data-article-select]");
+      if (articleSelect) {
+        const articleId = Number(articleSelect.dataset.articleSelect);
+        resView.onSelectArticle(articleId, resData, renderActiveView);
+        return;
+      }
+
+      const backBtn = event.target.closest("[data-outlook-back]");
+      if (backBtn) {
+        resView.onBackToList(resData, renderActiveView);
+        return;
+      }
+
+      const approveStart = event.target.closest("[data-outlook-approve-start]");
+      if (approveStart) {
+        const [articleId, mentionId, candidateId] = approveStart.dataset.outlookApproveStart.split("|").map(Number);
+        resView.onStartApproval(articleId, mentionId, candidateId, resData, renderActiveView);
+        return;
+      }
+
+      const submitApproval = event.target.closest("[data-outlook-submit-approval]");
+      if (submitApproval) {
+        resView.onSubmitApproval(resData, renderActiveView);
+        return;
+      }
+
+      const cancelApproval = event.target.closest("[data-outlook-cancel-approval]");
+      if (cancelApproval) {
+        resView.onCancelApproval(resData, renderActiveView);
         return;
       }
     }
