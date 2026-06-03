@@ -6,6 +6,7 @@ import {
   researchTasksGet,
   finraGet,
   mappingGet,
+  encoreGet,
   opsGet,
   outlookGet,
 } from "./api.js";
@@ -16,6 +17,7 @@ import { createEqdView, EQD_VIEW_ID } from "./views/eqd.js?v=3";
 import { createArticleReviewView, ARTICLE_REVIEW_VIEW_ID } from "./views/article_review.js";
 import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
+import { createEncoreView, ENCORE_VIEW_ID } from "./views/encore.js";
 
 const ACTIVE_VIEW_KEY = "bankst.simple.active-view";
 const DEFAULT_VIEW_ID = "platform.overview";
@@ -158,6 +160,7 @@ const VIEWS = [
   createArticleReviewView(opsGet, opsPost),
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet),
+  createEncoreView(encoreGet),
 ];
 
 const VIEW_BY_ID = new Map(VIEWS.map((view) => [view.id, view]));
@@ -219,6 +222,14 @@ function wireMainActions() {
     cacheEntry.data.query = nextQuery;
     state.reference.query = nextQuery;
     scheduleReferenceSearch(250);
+  });
+
+  elements.viewRoot.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-encore-search]");
+    if (!input || state.activeViewId !== ENCORE_VIEW_ID) return;
+    const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
+    const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
+    if (encoreView && encoreData) encoreView.onSearchInput(input.value || "", encoreData, renderActiveView);
   });
 
   elements.viewRoot.addEventListener("click", (event) => {
@@ -312,6 +323,26 @@ function wireMainActions() {
     if (button && state.activeViewId === "finra.monitor") {
       state.finra.filter = button.dataset.finraFilter || "all";
       renderActiveView();
+      return;
+    }
+
+    const encoreFilter = event.target.closest("[data-filter]");
+    if (encoreFilter && state.activeViewId === ENCORE_VIEW_ID) {
+      const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
+      const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
+      if (encoreView && encoreData) {
+        encoreView.onStatusFilter(encoreFilter.dataset.filter || "all", encoreData, renderActiveView);
+      }
+      return;
+    }
+
+    const encoreToggle = event.target.closest("[data-encore-toggle]");
+    if (encoreToggle && state.activeViewId === ENCORE_VIEW_ID) {
+      const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
+      const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
+      if (encoreView && encoreData) {
+        encoreView.onToggleRow(encoreToggle.dataset.encoreToggle, encoreData, renderActiveView);
+      }
       return;
     }
 

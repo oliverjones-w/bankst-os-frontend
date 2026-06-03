@@ -151,17 +151,6 @@ input {
   letter-spacing: 0.03em;
 }
 
-.ops-shadow-banner {
-  margin-bottom: 10px;
-  border: 1px solid color-mix(in srgb, var(--color-yellow) 36%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-yellow) 10%, transparent);
-  color: var(--color-yellow);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 7px 10px;
-}
 
 .view-root {
   border: 1px solid var(--border-subtle);
@@ -169,21 +158,6 @@ input {
   background: var(--background-secondary);
   min-height: 320px;
   overflow: hidden;
-}
-
-.loading,
-.empty,
-.error {
-  padding: 20px;
-  font-size: 12px;
-}
-
-.empty {
-  color: var(--text-muted);
-}
-
-.error {
-  color: var(--color-red);
 }
 
 .cards {
@@ -225,50 +199,6 @@ input {
 
 .status-fail {
   color: var(--color-red) !important;
-}
-
-.table-wrap {
-  width: 100%;
-  overflow: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-
-.data-table th,
-.data-table td {
-  border-bottom: 1px solid var(--border-subtle);
-  text-align: left;
-  vertical-align: top;
-  padding: 9px 12px;
-}
-
-.data-table th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: color-mix(in srgb, var(--background-secondary) 92%, var(--background-primary));
-  color: var(--text-faint);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.data-table td {
-  color: var(--text-muted);
-  font-size: 13px;
-  font-family: var(--font-text);
-  letter-spacing: -0.01em;
-}
-
-.data-table tbody tr:hover td {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
 }
 
 .pipeline-row-toggle {
@@ -441,6 +371,38 @@ input {
   padding: 10px 12px;
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.mandate-stage-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+}
+.mandate-stage-select:focus {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 1px;
+}
+.mandate-stage-select--active {
+  color: var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 16%, transparent);
+}
+.mandate-stage-select--paused {
+  color: var(--color-yellow);
+  background: color-mix(in srgb, var(--color-yellow) 16%, transparent);
+}
+.mandate-stage-select--closed {
+  color: var(--color-red);
+  background: color-mix(in srgb, var(--color-red) 16%, transparent);
+}
+.mandate-stage-select--neutral {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 16%, transparent);
 }
 
 .finra-controls {
@@ -645,9 +607,6 @@ input {
 }
 
 :where(
-  .data-table,
-  .data-table th,
-  .data-table td,
   .view-meta,
   .mandates-client-meta,
   .finra-results-count,
@@ -692,4 +651,173 @@ input {
     min-width: 92px;
   }
 
+}
+
+/* ── Encore Candidates view ──────────────────────────────────── */
+
+.encore-filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.encore-filter-btn {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.encore-filter-btn:hover {
+  color: var(--text-normal);
+  border-color: var(--border-strong);
+}
+
+.encore-filter-btn.is-active {
+  color: var(--interactive-accent);
+  border-color: color-mix(in srgb, var(--interactive-accent) 44%, transparent);
+  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+
+.encore-search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.encore-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.encore-search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.encore-search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  background: var(--background-primary);
+}
+
+.encore-results-count {
+  color: var(--text-faint);
+  font-size: 12px;
+  white-space: nowrap;
+  font-family: var(--font-text);
+}
+
+.candidate-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.candidate-row:hover {
+  background-color: color-mix(in srgb, var(--interactive-accent) 8%, transparent);
+}
+
+.candidate-name-cell {
+  min-width: 0;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toggle-icon {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.detail-row {
+  background-color: color-mix(in srgb, var(--interactive-accent) 4%, transparent);
+}
+
+.detail-content {
+  padding: 12px 16px;
+}
+
+.detail-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px 16px;
+  font-size: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-list dt {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.detail-list dd {
+  margin: 0;
+  color: var(--text-normal);
+  word-break: break-word;
+}
+
+.detail-list code {
+  background: var(--background-secondary);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-pill--success {
+  background: color-mix(in srgb, var(--color-green, #3da667) 15%, transparent);
+  color: var(--color-green, #3da667);
+}
+
+.status-pill--warning {
+  background: color-mix(in srgb, var(--color-yellow, #d4a944) 15%, transparent);
+  color: var(--color-yellow, #d4a944);
+}
+
+.status-pill--error {
+  background: color-mix(in srgb, var(--color-red, #e05e5e) 15%, transparent);
+  color: var(--color-red, #e05e5e);
+}
+
+.status-pill--info {
+  background: color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+  color: var(--interactive-accent);
 }
