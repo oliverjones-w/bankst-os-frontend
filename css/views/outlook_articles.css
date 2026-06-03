@@ -313,6 +313,141 @@
   opacity: 0.5;
 }
 
+/* Mentions with Candidates */
+
+.mentions-with-candidates {
+  display: grid;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.mention-item {
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  padding: 12px;
+  background: var(--background-secondary, rgba(255, 255, 255, 0.02));
+}
+
+.mention-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.mention-entity-type {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--color-yellow, #d4a944);
+  color: black;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mention-text {
+  font-weight: 500;
+  color: var(--text-normal);
+  flex: 1;
+  min-width: 200px;
+}
+
+.mention-status-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.mention-status-badge.resolved {
+  background: rgba(61, 166, 103, 0.2);
+  color: var(--color-green, #3da667);
+}
+
+.mention-status-badge.pending_resolution {
+  background: rgba(212, 169, 68, 0.2);
+  color: var(--color-yellow, #d4a944);
+}
+
+.candidates-list {
+  display: grid;
+  gap: 8px;
+}
+
+.candidate-proposal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-primary, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 3px;
+}
+
+.candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.candidate-label {
+  font-weight: 500;
+  color: var(--text-normal);
+  margin-bottom: 3px;
+  word-break: break-word;
+}
+
+.candidate-score {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.approve-candidate-btn {
+  padding: 4px 12px;
+  margin-left: 12px;
+  background: var(--interactive-accent, #6b9bd1);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.approve-candidate-btn:hover {
+  opacity: 0.9;
+}
+
+.approve-candidate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-candidates {
+  padding: 8px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.empty-section {
+  padding: 8px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+.loading-section {
+  padding: 8px;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
 /* Meta Footer */
 
 .outlook-articles-meta {

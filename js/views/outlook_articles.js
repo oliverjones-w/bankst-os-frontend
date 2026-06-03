@@ -6,7 +6,8 @@
  * - Browse articles by source (TeamAP, People Moves, HFReturns)
  * - View metadata, extracted URLs, mention counts
  * - Expandable article detail with full body (lazy-loaded)
- * - Stub sections for future entity resolution (mentions, candidates, entity creation)
+ * - Show mentions with proposed matches/candidates
+ * - Approve matches directly (writes article_id to intel.json)
  */
 
 import { escapeHtml } from "../utils.js";
@@ -21,13 +22,46 @@ const SOURCES = [
   { id: "HFReturns", label: "HF Returns" },
 ];
 
-export function createOutlookArticlesView(apiGet) {
+export function createOutlookArticlesView(apiGet, apiPost) {
   async function fetchArticleBody(articleId) {
     try {
       return await apiGet(`/articles/${articleId}`);
     } catch (err) {
       console.error(`Failed to fetch body for article ${articleId}:`, err);
       return null;
+    }
+  }
+
+  async function fetchMentions(articleId) {
+    try {
+      const res = await apiGet(`/articles/${articleId}/mentions`);
+      return res.mentions || [];
+    } catch (err) {
+      console.error(`Failed to fetch mentions for article ${articleId}:`, err);
+      return [];
+    }
+  }
+
+  async function fetchCandidates(articleId, mentionId) {
+    try {
+      const res = await apiGet(`/articles/${articleId}/mentions/${mentionId}/candidates`);
+      return res.candidates || [];
+    } catch (err) {
+      console.error(`Failed to fetch candidates for mention ${mentionId}:`, err);
+      return [];
+    }
+  }
+
+  async function approveCandidate(articleId, mentionId, candidateId, reviewerEmail) {
+    try {
+      await apiPost(`/articles/${articleId}/mentions/${mentionId}/candidates/${candidateId}/approve`, {
+        reviewer: reviewerEmail,
+        notes: "Approved from Outlook Intel browser",
+      });
+      return true;
+    } catch (err) {
+      console.error(`Failed to approve candidate:`, err);
+      throw err;
     }
   }
 
@@ -47,6 +81,11 @@ export function createOutlookArticlesView(apiGet) {
           expandedId: null,
           selectedForBody: null,
           bodyLoading: null,
+          mentionsLoading: null,
+          mentionsByArticle: {},
+          candidatesByMention: {},
+          approvingCandidateId: null,
+          reviewerEmail: localStorage.getItem("outlook.reviewer.email") || "",
           error: null,
           loading: false,
         };
@@ -57,6 +96,12 @@ export function createOutlookArticlesView(apiGet) {
           activeSource: "all",
           expandedId: null,
           selectedForBody: null,
+          bodyLoading: null,
+          mentionsLoading: null,
+          mentionsByArticle: {},
+          candidatesByMention: {},
+          approvingCandidateId: null,
+          reviewerEmail: localStorage.getItem("outlook.reviewer.email") || "",
           error: err.message,
           loading: false,
         };
@@ -82,7 +127,29 @@ export function createOutlookArticlesView(apiGet) {
         const id = Number(expandBtn.dataset.outlookExpand);
         data.expandedId = data.expandedId === id ? null : id;
         data.selectedForBody = null;
-        rerender();
+
+        if (data.expandedId === id && !data.mentionsByArticle[id]) {
+          data.mentionsLoading = id;
+          rerender();
+
+          fetchMentions(id).then(mentions => {
+            data.mentionsByArticle[id] = mentions;
+            data.mentionsLoading = null;
+
+            mentions.forEach(mention => {
+              if (mention.candidates_count > 0 && !data.candidatesByMention[mention.id]) {
+                fetchCandidates(id, mention.id).then(candidates => {
+                  data.candidatesByMention[mention.id] = candidates;
+                  rerender();
+                });
+              }
+            });
+
+            rerender();
+          });
+        } else {
+          rerender();
+        }
         return;
       }
 
@@ -108,6 +175,34 @@ export function createOutlookArticlesView(apiGet) {
           data.bodyLoading = null;
           rerender();
         });
+        return;
+      }
+
+      // Approve candidate
+      const approveBtn = event.target.closest("[data-outlook-approve]");
+      if (approveBtn) {
+        const articleId = Number(approveBtn.dataset.articleId);
+        const mentionId = Number(approveBtn.dataset.mentionId);
+        const candidateId = Number(approveBtn.dataset.candidateId);
+
+        if (!data.reviewerEmail.trim()) {
+          alert("Please enter your email in the Outlook Intel settings");
+          return;
+        }
+
+        approveBtn.disabled = true;
+        approveBtn.textContent = "Approving...";
+
+        approveCandidate(articleId, mentionId, candidateId, data.reviewerEmail)
+          .then(() => {
+            localStorage.setItem("outlook.reviewer.email", data.reviewerEmail);
+            rerender();
+          })
+          .catch(err => {
+            alert(`Error approving: ${err.message}`);
+            approveBtn.disabled = false;
+            approveBtn.textContent = "Approve";
+          });
         return;
       }
 
@@ -152,7 +247,7 @@ function renderRoot(data) {
                  </tr>
                </thead>
                <tbody>
-                 ${filtered.map(article => renderRow(article, expandedId, data.selectedForBody, data.bodyLoading)).join("")}
+                 ${filtered.map(article => renderRow(article, expandedId, data.selectedForBody, data.bodyLoading, data)).join("")}
                </tbody>
              </table>
            </div>`}
@@ -163,7 +258,7 @@ function renderRoot(data) {
     </div>`;
 }
 
-function renderRow(article, expandedId, selectedForBody, bodyLoading) {
+function renderRow(article, expandedId, selectedForBody, bodyLoading, data) {
   const isExpanded = expandedId === article.id;
 
   return `
@@ -180,12 +275,13 @@ function renderRow(article, expandedId, selectedForBody, bodyLoading) {
         <span class="mention-count-badge">${article.mentions_count}</span>
       </td>
     </tr>
-    ${isExpanded ? renderDetail(article, selectedForBody, bodyLoading) : ""}`;
+    ${isExpanded ? renderDetail(article, selectedForBody, bodyLoading, data) : ""}`;
 }
 
-function renderDetail(article, selectedForBody, bodyLoading) {
+function renderDetail(article, selectedForBody, bodyLoading, data) {
   const isBodyLoading = bodyLoading === article.id;
-  const hasBody = article.body_text && article.body_text.trim().length > 0;
+  const mentionsLoading = data.mentionsLoading === article.id;
+  const mentions = data.mentionsByArticle[article.id] || [];
   const metadata = article.metadata || {};
   const urls = metadata.extracted_urls || [];
   const sender_email = metadata.sender_email || metadata.sender_email_fallback;
@@ -227,21 +323,15 @@ function renderDetail(article, selectedForBody, bodyLoading) {
             </div>
           ` : ""}
 
-          <!-- Mentions Section (Stub) -->
+          <!-- Mentions Section with Proposed Matches -->
           <div class="outlook-mentions-section">
-            <strong>Mentions:</strong>
-            <div class="mentions-stub">
-              ${article.mentions_count > 0
-                ? `<p>${article.mentions_count} mention${article.mentions_count !== 1 ? 's' : ''} found</p>
-                   <div class="mention-status">
-                     <span class="approved">${article.approved_links_count} approved</span>
-                     <span class="pending">${article.pending_mentions_count} pending</span>
-                     <span class="rejected">? rejected</span>
-                   </div>
-                   <p class="stub-note">👷 NER extraction coming soon</p>`
-                : `<p class="stub-note">No mentions identified yet</p>`
-              }
-            </div>
+            <strong>Mentions & Proposed Matches:</strong>
+            ${article.mentions_count === 0
+              ? `<div class="empty-section">No mentions found</div>`
+              : mentionsLoading
+                ? `<div class="loading-section">Loading mentions...</div>`
+                : renderMentionsWithCandidates(mentions, article.id, data)
+            }
           </div>
 
           <!-- Body Text (Lazy-loaded) -->
@@ -255,25 +345,50 @@ function renderDetail(article, selectedForBody, bodyLoading) {
             }
           </div>
 
-          <!-- Proposed Links Section (Stub) -->
-          <div class="outlook-candidates-section">
-            <strong>Proposed Links:</strong>
-            <div class="candidates-stub">
-              <p class="stub-note">🔗 Entity matching coming soon</p>
-            </div>
-          </div>
-
-          <!-- Entity Creation Section (Stub) -->
-          <div class="outlook-creation-section">
-            <button class="outlook-create-entity-btn" disabled>
-              Create New Entity
-            </button>
-            <p class="stub-note">📝 Entity creation script integration pending</p>
-          </div>
-
         </div>
       </td>
     </tr>`;
+}
+
+function renderMentionsWithCandidates(mentions, articleId, data) {
+  if (!mentions || mentions.length === 0) {
+    return `<div class="empty-section">No mentions extracted</div>`;
+  }
+
+  return `<div class="mentions-with-candidates">
+    ${mentions.map(mention => {
+      const candidates = data.candidatesByMention[mention.id] || [];
+      return `
+        <div class="mention-item">
+          <div class="mention-header">
+            <span class="mention-entity-type">${escapeHtml(mention.entity_type)}</span>
+            <span class="mention-text">"${escapeHtml(mention.mention_text)}"</span>
+            <span class="mention-status-badge ${mention.resolution_status}">${mention.resolution_status === "resolved" ? "✓ Resolved" : "Pending"}</span>
+          </div>
+          ${candidates.length > 0
+            ? `<div class="candidates-list">
+                 ${candidates.map(candidate => `
+                   <div class="candidate-proposal">
+                     <div class="candidate-info">
+                       <div class="candidate-label">${escapeHtml(candidate.candidate_label)}</div>
+                       <div class="candidate-score">${Math.round((candidate.match_score || 0) * 100)}% · ${escapeHtml(candidate.match_basis || "match")}</div>
+                     </div>
+                     <button
+                       class="approve-candidate-btn"
+                       data-outlook-approve
+                       data-article-id="${articleId}"
+                       data-mention-id="${mention.id}"
+                       data-candidate-id="${candidate.id}"
+                     >Approve</button>
+                   </div>
+                 `).join("")}
+               </div>`
+            : `<div class="no-candidates">No candidates found</div>`
+          }
+        </div>
+      `;
+    }).join("")}
+  </div>`;
 }
 
 function formatDate(isoString) {
