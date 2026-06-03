@@ -1,0 +1,265 @@
+/* FINRA Monitor View */
+
+.finra-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+/* Summary Stats Grid */
+
+.finra-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.finra-stat-card {
+  padding: 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.finra-stat-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  letter-spacing: 0.5px;
+}
+
+.finra-stat-card p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.finra-stat-card p.status-ok {
+  color: var(--status-active);
+}
+
+.finra-stat-card p.status-fail {
+  color: var(--status-error);
+}
+
+/* Sections */
+
+.finra-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finra-section-header {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  letter-spacing: 0.5px;
+}
+
+/* Tables */
+
+.finra-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.finra-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface-base);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 10;
+}
+
+.finra-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.finra-table th[style*="right"] {
+  text-align: right;
+}
+
+.finra-table tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.finra-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.finra-table td {
+  padding: 8px 12px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* Column-specific styling */
+
+.finra-name {
+  font-weight: 500;
+  color: var(--interactive-accent);
+}
+
+.finra-id {
+  font-family: "SF Mono", monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.finra-former {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.finra-current {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.finra-current-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.finra-move-type {
+  text-align: center;
+}
+
+.finra-detected {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pill badges */
+
+.finra-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.finra-pill--to_inactive {
+  background: rgba(200, 0, 0, 0.15);
+  color: var(--status-error);
+}
+
+.finra-pill--reactivated {
+  background: rgba(61, 166, 103, 0.15);
+  color: var(--status-active);
+}
+
+.finra-pill--firm_to_firm {
+  background: rgba(107, 155, 209, 0.15);
+  color: var(--interactive-accent);
+}
+
+.finra-pill--moved {
+  background: rgba(107, 155, 209, 0.15);
+  color: var(--interactive-accent);
+}
+
+.finra-pill--inactive {
+  background: rgba(200, 0, 0, 0.15);
+  color: var(--status-error);
+}
+
+/* Search & Filter Controls */
+
+.finra-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.finra-search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 6px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.finra-search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.finra-search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px rgba(107, 155, 209, 0.1);
+}
+
+.finra-filter-group {
+  display: flex;
+  gap: 6px;
+}
+
+.finra-filter-btn {
+  padding: 6px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.finra-filter-btn:hover {
+  border-color: var(--interactive-accent);
+  color: var(--text-primary);
+}
+
+.finra-filter-btn.is-active {
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+  color: white;
+}
+
+.finra-results-count {
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+
+@media (max-width: 1024px) {
+  .finra-table th:nth-child(3),
+  .finra-table th:nth-child(4),
+  .finra-table td:nth-child(3),
+  .finra-table td:nth-child(4) {
+    display: none;
+  }
+}

@@ -18,7 +18,9 @@ import { createEqdView, EQD_VIEW_ID } from "./views/eqd.js?v=3";
 import { createArticleReviewView, ARTICLE_REVIEW_VIEW_ID } from "./views/article_review.js";
 import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
+import { createFinraView, FINRA_VIEW_ID } from "./views/finra.js";
 import { createEncoreView, ENCORE_VIEW_ID } from "./views/encore.js";
+import { createPeopleApprovalView, PEOPLE_APPROVAL_VIEW_ID } from "./views/people_approval.js";
 
 const ACTIVE_VIEW_KEY = "bankst.simple.active-view";
 const DEFAULT_VIEW_ID = "platform.overview";
@@ -155,13 +157,14 @@ const VIEWS = [
     emptyText: "No follow-up rows returned.",
   }),
   createReferenceView(),
-  createFinraView(),
+  createFinraView(finraGet),
   createBbgWorkspaceView(),
   createEqdView(eqdGet, eqdPost, eqdPatch),
   createArticleReviewView(opsGet, opsPost),
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet, outlookPost),
   createEncoreView(encoreGet),
+  createPeopleApprovalView(opsGet, opsPost),
 ];
 
 const VIEW_BY_ID = new Map(VIEWS.map((view) => [view.id, view]));
@@ -191,9 +194,12 @@ function wireMainActions() {
 
   elements.viewRoot.addEventListener("input", (event) => {
     const input = event.target.closest("[data-finra-search]");
-    if (!input || state.activeViewId !== "finra.monitor") return;
-    state.finra.query = input.value || "";
-    renderActiveView();
+    if (!input || state.activeViewId !== FINRA_VIEW_ID) return;
+    const cacheEntry = state.cache.get(FINRA_VIEW_ID);
+    if (cacheEntry?.data) {
+      cacheEntry.data.searchQuery = input.value || "";
+      renderActiveView();
+    }
   });
 
   elements.viewRoot.addEventListener("input", (event) => {
@@ -231,6 +237,14 @@ function wireMainActions() {
     const encoreView = VIEW_BY_ID.get(ENCORE_VIEW_ID);
     const encoreData = state.cache.get(ENCORE_VIEW_ID)?.data;
     if (encoreView && encoreData) encoreView.onSearchInput(input.value || "", encoreData, renderActiveView);
+  });
+
+  elements.viewRoot.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-reviewer-email]");
+    if (!input || state.activeViewId !== PEOPLE_APPROVAL_VIEW_ID) return;
+    const peopleView = VIEW_BY_ID.get(PEOPLE_APPROVAL_VIEW_ID);
+    const peopleData = state.cache.get(PEOPLE_APPROVAL_VIEW_ID)?.data;
+    if (peopleView && peopleData) peopleView.onReviewerEmailChange(input.value || "", peopleData, renderActiveView);
   });
 
   elements.viewRoot.addEventListener("click", (event) => {
@@ -321,9 +335,12 @@ function wireMainActions() {
     }
 
     const button = event.target.closest("[data-finra-filter]");
-    if (button && state.activeViewId === "finra.monitor") {
-      state.finra.filter = button.dataset.finraFilter || "all";
-      renderActiveView();
+    if (button && state.activeViewId === FINRA_VIEW_ID) {
+      const view = VIEW_BY_ID.get(FINRA_VIEW_ID);
+      const data = state.cache.get(FINRA_VIEW_ID)?.data;
+      if (view && data) {
+        view.handleClick(event, data, renderActiveView);
+      }
       return;
     }
 
@@ -468,6 +485,36 @@ function wireMainActions() {
           articleData,
           renderActiveView,
         );
+        return;
+      }
+    }
+
+    // ── People Approval ────────────────────────────────────────────────────
+    if (state.activeViewId === PEOPLE_APPROVAL_VIEW_ID) {
+      const peopleView = VIEW_BY_ID.get(PEOPLE_APPROVAL_VIEW_ID);
+      const peopleData = state.cache.get(PEOPLE_APPROVAL_VIEW_ID)?.data;
+      if (!peopleView || !peopleData) return;
+
+      const personSelect = event.target.closest("[data-person-select]");
+      if (personSelect) {
+        peopleView.onSelectCandidate(Number(personSelect.dataset.personSelect), peopleData, renderActiveView);
+        return;
+      }
+
+      const approveBtn = event.target.closest("[data-approve-vault]");
+      if (approveBtn) {
+        peopleView.onApproveMatch(
+          peopleData.selectedCandidateId,
+          approveBtn.dataset.approveVault,
+          peopleData,
+          renderActiveView,
+        );
+        return;
+      }
+
+      const dismissBtn = event.target.closest("[data-person-dismiss-modal]");
+      if (dismissBtn) {
+        peopleView.onDismissModal(peopleData, renderActiveView);
         return;
       }
     }
@@ -1923,199 +1970,6 @@ function createBbgWorkspaceView() {
   };
 }
 
-function createFinraView() {
-  return {
-    id: "finra.monitor",
-    label: "FINRA Monitor",
-    section: "Monitors",
-    endpoint: "/api/finra/summary, /api/finra/firms/*, /api/finra/runs, /api/finra/changes",
-    load: async () => {
-      const [summary, arrivals, departures, runs, changes] = await Promise.all([
-        finraGet("/summary"),
-        finraGet("/firms/arrivals?limit=12"),
-        finraGet("/firms/departures?limit=12"),
-        finraGet("/runs"),
-        finraGet("/changes?limit=500"),
-      ]);
-
-      return {
-        summary: summary || {},
-        arrivals: rowsFrom(arrivals),
-        departures: rowsFrom(departures),
-        runs: rowsFrom(runs),
-        changes: rowsFrom(changes),
-      };
-    },
-    render: (data) => {
-      const summary = data?.summary || {};
-      const arrivals = Array.isArray(data?.arrivals) ? data.arrivals : [];
-      const departures = Array.isArray(data?.departures) ? data.departures : [];
-      const runs = Array.isArray(data?.runs) ? data.runs : [];
-      const allChanges = Array.isArray(data?.changes) ? data.changes : [];
-      const runCount = Number(runs.length || 0);
-      const lastRun = runs[0];
-      const query = state.finra.query.trim().toLowerCase();
-      const filter = state.finra.filter || "all";
-
-      const changes = [...allChanges].sort((a, b) => {
-        const dt = finraDetectedTs(b.detected_at) - finraDetectedTs(a.detected_at);
-        if (dt !== 0) return dt;
-        return Number(b.id || 0) - Number(a.id || 0);
-      });
-
-      const counts = changes.reduce((acc, row) => {
-        const type = finraMoveType(row);
-        if (type === "to_inactive") acc.toInactive += 1;
-        else acc.moved += 1;
-        return acc;
-      }, { toInactive: 0, moved: 0 });
-
-      const filteredChanges = changes.filter((row) => {
-        const type = finraMoveType(row);
-        if (filter === "to_inactive" && type !== "to_inactive") return false;
-        if (filter === "moved" && type === "to_inactive") return false;
-        if (!query) return true;
-        const text = [
-          row.name,
-          row.finra_id,
-          row.old_status,
-          row.new_status,
-        ].map((v) => String(v || "").toLowerCase()).join(" ");
-        return text.includes(query);
-      });
-
-      const rows = Array.from({ length: Math.max(arrivals.length, departures.length, 1) })
-        .map((_, index) => {
-          const left = arrivals[index];
-          const right = departures[index];
-          return `
-            <tr>
-              <td>${escapeHtml(toText(left?.firm))}</td>
-              <td>${escapeHtml(toText(left?.count))}</td>
-              <td>${escapeHtml(toText(right?.firm))}</td>
-              <td>${escapeHtml(toText(right?.count))}</td>
-            </tr>
-          `;
-        })
-        .join("");
-
-      const moveRows = filteredChanges
-        .map((row) => {
-          const moveType = finraMoveType(row);
-          const moveTypeLabel = finraMoveTypeLabel(moveType);
-          const destinationStatus = finraStatusClass(row.new_status);
-          const destinationLabel = destinationStatus === "inactive" ? "Inactive" : "Moved";
-
-          return `
-            <tr>
-              <td>${escapeHtml(toText(row.name))}</td>
-              <td>${escapeHtml(toText(row.finra_id))}</td>
-              <td>${escapeHtml(toText(row.old_status))}</td>
-              <td>
-                <div class="finra-current-cell">
-                  <span>${escapeHtml(toText(row.new_status))}</span>
-                  <span class="finra-pill finra-pill--${destinationStatus}">${escapeHtml(destinationLabel)}</span>
-                </div>
-              </td>
-              <td><span class="finra-pill finra-pill--${moveType}">${escapeHtml(moveTypeLabel)}</span></td>
-              <td>${escapeHtml(finraDateLabel(row.detected_at))}</td>
-            </tr>
-          `;
-        })
-        .join("");
-
-      return `
-        <div class="cards">
-          <article class="card"><h3>Tracked</h3><p>${escapeHtml(toText(summary.total))}</p></article>
-          <article class="card"><h3>Active</h3><p class="status-ok">${escapeHtml(toText(summary.active))}</p></article>
-          <article class="card"><h3>Inactive</h3><p class="status-fail">${escapeHtml(toText(summary.inactive))}</p></article>
-          <article class="card"><h3>Changes Logged</h3><p>${escapeHtml(toText(summary.total_changes))}</p></article>
-          <article class="card"><h3>Runs</h3><p>${escapeHtml(String(runCount))}</p></article>
-          <article class="card"><h3>Last Run</h3><p style="font-size:15px;">${escapeHtml(finraDateLabel(lastRun?.completed_at || lastRun?.run_at))}</p></article>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Arrivals</th>
-                <th>Count</th>
-                <th>Departures</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <div class="finra-controls">
-          <input
-            type="text"
-            data-finra-search
-            class="finra-search-input"
-            value="${escapeHtml(state.finra.query)}"
-            placeholder="Search name, FINRA ID, former/current firm..."
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <div class="finra-filter-group">
-            <button class="finra-filter-btn${filter === "all" ? " is-active" : ""}" data-finra-filter="all">All · ${changes.length}</button>
-            <button class="finra-filter-btn${filter === "to_inactive" ? " is-active" : ""}" data-finra-filter="to_inactive">To Inactive · ${counts.toInactive}</button>
-            <button class="finra-filter-btn${filter === "moved" ? " is-active" : ""}" data-finra-filter="moved">Moved · ${counts.moved}</button>
-          </div>
-          <span class="finra-results-count">${filteredChanges.length.toLocaleString()} shown</span>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>FINRA ID</th>
-                <th>Former Firm</th>
-                <th>Current Firm / Status</th>
-                <th>Move Type</th>
-                <th>Detected</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${moveRows || `<tr><td colspan="6">No moves match the current search/filter.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-      `;
-    },
-  };
-}
-
-function finraDetectedTs(value) {
-  if (!value) return 0;
-  const ts = Date.parse(String(value).replace(" ", "T"));
-  return Number.isFinite(ts) ? ts : 0;
-}
-
-function finraDateLabel(value) {
-  if (!value) return "-";
-  const date = new Date(String(value).replace(" ", "T"));
-  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10) || "-";
-  return date.toLocaleDateString("en-CA");
-}
-
-function finraMoveType(row) {
-  const oldStatus = String(row?.old_status || "").toUpperCase();
-  const newStatus = String(row?.new_status || "").toUpperCase();
-  if (newStatus.includes("INACTIVE")) return "to_inactive";
-  if (oldStatus.includes("INACTIVE")) return "reactivated";
-  return "firm_to_firm";
-}
-
-function finraMoveTypeLabel(type) {
-  if (type === "to_inactive") return "To Inactive";
-  if (type === "reactivated") return "Reactivated / New Firm";
-  return "Firm-to-Firm";
-}
-
-function finraStatusClass(status) {
-  const value = String(status || "").toUpperCase();
-  return value.includes("INACTIVE") ? "inactive" : "moved";
-}
 
 function normalizePipelineRow(row) {
   return {
