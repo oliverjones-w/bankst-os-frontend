@@ -7,7 +7,7 @@
       "destination": "https://bankst.co/api/:path*"
     },
     {
-      "source": "/((?!js|css|typography|assets|favicon\\.ico|.*\\.).*)",
+      "source": "/((?!js|css|typography|assets|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ]
