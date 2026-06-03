@@ -13,7 +13,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://bankst.co/api/:path*"
+      "destination": "https://api.bankst.co/api/:path*"
     },
     {
       "source": "/((?!js|css|typography|assets|favicon\\.ico).*)",
