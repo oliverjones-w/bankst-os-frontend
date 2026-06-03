@@ -14,18 +14,23 @@
   </script>
   <link rel="stylesheet" href="./css/fonts.css?v=64" />
   <link rel="stylesheet" href="./css/tokens.css?v=1" />
+  <link rel="stylesheet" href="./css/components.css?v=1" />
   <link rel="stylesheet" href="./css/overlays.css?v=1" />
-  <link rel="stylesheet" href="./css/app-shell.css?v=11" />
+  <link rel="stylesheet" href="./css/tables.css?v=1" />
+  <link rel="stylesheet" href="./css/app-shell.css?v=12" />
+  <link rel="stylesheet" href="./css/eqd.css?v=3" />
+  <link rel="stylesheet" href="./css/views/log-intake.css?v=2" />
+  <link rel="stylesheet" href="./css/views/article-review.css?v=1" />
+  <link rel="stylesheet" href="./css/views/outlook_articles.css?v=1" />
   <script>
-    const shadowParam = new URLSearchParams(window.location.search).get("shadow");
-    const opsApiBase = shadowParam === "1" ? "/api/ops-shadow" : "/api/ops";
-
     window.APP_CONFIG = {
       FINRA_API_BASE: "/api/finra",
       BANKST_API_BASE: "/api/core",
       MAPPING_API_BASE: "/api/mapping",
-      OPS_API_BASE: opsApiBase,
-      PIPELINE_API_BASE: opsApiBase
+      OPS_API_BASE: "/api/ops",
+      PIPELINE_API_BASE: "/api/ops",
+      EQD_API_BASE: "/api/eqd",
+      OUTLOOK_API_BASE: "/api/outlook_intel"
     };
   </script>
 </head>
@@ -46,10 +51,6 @@
           <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle theme"></button>
         </div>
       </header>
-
-      <div id="opsShadowBanner" class="ops-shadow-banner" hidden>
-        SHADOW DATA — NOT PRODUCTION
-      </div>
 
       <section id="viewRoot" class="view-root" aria-live="polite"></section>
     </main>
@@ -79,13 +80,11 @@
     </section>
   </div>
 
-  <script type="module" src="./js/app.js?v=113"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <script type="module" src="./js/app-os.js?v=3"></script>
   <script>
     window.addEventListener("load", () => {
       document.documentElement.classList.remove("preload");
-      const opsBase = window.APP_CONFIG?.OPS_API_BASE || window.APP_CONFIG?.PIPELINE_API_BASE || "/api/ops";
-      const shadowBanner = document.getElementById("opsShadowBanner");
-      if (shadowBanner) shadowBanner.hidden = opsBase !== "/api/ops-shadow";
     });
   </script>
 </body>
