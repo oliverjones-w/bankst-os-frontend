@@ -1,6 +1,15 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "CF_Access_Client_Id", "value": "$CF_CLIENT_ID" },
+        { "key": "CF_Access_Client_Secret", "value": "$CF_ACCESS_CLIENT_SECRET" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
