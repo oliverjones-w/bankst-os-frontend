@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://bankst.co/api/:path*"
+      "destination": "http://100.76.200.30:7842/api/:path*"
     },
     {
       "source": "/((?!js|css|typography|assets|favicon\\.ico).*)",
