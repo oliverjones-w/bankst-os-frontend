@@ -222,17 +222,19 @@ function initializeCytoscape(data) {
         selector: "node",
         css: {
           content: "data(label)",
-          "text-valign": "center",
+          "text-valign": "bottom",
           "text-halign": "center",
+          "text-margin-y": 6,
+          "text-wrap": "wrap",
+          "text-max-width": "80px",
           width: "data(size)",
           height: "data(size)",
           "background-color": "data(color)",
-          "font-size": "10px",
-          color: "#fff",
-          "text-outline-width": 1,
-          "text-outline-color": "#333",
+          "font-size": "11px",
+          color: "#ccc",
+          "text-outline-width": 0,
           "z-index": 10,
-          shape: "ellipse",
+          shape: "data(shape)",
         }
       },
       {
@@ -382,13 +384,14 @@ function buildCytoscapeElements(network) {
     const baseSize = 40 + Math.sqrt(inf + out) * 8;
 
     let color = "#555555"; // Default muted grey for Inactive
-    let shape = "rectangle"; // Inactive is a rectangle
+    let shape = "ellipse"; // Default circle
 
     if (!isInactive) {
       color = "#999"; // Balanced for active firms
-      if (net > 5) color = "#4CAF50"; // Inflow (green)
-      else if (net < -5) color = "#F44336"; // Outflow (red)
-      shape = "ellipse"; // Active firms are circles
+      if (net > 0) color = "#4CAF50"; // Inflow (green)
+      else if (net < 0) color = "#F44336"; // Outflow (red)
+    } else {
+      shape = "rectangle"; // Inactive is a rectangle
     }
 
     // Cap size for Inactive to prevent dominating the graph
@@ -430,7 +433,7 @@ function buildCytoscapeElements(network) {
 }
 
 function normalizeFirm(status) {
-  if (!status || status === "Inactive") return null;
+  if (!status) return null;
   return status.trim();
 }
 
