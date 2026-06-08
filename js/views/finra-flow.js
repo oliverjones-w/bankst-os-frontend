@@ -66,10 +66,14 @@ function renderRoot(data) {
 
   // Filter changes by date and function
   const filtered = changes.filter(ch => {
-    const chDate = ch.detected_at?.split(" ")?.[0];
-    const inDateRange = !dateFilter.start || chDate >= dateFilter.start;
     const hasFunction = selectedFunc === "all" || ch.function === selectedFunc;
-    return inDateRange && hasFunction && isFlowMove(ch);
+    if (!isFlowMove(ch)) return false;
+    // Date range filter (if specified)
+    if (dateFilter.start) {
+      const chDate = ch.detected_at?.split(" ")?.[0];
+      if (!chDate || chDate < dateFilter.start) return false;
+    }
+    return hasFunction;
   });
 
   // Build network data
@@ -343,20 +347,8 @@ function escapeFirm(status) {
 }
 
 function getDefaultDateRange(runs) {
-  if (!Array.isArray(runs) || runs.length === 0) {
-    return { start: "" };
-  }
-
-  // Find earliest run date for better default range
-  const earliest = runs[runs.length - 1];
-  if (!earliest.started_at) return { start: "" };
-
-  const date = new Date(earliest.started_at);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return { start: `${year}-${month}-${day}` }; // Show all data from earliest run
+  // Default to showing all data (no date filter)
+  return { start: "" };
 }
 
 function rowsFrom(data) {
