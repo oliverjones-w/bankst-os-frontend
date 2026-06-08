@@ -1,10 +1,11 @@
 /**
- * finra-flow.js — FINRA Talent Flow Visualization
+ * finra-flow.js — Animated Particle Network for Talent Flow Visualization
  *
- * Network graph showing firm-to-firm talent movements.
- * - Nodes = firms (size = flow volume, color = net gain/loss)
- * - Edges = people moving between firms (thickness = count)
- * - Time slider to see flows by date range
+ * Architecture:
+ * 1. Data preprocessing: Stitch Firm A → Inactive → Firm B into direct paths
+ * 2. Force-directed layout: D3.js simulation with high repulsion
+ * 3. Particle animation: requestAnimationFrame loop with particle positions
+ * 4. Interactive controls: Speed, garden leave filter, toggle Inactive, hover highlight
  */
 
 import { escapeHtml } from "../utils.js";
@@ -24,47 +25,49 @@ export function createFinraFlowView(finraGet) {
         finraGet("/runs"),
       ]);
 
-      // Telemetry: log data pipeline
       const changesArray = Array.isArray(changes) ? changes : [];
-      const flowMoves = changesArray.filter(isFlowMove);
-      console.log(`[FINRA Flow] Data pipeline: ${changesArray.length} changes → ${flowMoves.length} flow moves`);
-      if (changesArray.length > 0) {
-        const rejected = changesArray.filter(ch => !isFlowMove(ch)).slice(0, 3);
-        console.log(`[FINRA Flow] Sample rejected changes:`, rejected);
-      }
+      console.log(`[FINRA Flow] Loaded ${changesArray.length} raw changes`);
 
       return {
         changes: changesArray,
         runs: Array.isArray(runs) ? runs : [],
-        dateFilter: getDefaultDateRange(runs),
-        selectedFunction: "all",
+        animationSpeed: 1.0,
+        gardenLeaveMinDays: 0,
+        showInactive: true,
       };
     },
 
     render: (data) => data ? renderRoot(data) : renderLoading(),
 
     afterRender: (data) => {
-      // Initialize Cytoscape after DOM insertion (fixes issue #1)
-      // Use setTimeout to ensure layout has calculated
-      setTimeout(() => initializeCytoscape(data), 0);
+      setTimeout(() => initializeParticleGraph(data), 0);
     },
 
     handleClick(event, data, rerender) {
-      // Date range slider
-      const dateInput = event.target.closest("input[data-flow-date]");
-      if (dateInput) {
-        data.dateFilter.start = dateInput.value;
+      // Animation speed slider
+      const speedInput = event.target.closest("input[data-speed]");
+      if (speedInput) {
+        data.animationSpeed = parseFloat(speedInput.value);
+        return;
+      }
+
+      // Garden leave filter
+      const leaveInput = event.target.closest("input[data-garden-leave]");
+      if (leaveInput) {
+        data.gardenLeaveMinDays = parseInt(leaveInput.value);
         rerender();
         return;
       }
 
-      // Function filter
-      const funcBtn = event.target.closest("[data-flow-func]");
-      if (funcBtn) {
-        data.selectedFunction = funcBtn.dataset.flowFunc;
+      // Toggle Inactive
+      const inactiveToggle = event.target.closest("[data-toggle-inactive]");
+      if (inactiveToggle) {
+        data.showInactive = !data.showInactive;
         rerender();
         return;
       }
+
+      // Highlight path on hover (see event delegation in initializeParticleGraph)
     },
   };
 }
@@ -75,102 +78,97 @@ function renderLoading() {
 
 function renderRoot(data) {
   const changes = Array.isArray(data?.changes) ? data.changes : [];
-  const runs = Array.isArray(data?.runs) ? data.runs : [];
-  const dateFilter = data?.dateFilter || {};
-  const selectedFunc = data?.selectedFunction || "all";
+  const animationSpeed = data?.animationSpeed || 1.0;
+  const gardenLeaveMinDays = data?.gardenLeaveMinDays || 0;
+  const showInactive = data?.showInactive ?? true;
 
-  // Filter changes by date and function
-  const filtered = changes.filter(ch => {
-    const hasFunction = selectedFunc === "all" || ch.function === selectedFunc;
-    if (!isFlowMove(ch)) return false;
-    // Date range filter (if specified)
-    if (dateFilter.start) {
-      const chDate = ch.detected_at?.split(" ")?.[0];
-      if (!chDate || chDate < dateFilter.start) return false;
-    }
-    return hasFunction;
+  // Preprocess data: stitch inactive flows
+  const stitched = stitchInactiveFlows(changes);
+  console.log(`[FINRA Flow] After stitching: ${stitched.directPaths.length} direct paths, ${stitched.terminalInactive.length} terminal Inactive`);
+
+  // Filter by garden leave threshold
+  const filtered = stitched.directPaths.filter(path => {
+    if (path.inactiveDuration === null) return true;
+    return path.inactiveDuration >= gardenLeaveMinDays;
   });
 
-  // Build network data
-  const network = buildNetwork(filtered);
-  const stats = calculateStats(network);
-
-  // Get unique functions for filter buttons
-  const functions = ["all", ...new Set(changes.map(ch => ch.function).filter(Boolean))];
+  // Compute network topology
+  const network = buildNetwork(filtered, showInactive);
+  const commonPaths = computeCommonPaths(filtered, showInactive).slice(0, 10);
 
   return `
     <div class="view-wrapper flow-view">
       <div class="flow-header">
         <div class="flow-controls">
           <div class="control-group">
-            <label>Date Range Start:</label>
-            <input type="date" data-flow-date value="${dateFilter.start || ""}" />
-            <small>${runs[0]?.started_at?.split(" ")?.[0] || ""} onwards</small>
+            <label>Animation Speed:</label>
+            <input type="range" data-speed min="0.1" max="3" step="0.1" value="${animationSpeed}" />
+            <small>${(animationSpeed * 100).toFixed(0)}%</small>
           </div>
 
           <div class="control-group">
-            <label>Function:</label>
-            <div class="button-group">
-              ${functions.map(f => `
-                <button class="btn-small ${selectedFunc === f ? "active" : ""}" data-flow-func="${f}">
-                  ${f === "all" ? "All" : f}
-                </button>
-              `).join("")}
-            </div>
+            <label>Garden Leave Filter (≥ days):</label>
+            <input type="range" data-garden-leave min="0" max="180" step="1" value="${gardenLeaveMinDays}" />
+            <small>${gardenLeaveMinDays} days</small>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <input type="checkbox" data-toggle-inactive ${showInactive ? "checked" : ""} />
+              Show Arrivals/Departures
+            </label>
           </div>
         </div>
 
         <div class="flow-stats">
           <div class="stat">
-            <span class="label">Total Moves:</span>
+            <span class="label">Total Paths:</span>
             <span class="value">${filtered.length}</span>
           </div>
           <div class="stat">
-            <span class="label">Firms Involved:</span>
-            <span class="value">${stats.firmCount}</span>
+            <span class="label">Firms:</span>
+            <span class="value">${network.firms.length}</span>
           </div>
           <div class="stat">
-            <span class="label">Largest Outflow:</span>
-            <span class="value">${stats.largestOutflow.firm || "—"} (${stats.largestOutflow.count})</span>
+            <span class="label">Total Moves:</span>
+            <span class="value">${filtered.reduce((sum, p) => sum + p.count, 0)}</span>
           </div>
           <div class="stat">
-            <span class="label">Largest Inflow:</span>
-            <span class="value">${stats.largestInflow.firm || "—"} (${stats.largestInflow.count})</span>
+            <span class="label">Avg Garden Leave:</span>
+            <span class="value">${computeAvgGardenLeave(filtered)} days</span>
           </div>
         </div>
       </div>
 
-      <div id="finra-flow-graph" class="flow-graph">
-        ${network.firms.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-faint);">No firm-to-firm movements in selected date range</div>' : ''}
+      <div id="finra-particle-graph" class="flow-graph-container">
+        <canvas id="particle-canvas" style="display: block; width: 100%; height: 100%;"></canvas>
       </div>
 
       <div class="flow-legend">
-        <div><span style="color:#4CAF50;font-weight:bold;">●</span> Net Inflow (Gaining talent)</div>
-        <div><span style="color:#F44336;font-weight:bold;">●</span> Net Outflow (Losing talent)</div>
-        <div><span style="color:#999;font-weight:bold;">●</span> Balanced (Equal in/out)</div>
-        <div style="border-bottom: 2px dashed #999;">⊸ Arrivals/Departures (Inactive)</div>
+        <div><span style="color:#4CAF50;font-weight:bold;">●</span> Net Inflow</div>
+        <div><span style="color:#F44336;font-weight:bold;">●</span> Net Outflow</div>
+        <div><span style="color:#999;font-weight:bold;">●</span> Balanced</div>
+        <div><span style="opacity:0.5;">◆</span> Arrival/Departure (if toggled)</div>
       </div>
 
       <div class="flow-table">
-        <h3>Top Movements</h3>
-        <table>
+        <h3>Top Talent Paths</h3>
+        <table id="common-paths-table">
           <thead>
             <tr>
-              <th>Person</th>
               <th>From</th>
               <th>To</th>
-              <th>Role</th>
-              <th>Date</th>
+              <th>Count</th>
+              <th>Avg Leave (days)</th>
             </tr>
           </thead>
           <tbody>
-            ${filtered.slice(0, 10).map(ch => `
-              <tr>
-                <td>${escapeHtml(ch.name || "")}</td>
-                <td>${escapeFirm(ch.old_status)}</td>
-                <td>${escapeFirm(ch.new_status)}</td>
-                <td>${escapeHtml(ch.function || "")}</td>
-                <td>${ch.detected_at?.split(" ")?.[0] || ""}</td>
+            ${commonPaths.map(path => `
+              <tr data-path-id="${escapeHtml(path.from)}→${escapeHtml(path.to)}" style="cursor: pointer;">
+                <td>${escapeFirm(path.from)}</td>
+                <td>${escapeFirm(path.to)}</td>
+                <td><strong>${path.count}</strong></td>
+                <td>${path.avgInactiveDuration || "—"}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -180,256 +178,408 @@ function renderRoot(data) {
   `;
 }
 
-function initializeCytoscape(data) {
-  if (typeof window.cytoscape !== "function") {
-    console.warn("[FINRA Flow] Cytoscape not loaded");
+/**
+ * Data Preprocessing: Stitch Inactive Flows
+ *
+ * Logic:
+ * - Identify individuals with moves: Firm A → Inactive → Firm B
+ * - Collapse to single path: Firm A → Firm B
+ * - Calculate inactiveDuration (days between moves)
+ * - Retain terminal Inactive moves (A → Inactive) only if no arrival found
+ */
+function stitchInactiveFlows(changes) {
+  const changesArray = Array.isArray(changes) ? changes : [];
+
+  // Index: person_name → [sorted moves by detected_at]
+  const personMoves = {};
+  changesArray.forEach(ch => {
+    if (!ch.name) return;
+    if (!personMoves[ch.name]) personMoves[ch.name] = [];
+    personMoves[ch.name].push(ch);
+  });
+
+  // Sort each person's moves by detected_at
+  Object.values(personMoves).forEach(moves => {
+    moves.sort((a, b) => {
+      const aDate = new Date(a.detected_at || 0).getTime();
+      const bDate = new Date(b.detected_at || 0).getTime();
+      return aDate - bDate;
+    });
+  });
+
+  const directPaths = [];
+  const terminalInactive = [];
+  const used = new Set();
+
+  // Identify stitched paths: A → Inactive → B
+  Object.entries(personMoves).forEach(([person, moves]) => {
+    for (let i = 0; i < moves.length - 1; i++) {
+      const current = moves[i];
+      const next = moves[i + 1];
+
+      const key1 = `${person}:${i}`;
+      const key2 = `${person}:${i + 1}`;
+
+      if (used.has(key1) || used.has(key2)) continue;
+
+      // Check if current → Inactive and next → Firm B
+      const toInactive = isInactive(current.new_status);
+      const fromInactive = isInactive(next.old_status);
+
+      if (toInactive && fromInactive) {
+        // Stitchable path
+        const fromFirm = current.old_status;
+        const toFirm = next.new_status;
+        const durationMs = new Date(next.detected_at).getTime() - new Date(current.detected_at).getTime();
+        const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
+
+        directPaths.push({
+          from: fromFirm,
+          to: toFirm,
+          person,
+          count: 1,
+          inactiveDuration: durationDays,
+          people: [person],
+        });
+
+        used.add(key1);
+        used.add(key2);
+      }
+    }
+  });
+
+  // Collect terminal Inactive moves (A → Inactive with no arrival)
+  Object.entries(personMoves).forEach(([person, moves]) => {
+    moves.forEach((move, idx) => {
+      const key = `${person}:${idx}`;
+      if (used.has(key)) return;
+
+      if (isInactive(move.new_status)) {
+        // Check if there's a subsequent arrival (next move from Inactive)
+        const hasArrival = moves.slice(idx + 1).some(m => isInactive(m.old_status));
+        if (!hasArrival) {
+          terminalInactive.push(move);
+        }
+      }
+    });
+  });
+
+  // Aggregate paths by (from, to)
+  const pathMap = {};
+  directPaths.forEach(path => {
+    const key = `${path.from}→${path.to}`;
+    if (!pathMap[key]) {
+      pathMap[key] = { from: path.from, to: path.to, count: 0, people: [], durations: [] };
+    }
+    pathMap[key].count += 1;
+    pathMap[key].people.push(path.person);
+    if (path.inactiveDuration !== null) {
+      pathMap[key].durations.push(path.inactiveDuration);
+    }
+  });
+
+  // Compute average inactive duration
+  const aggregated = Object.values(pathMap).map(path => ({
+    from: path.from,
+    to: path.to,
+    count: path.count,
+    people: path.people,
+    inactiveDuration: path.durations.length > 0 ? Math.round(path.durations.reduce((a, b) => a + b) / path.durations.length) : null,
+  }));
+
+  return { directPaths: aggregated, terminalInactive };
+}
+
+function isInactive(status) {
+  return status && status.trim().toLowerCase() === "inactive";
+}
+
+function buildNetwork(paths, showInactive) {
+  const firmSet = new Set();
+  const flows = [];
+
+  paths.forEach(path => {
+    const from = normalizeFirm(path.from);
+    const to = normalizeFirm(path.to);
+
+    if (!from || !to || from === to) return;
+    if (!showInactive && (isInactive(from) || isInactive(to))) return;
+
+    firmSet.add(from);
+    firmSet.add(to);
+
+    flows.push({
+      from,
+      to,
+      count: path.count,
+      inactiveDuration: path.inactiveDuration,
+      isInactiveFlow: isInactive(from) || isInactive(to),
+    });
+  });
+
+  return {
+    firms: Array.from(firmSet),
+    flows,
+  };
+}
+
+function computeCommonPaths(paths, showInactive) {
+  const pathMap = {};
+
+  paths.forEach(path => {
+    if (!showInactive && (isInactive(path.from) || isInactive(path.to))) return;
+
+    const from = normalizeFirm(path.from);
+    const to = normalizeFirm(path.to);
+
+    if (!from || !to || from === to) return;
+
+    const key = `${from}→${to}`;
+    if (!pathMap[key]) {
+      pathMap[key] = { from, to, count: 0, durations: [] };
+    }
+    pathMap[key].count += path.count;
+    if (path.inactiveDuration !== null) {
+      pathMap[key].durations.push(path.inactiveDuration);
+    }
+  });
+
+  return Object.values(pathMap)
+    .sort((a, b) => b.count - a.count)
+    .map(p => ({
+      ...p,
+      avgInactiveDuration: p.durations.length > 0 ? Math.round(p.durations.reduce((a, b) => a + b) / p.durations.length) : null,
+    }));
+}
+
+function computeAvgGardenLeave(paths) {
+  const durations = paths
+    .filter(p => p.inactiveDuration !== null)
+    .map(p => p.inactiveDuration);
+
+  if (durations.length === 0) return "—";
+  const avg = Math.round(durations.reduce((a, b) => a + b) / durations.length);
+  return avg;
+}
+
+/**
+ * Initialize Particle-Based Graph
+ *
+ * Steps:
+ * 1. Extract data for network topology
+ * 2. Initialize D3 force simulation
+ * 3. Setup Canvas for particle rendering
+ * 4. Start requestAnimationFrame loop
+ * 5. Attach event listeners for hover highlight
+ */
+function initializeParticleGraph(data) {
+  if (typeof window.d3 !== "object") {
+    console.warn("[FINRA Flow] D3.js not loaded");
     return;
   }
 
-  const container = document.getElementById("finra-flow-graph");
-  if (!container) {
-    console.warn("[FINRA Flow] Graph container not found");
+  const container = document.getElementById("finra-particle-graph");
+  const canvas = document.getElementById("particle-canvas");
+
+  if (!container || !canvas) {
+    console.warn("[FINRA Flow] Canvas container not found");
     return;
   }
 
   const changes = Array.isArray(data?.changes) ? data.changes : [];
-  const dateFilter = data?.dateFilter || {};
-  const selectedFunc = data?.selectedFunction || "all";
+  const showInactive = data?.showInactive ?? true;
+  const animationSpeed = data?.animationSpeed || 1.0;
 
-  // Filter changes (same logic as renderRoot)
-  const filtered = changes.filter(ch => {
-    const hasFunction = selectedFunc === "all" || ch.function === selectedFunc;
-    if (!isFlowMove(ch)) return false;
-    if (dateFilter.start) {
-      const chDate = ch.detected_at?.split(" ")?.[0];
-      if (!chDate || chDate < dateFilter.start) return false;
-    }
-    return hasFunction;
+  // Preprocess
+  const stitched = stitchInactiveFlows(changes);
+  const network = buildNetwork(stitched.directPaths, showInactive);
+
+  // Setup canvas context
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const width = rect.width;
+  const height = rect.height;
+
+  // Compute node metrics (inflow, outflow, net flow)
+  const flowMetrics = {};
+  network.flows.forEach(flow => {
+    if (!flowMetrics[flow.from]) flowMetrics[flow.from] = { inflow: 0, outflow: 0 };
+    if (!flowMetrics[flow.to]) flowMetrics[flow.to] = { inflow: 0, outflow: 0 };
+    flowMetrics[flow.from].outflow += flow.count;
+    flowMetrics[flow.to].inflow += flow.count;
   });
 
-  const network = buildNetwork(filtered);
-  const elements = buildCytoscapeElements(network);
+  // Initialize D3 force simulation
+  const nodes = network.firms.map(firm => ({
+    id: firm,
+    firm,
+    radius: computeNodeSize(flowMetrics[firm] || { inflow: 0, outflow: 0 }),
+  }));
 
-  if (elements.length === 0) {
-    console.log("[FINRA Flow] No elements to render");
-    return;
+  const links = network.flows.map(flow => ({
+    source: flow.from,
+    target: flow.to,
+    count: flow.count,
+    isInactiveFlow: flow.isInactiveFlow,
+  }));
+
+  const simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links)
+      .id(d => d.id)
+      .distance(100)
+      .strength(0.3))
+    .force("charge", d3.forceManyBody().strength(-500))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collide", d3.forceCollide(d => d.radius + 10));
+
+  // Let simulation stabilize
+  simulation.tick(50);
+
+  // Particle animation state
+  const particleEmitters = new Map();
+  links.forEach(link => {
+    const sourceNode = nodes.find(n => n.id === link.source);
+    const targetNode = nodes.find(n => n.id === link.target);
+    const key = `${link.source}→${link.target}`;
+
+    particleEmitters.set(key, {
+      source: sourceNode,
+      target: targetNode,
+      count: link.count,
+      particles: [],
+      isInactiveFlow: link.isInactiveFlow,
+    });
+  });
+
+  // Animation loop
+  let animationFrameId = null;
+  let time = 0;
+
+  function animate() {
+    // Clear canvas
+    ctx.fillStyle = "var(--bg-secondary)";
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw edges
+    ctx.strokeStyle = "rgba(100, 150, 200, 0.15)";
+    ctx.lineWidth = 1;
+    links.forEach(link => {
+      const source = nodes.find(n => n.id === link.source);
+      const target = nodes.find(n => n.id === link.target);
+
+      ctx.beginPath();
+      ctx.moveTo(source.x, source.y);
+      // Bezier curve
+      const mx = (source.x + target.x) / 2;
+      const my = (source.y + target.y) / 2;
+      const cpx = mx + (target.y - source.y) * 0.2;
+      const cpy = my - (target.x - source.x) * 0.2;
+      ctx.quadraticCurveTo(cpx, cpy, target.x, target.y);
+      ctx.stroke();
+    });
+
+    // Update and draw particles
+    particleEmitters.forEach((emitter, key) => {
+      const emissionRate = emitter.count;
+      const targetParticleCount = emissionRate;
+
+      // Spawn particles
+      while (emitter.particles.length < targetParticleCount) {
+        emitter.particles.push({
+          progress: 0,
+          seed: Math.random(),
+        });
+      }
+
+      // Update particles
+      emitter.particles = emitter.particles.filter(p => {
+        p.progress += (0.003 * animationSpeed);
+        return p.progress < 1;
+      });
+
+      // Draw particles
+      const particleRadius = emitter.isInactiveFlow ? 2 : 2.5;
+      const particleOpacity = emitter.isInactiveFlow ? 0.3 : 0.6;
+      const particleVelocity = emitter.isInactiveFlow ? 0.8 : 1;
+
+      emitter.particles.forEach(p => {
+        const adjustedProgress = p.progress * particleVelocity;
+        const px = emitter.source.x + (emitter.target.x - emitter.source.x) * adjustedProgress;
+        const py = emitter.source.y + (emitter.target.y - emitter.source.y) * adjustedProgress;
+
+        ctx.fillStyle = `rgba(100, 150, 200, ${particleOpacity})`;
+        ctx.beginPath();
+        ctx.arc(px, py, particleRadius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    });
+
+    // Draw nodes
+    nodes.forEach(node => {
+      const metrics = flowMetrics[node.id] || { inflow: 0, outflow: 0 };
+      const net = metrics.inflow - metrics.outflow;
+
+      let color = "#999999";
+      if (net > 0) color = "#4CAF50";
+      else if (net < 0) color = "#F44336";
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Node label
+      ctx.fillStyle = "#ccc";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const label = isInactive(node.id) ? "Inactive" : node.id.split(" ").slice(0, 2).join(" ");
+      ctx.fillText(label, node.x, node.y);
+    });
+
+    time += 1;
+    animationFrameId = requestAnimationFrame(animate);
   }
 
-  const cy = window.cytoscape({
-    container: container,
-    style: [
-      {
-        selector: "node",
-        css: {
-          content: "data(label)",
-          "text-valign": "bottom",
-          "text-halign": "center",
-          "text-margin-y": 6,
-          "text-wrap": "wrap",
-          "text-max-width": "80px",
-          width: "data(size)",
-          height: "data(size)",
-          "background-color": "data(color)",
-          "font-size": "11px",
-          color: "#ccc",
-          "text-outline-width": 0,
-          "z-index": 10,
-          shape: "data(shape)",
-        }
-      },
-      {
-        selector: "node[shape = 'rectangle']",
-        css: {
-          shape: "rectangle",
-          width: "data(size)",
-          height: "data(size)",
-          "border-width": 2,
-          "border-color": "#999",
-        }
-      },
-      {
-        selector: "edge",
-        css: {
-          width: "data(thickness)",
-          "line-color": "data(color)",
-          "target-arrow-color": "data(color)",
-          "target-arrow-shape": "triangle",
-          "curve-style": "bezier",
-          opacity: 0.6,
-        }
-      },
-      {
-        selector: "edge.inactive-flow",
-        css: {
-          "line-style": "dashed",
-          opacity: 0.3,
-        }
-      },
-      {
-        selector: "node:hover",
-        css: {
-          "z-index": 20,
-          width: "data(hoverSize)",
-          height: "data(hoverSize)",
-        }
-      },
-      {
-        selector: "edge:hover",
-        css: {
-          opacity: 1,
-          width: "data(hoverThickness)",
+  animate();
+
+  // Event delegation for path highlighting
+  const table = document.getElementById("common-paths-table");
+  if (table) {
+    table.addEventListener("mouseenter", (e) => {
+      const row = e.target.closest("tr[data-path-id]");
+      if (row) {
+        const pathId = row.dataset.pathId;
+        // Highlight particles for this path
+        const emitter = particleEmitters.get(pathId);
+        if (emitter) {
+          emitter._highlight = true;
         }
       }
-    ],
-    elements: elements,
-    layout: {
-      name: "cose",
-      directed: true,
-      animate: true,
-      animationDuration: 500,
-      avoidOverlap: true,
-      nodeSpacing: 20,
-    }
-  });
+    }, true);
 
-  cy.fit();
-  cy.resize(); // Fix issue #4: ensure canvas is properly sized
-  console.log(`[FINRA Flow] Initialized with ${elements.filter(e => e.data.id).length} nodes and ${elements.filter(e => e.data.source).length} edges`);
-}
+    table.addEventListener("mouseleave", (e) => {
+      const row = e.target.closest("tr[data-path-id]");
+      if (row) {
+        particleEmitters.forEach(e => { e._highlight = false; });
+      }
+    }, true);
+  }
 
-function isFlowMove(change) {
-  // Allow Inactive, but ensure we have valid strings and an actual movement occurred
-  const from = change.old_status || "";
-  const to = change.new_status || "";
-  return from.length > 0 && to.length > 0 && from !== to;
-}
-
-function buildNetwork(changes) {
-  const flows = {};
-  const firms = new Set();
-
-  changes.forEach(ch => {
-    const from = normalizeFirm(ch.old_status);
-    const to = normalizeFirm(ch.new_status);
-
-    if (!from || !to || from === to) return;
-
-    firms.add(from);
-    firms.add(to);
-
-    const key = `${from}→${to}`;
-    if (!flows[key]) {
-      flows[key] = { from, to, count: 0, people: [] };
-    }
-    flows[key].count += 1;
-    flows[key].people.push(ch.name);
-  });
-
-  return {
-    flows: Object.values(flows),
-    firms: Array.from(firms),
+  // Cleanup on unmount
+  return () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    simulation.stop();
   };
 }
 
-function calculateStats(network) {
-  const inflows = {};
-  const outflows = {};
-
-  network.flows.forEach(flow => {
-    inflows[flow.to] = (inflows[flow.to] || 0) + flow.count;
-    outflows[flow.from] = (outflows[flow.from] || 0) + flow.count;
-  });
-
-  // Exclude "Inactive" from competitive statistics
-  const largestInflow = Object.entries(inflows)
-    .filter(([firm]) => firm !== "Inactive")
-    .reduce((a, b) =>
-      b[1] > a.count ? { firm: b[0], count: b[1] } : a,
-      { firm: null, count: 0 }
-    );
-
-  const largestOutflow = Object.entries(outflows)
-    .filter(([firm]) => firm !== "Inactive")
-    .reduce((a, b) =>
-      b[1] > a.count ? { firm: b[0], count: b[1] } : a,
-      { firm: null, count: 0 }
-    );
-
-  // Exclude "Inactive" from firm count (it's not a real competitor)
-  const firmCount = network.firms.filter(f => f !== "Inactive").length;
-
-  return {
-    firmCount,
-    largestInflow,
-    largestOutflow,
-  };
-}
-
-function buildCytoscapeElements(network) {
-  const inflows = {};
-  const outflows = {};
-
-  // Calculate net flow for each firm
-  network.flows.forEach(flow => {
-    inflows[flow.to] = (inflows[flow.to] || 0) + flow.count;
-    outflows[flow.from] = (outflows[flow.from] || 0) + flow.count;
-  });
-
-  // Build nodes
-  const nodes = network.firms.map(firm => {
-    const isInactive = firm === "Inactive";
-    const inf = inflows[firm] || 0;
-    const out = outflows[firm] || 0;
-    const net = inf - out;
-    const baseSize = 40 + Math.sqrt(inf + out) * 8;
-
-    let color = "#555555"; // Default muted grey for Inactive
-    let shape = "ellipse"; // Default circle
-
-    if (!isInactive) {
-      color = "#999"; // Balanced for active firms
-      if (net > 0) color = "#4CAF50"; // Inflow (green)
-      else if (net < 0) color = "#F44336"; // Outflow (red)
-    } else {
-      shape = "rectangle"; // Inactive is a rectangle
-    }
-
-    // Cap size for Inactive to prevent dominating the graph
-    const size = isInactive ? 50 : Math.max(40, baseSize);
-
-    return {
-      data: {
-        id: firm,
-        label: isInactive ? "Inactive" : firm.split(" ").slice(0, 2).join("\n"),
-        size,
-        hoverSize: size + 20,
-        color,
-        net: isInactive ? 0 : net,
-        shape,
-      }
-    };
-  });
-
-  // Build edges
-  const edges = network.flows.map(flow => {
-    const thickness = Math.min(10, Math.max(1, flow.count * 0.5));
-    const isInactiveFlow = flow.from === "Inactive" || flow.to === "Inactive";
-
-    return {
-      data: {
-        id: `${flow.from}→${flow.to}`,
-        source: flow.from,
-        target: flow.to,
-        thickness,
-        hoverThickness: thickness * 1.5,
-        color: isInactiveFlow ? "#999" : "#3f51b5",
-        label: `${flow.count} moves`,
-        classes: isInactiveFlow ? "inactive-flow" : "",
-      }
-    };
-  });
-
-  return [...nodes, ...edges];
+function computeNodeSize(metrics) {
+  const totalFlow = (metrics.inflow || 0) + (metrics.outflow || 0);
+  return Math.max(20, Math.min(60, 20 + Math.sqrt(totalFlow) * 5));
 }
 
 function normalizeFirm(status) {
@@ -441,13 +591,4 @@ function escapeFirm(status) {
   const firm = normalizeFirm(status);
   if (!firm) return "—";
   return escapeHtml(firm.split(" ").slice(0, 3).join(" "));
-}
-
-function getDefaultDateRange(runs) {
-  // Default to showing all data (no date filter)
-  return { start: "" };
-}
-
-function rowsFrom(data) {
-  return Array.isArray(data) ? data : [];
 }

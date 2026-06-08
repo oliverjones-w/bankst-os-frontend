@@ -17,6 +17,7 @@
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
+  align-items: flex-end;
 }
 
 .control-group {
@@ -31,14 +32,15 @@
   color: var(--text-primary);
 }
 
-.control-group input[type="date"] {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  min-width: 150px;
+.control-group input[type="range"] {
+  width: 120px;
+  cursor: pointer;
+}
+
+.control-group input[type="checkbox"] {
+  cursor: pointer;
+  margin-right: 0.5rem;
+  accent-color: var(--accent-primary);
 }
 
 .control-group small {
@@ -46,37 +48,9 @@
   color: var(--text-faint);
 }
 
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.btn-small {
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-small:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.btn-small.active {
-  background: var(--accent-primary);
-  color: #fff;
-  border-color: var(--accent-primary);
-}
-
 .flow-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
 }
 
@@ -102,7 +76,7 @@
   color: var(--text-primary);
 }
 
-.flow-graph {
+.flow-graph-container {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-secondary);
@@ -110,7 +84,12 @@
   width: 100%;
   height: 600px;
   min-height: 600px;
+  position: relative;
   display: block;
+}
+
+.flow-graph-container canvas {
+  image-rendering: crisp-edges;
 }
 
 .flow-legend {
@@ -121,6 +100,7 @@
   padding: 1rem;
   background: var(--bg-tertiary);
   border-radius: 4px;
+  flex-wrap: wrap;
 }
 
 .flow-legend div {
@@ -146,8 +126,11 @@
   font-size: 0.875rem;
 }
 
-.flow-table th {
+.flow-table thead {
   background: var(--bg-tertiary);
+}
+
+.flow-table th {
   padding: 0.75rem;
   text-align: left;
   font-weight: 600;
@@ -161,11 +144,19 @@
   color: var(--text-secondary);
 }
 
-.flow-table tr:hover {
+.flow-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.flow-table tbody tr:hover {
   background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.flow-table tbody tr:hover td {
+  color: var(--text-primary);
 }
 
 .flow-table td:first-child {
   font-weight: 500;
-  color: var(--text-primary);
 }
