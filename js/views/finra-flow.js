@@ -148,6 +148,7 @@ function renderRoot(data) {
         <div><span style="color:#4CAF50;font-weight:bold;">●</span> Net Inflow (Gaining talent)</div>
         <div><span style="color:#F44336;font-weight:bold;">●</span> Net Outflow (Losing talent)</div>
         <div><span style="color:#999;font-weight:bold;">●</span> Balanced (Equal in/out)</div>
+        <div style="border-bottom: 2px dashed #999;">⊸ Arrivals/Departures (Inactive)</div>
       </div>
 
       <div class="flow-table">
@@ -231,6 +232,17 @@ function initializeCytoscape(data) {
           "text-outline-width": 1,
           "text-outline-color": "#333",
           "z-index": 10,
+          shape: "ellipse",
+        }
+      },
+      {
+        selector: "node[shape = 'rectangle']",
+        css: {
+          shape: "rectangle",
+          width: "data(size)",
+          height: "data(size)",
+          "border-width": 2,
+          "border-color": "#999",
         }
       },
       {
@@ -242,6 +254,13 @@ function initializeCytoscape(data) {
           "target-arrow-shape": "triangle",
           "curve-style": "bezier",
           opacity: 0.6,
+        }
+      },
+      {
+        selector: "edge.inactive-flow",
+        css: {
+          "line-style": "dashed",
+          opacity: 0.3,
         }
       },
       {
@@ -277,10 +296,10 @@ function initializeCytoscape(data) {
 }
 
 function isFlowMove(change) {
-  // Only show actual firm-to-firm moves (not to/from inactive)
+  // Allow Inactive, but ensure we have valid strings and an actual movement occurred
   const from = change.old_status || "";
   const to = change.new_status || "";
-  return from !== "Inactive" && to !== "Inactive" && from.length > 0 && to.length > 0;
+  return from.length > 0 && to.length > 0 && from !== to;
 }
 
 function buildNetwork(changes) {
@@ -319,18 +338,26 @@ function calculateStats(network) {
     outflows[flow.from] = (outflows[flow.from] || 0) + flow.count;
   });
 
-  // Fix issue #2: use a.count instead of a[1]
-  const largestInflow = Object.entries(inflows).reduce((a, b) =>
-    b[1] > a.count ? { firm: b[0], count: b[1] } : a,
-    { firm: null, count: 0 }
-  );
-  const largestOutflow = Object.entries(outflows).reduce((a, b) =>
-    b[1] > a.count ? { firm: b[0], count: b[1] } : a,
-    { firm: null, count: 0 }
-  );
+  // Exclude "Inactive" from competitive statistics
+  const largestInflow = Object.entries(inflows)
+    .filter(([firm]) => firm !== "Inactive")
+    .reduce((a, b) =>
+      b[1] > a.count ? { firm: b[0], count: b[1] } : a,
+      { firm: null, count: 0 }
+    );
+
+  const largestOutflow = Object.entries(outflows)
+    .filter(([firm]) => firm !== "Inactive")
+    .reduce((a, b) =>
+      b[1] > a.count ? { firm: b[0], count: b[1] } : a,
+      { firm: null, count: 0 }
+    );
+
+  // Exclude "Inactive" from firm count (it's not a real competitor)
+  const firmCount = network.firms.filter(f => f !== "Inactive").length;
 
   return {
-    firmCount: network.firms.length,
+    firmCount,
     largestInflow,
     largestOutflow,
   };
@@ -348,23 +375,34 @@ function buildCytoscapeElements(network) {
 
   // Build nodes
   const nodes = network.firms.map(firm => {
+    const isInactive = firm === "Inactive";
     const inf = inflows[firm] || 0;
     const out = outflows[firm] || 0;
     const net = inf - out;
     const baseSize = 40 + Math.sqrt(inf + out) * 8;
 
-    let color = "#999"; // Balanced
-    if (net > 5) color = "#4CAF50"; // Inflow (green)
-    else if (net < -5) color = "#F44336"; // Outflow (red)
+    let color = "#555555"; // Default muted grey for Inactive
+    let shape = "rectangle"; // Inactive is a rectangle
+
+    if (!isInactive) {
+      color = "#999"; // Balanced for active firms
+      if (net > 5) color = "#4CAF50"; // Inflow (green)
+      else if (net < -5) color = "#F44336"; // Outflow (red)
+      shape = "ellipse"; // Active firms are circles
+    }
+
+    // Cap size for Inactive to prevent dominating the graph
+    const size = isInactive ? 50 : Math.max(40, baseSize);
 
     return {
       data: {
         id: firm,
-        label: firm.split(" ").slice(0, 2).join("\n"),
-        size: Math.max(40, baseSize),
-        hoverSize: Math.max(50, baseSize + 20),
+        label: isInactive ? "Inactive" : firm.split(" ").slice(0, 2).join("\n"),
+        size,
+        hoverSize: size + 20,
         color,
-        net,
+        net: isInactive ? 0 : net,
+        shape,
       }
     };
   });
@@ -372,6 +410,8 @@ function buildCytoscapeElements(network) {
   // Build edges
   const edges = network.flows.map(flow => {
     const thickness = Math.min(10, Math.max(1, flow.count * 0.5));
+    const isInactiveFlow = flow.from === "Inactive" || flow.to === "Inactive";
+
     return {
       data: {
         id: `${flow.from}→${flow.to}`,
@@ -379,8 +419,9 @@ function buildCytoscapeElements(network) {
         target: flow.to,
         thickness,
         hoverThickness: thickness * 1.5,
-        color: "#3f51b5",
+        color: isInactiveFlow ? "#999" : "#3f51b5",
         label: `${flow.count} moves`,
+        classes: isInactiveFlow ? "inactive-flow" : "",
       }
     };
   });
