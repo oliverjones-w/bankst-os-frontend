@@ -30,6 +30,18 @@
   cursor: pointer;
 }
 
+.flow-control select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 130px;
+}
+
 .flow-control small {
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
@@ -135,14 +147,51 @@
   display: inline-block;
 }
 
-.flow-side h3 {
-  font-size: 0.75rem;
+/* ── Detail panel (top-paths → path → firm) ───────────────────────────────── */
+.flow-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+  max-height: 540px;
+}
+
+.flow-detail-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.flow-detail-sub {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  margin-bottom: 0.2rem;
+}
+
+.flow-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: var(--accent-primary, #4CAF50);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.flow-back:hover { text-decoration: underline; }
+
+.flow-group-title {
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: var(--text-faint);
-  margin: 0.25rem 0 0;
+  margin: 0.5rem 0 0.1rem;
   font-weight: 600;
 }
+
+.flow-group-title--in  { color: var(--accent-positive, #4CAF50); }
+.flow-group-title--out { color: var(--accent-negative, #F44336); }
 
 /* ── Paths table ──────────────────────────────────────────────────────────── */
 .flow-paths {
@@ -172,28 +221,69 @@
   transition: background 0.12s ease;
 }
 
-.flow-paths tbody tr:hover {
-  background: var(--bg-tertiary);
-}
+.flow-paths tbody tr:hover { background: var(--bg-tertiary); }
+.flow-paths tbody tr:hover td { color: var(--text-primary); }
 
-.flow-paths tbody tr:hover td {
-  color: var(--text-primary);
-}
+.flow-arrow { color: var(--text-faint); padding: 0 !important; }
 
 .flow-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.flow-paths-empty {
+/* ── People list ──────────────────────────────────────────────────────────── */
+.flow-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-person {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.4rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.flow-person-name {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.flow-person-cp {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.flow-person-meta {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+}
+
+.flow-empty {
   color: var(--text-faint);
   font-style: italic;
-  text-align: center;
-  padding: 1rem 0.4rem;
+  font-size: 0.78rem;
+  padding: 0.5rem 0.4rem;
+}
+
+/* ── Canvas hint ──────────────────────────────────────────────────────────── */
+.flow-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 @media (max-width: 900px) {
   .flow-stage { flex-direction: column; }
   .flow-side { flex-basis: auto; }
   .flow-stats { margin-left: 0; }
+  .flow-detail { max-height: none; }
 }
