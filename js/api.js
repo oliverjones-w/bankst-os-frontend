@@ -1,11 +1,26 @@
 import { FINRA_API_BASE, BANKST_API_BASE, MAPPING_API_BASE, OPS_API_BASE, ENCORE_API_BASE, EQD_API_BASE, OUTLOOK_API_BASE } from "./config.js";
 import { escapeHtml, Timer } from "./utils.js";
 
+// ── Cloudflare Access credentials ─────────────────────────────────────────────
+const CF_ACCESS_CLIENT_ID = "ea0a06998d94b1d895952de84a6bd423.access";
+const CF_ACCESS_CLIENT_SECRET = "e7df0dde86ef9d6988f4723b273dce62e465330d982e34018802d25d64b57454";
+
+function addCfAccessHeaders(opts = {}) {
+  return {
+    ...opts,
+    headers: {
+      ...opts.headers,
+      "CF-Access-Client-Id": CF_ACCESS_CLIENT_ID,
+      "CF-Access-Client-Secret": CF_ACCESS_CLIENT_SECRET,
+    },
+  };
+}
+
 // ── Core fetch helpers ────────────────────────────────────────────────────────
 
 export async function finraGet(path) {
   const timer = new Timer("api", `finra:${path}`);
-  const res = await fetch(`${FINRA_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${FINRA_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`FINRA API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -14,7 +29,7 @@ export async function finraGet(path) {
 
 export async function mappingGet(path) {
   const timer = new Timer("api", `mapping:${path}`);
-  const res = await fetch(`${MAPPING_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${MAPPING_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Mapping API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -23,7 +38,7 @@ export async function mappingGet(path) {
 
 export async function encoreGet(path) {
   const timer = new Timer("api", `encore:${path}`);
-  const res = await fetch(`${ENCORE_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${ENCORE_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Encore API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -32,7 +47,7 @@ export async function encoreGet(path) {
 
 export async function bankstGet(path) {
   const timer = new Timer("api", `bankst:${path}`);
-  const res = await fetch(`${BANKST_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${BANKST_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`BankSt API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -41,7 +56,7 @@ export async function bankstGet(path) {
 
 export async function opsGet(path, label = "ops") {
   const timer = new Timer("api", `${label}:${path}`);
-  const res = await fetch(`${OPS_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${OPS_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -50,7 +65,7 @@ export async function opsGet(path, label = "ops") {
 
 export async function outlookGet(path) {
   const timer = new Timer("api", `outlook:${path}`);
-  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Outlook API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -67,7 +82,7 @@ export async function mandatesGet(path) {
 
 export async function mandatesPatch(path, body) {
   const timer = new Timer("api", `mandates:PATCH:${path}`);
-  const res = await fetch(`${OPS_API_BASE}${path}`, {
+  const res = await fetch(`${OPS_API_BASE}${path}`, addCfAccessHeaders({
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -75,7 +90,7 @@ export async function mandatesPatch(path, body) {
       "x-idempotency-key": body.request_id,
     },
     body: JSON.stringify(body),
-  });
+  }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -92,11 +107,11 @@ export async function researchTasksGet(path) {
 
 export async function opsPost(path, body) {
   const timer = new Timer("api", `ops:POST:${path}`);
-  const res = await fetch(`${OPS_API_BASE}${path}`, {
+  const res = await fetch(`${OPS_API_BASE}${path}`, addCfAccessHeaders({
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Ops API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -105,11 +120,11 @@ export async function opsPost(path, body) {
 
 export async function outlookPost(path, body) {
   const timer = new Timer("api", `outlook:POST:${path}`);
-  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, {
+  const res = await fetch(`${OUTLOOK_API_BASE}${path}`, addCfAccessHeaders({
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Outlook API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -186,7 +201,7 @@ export async function loadFirmsIndex() {
 
 export async function eqdGet(path) {
   const timer = new Timer("api", `eqd:${path}`);
-  const res = await fetch(`${EQD_API_BASE}${path}`, { headers: { Accept: "application/json" } });
+  const res = await fetch(`${EQD_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`EQD API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
@@ -195,11 +210,11 @@ export async function eqdGet(path) {
 
 export async function eqdPost(path, body) {
   const timer = new Timer("api", `eqd:POST:${path}`);
-  const res = await fetch(`${EQD_API_BASE}${path}`, {
+  const res = await fetch(`${EQD_API_BASE}${path}`, addCfAccessHeaders({
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`EQD API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
