@@ -20,7 +20,7 @@ export function createFinraFlowView(finraGet) {
 
     load: async () => {
       const [changes, runs] = await Promise.all([
-        finraGet("/changes?limit=1000"),
+        finraGet("/changes?limit=500"),
         finraGet("/runs"),
       ]);
 
