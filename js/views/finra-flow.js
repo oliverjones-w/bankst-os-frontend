@@ -24,8 +24,17 @@ export function createFinraFlowView(finraGet) {
         finraGet("/runs"),
       ]);
 
+      // Telemetry: log data pipeline
+      const changesArray = Array.isArray(changes) ? changes : [];
+      const flowMoves = changesArray.filter(isFlowMove);
+      console.log(`[FINRA Flow] Data pipeline: ${changesArray.length} changes → ${flowMoves.length} flow moves`);
+      if (changesArray.length > 0) {
+        const rejected = changesArray.filter(ch => !isFlowMove(ch)).slice(0, 3);
+        console.log(`[FINRA Flow] Sample rejected changes:`, rejected);
+      }
+
       return {
-        changes: Array.isArray(changes) ? changes : [],
+        changes: changesArray,
         runs: Array.isArray(runs) ? runs : [],
         dateFilter: getDefaultDateRange(runs),
         selectedFunction: "all",
@@ -33,6 +42,12 @@ export function createFinraFlowView(finraGet) {
     },
 
     render: (data) => data ? renderRoot(data) : renderLoading(),
+
+    afterRender: (data) => {
+      // Initialize Cytoscape after DOM insertion (fixes issue #1)
+      // Use setTimeout to ensure layout has calculated
+      setTimeout(() => initializeCytoscape(data), 0);
+    },
 
     handleClick(event, data, rerender) {
       // Date range slider
@@ -125,7 +140,7 @@ function renderRoot(data) {
         </div>
       </div>
 
-      <div id="finra-flow-graph" class="flow-graph" style="width:100%;height:600px;">
+      <div id="finra-flow-graph" class="flow-graph">
         ${network.firms.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-faint);">No firm-to-firm movements in selected date range</div>' : ''}
       </div>
 
@@ -160,74 +175,105 @@ function renderRoot(data) {
           </tbody>
         </table>
       </div>
-
-      <script>
-        (async function() {
-          const container = document.getElementById('finra-flow-graph');
-          if (!container || !window.cytoscape) return;
-
-          const cy = window.cytoscape({
-            container: container,
-            style: [
-              {
-                selector: 'node',
-                css: {
-                  'content': 'data(label)',
-                  'text-valign': 'center',
-                  'text-halign': 'center',
-                  'width': 'data(size)',
-                  'height': 'data(size)',
-                  'background-color': 'data(color)',
-                  'font-size': '10px',
-                  'color': '#fff',
-                  'text-outline-width': 1,
-                  'text-outline-color': '#333',
-                  'z-index': 10,
-                }
-              },
-              {
-                selector: 'edge',
-                css: {
-                  'width': 'data(thickness)',
-                  'line-color': 'data(color)',
-                  'target-arrow-color': 'data(color)',
-                  'target-arrow-shape': 'triangle',
-                  'curve-style': 'bezier',
-                  'opacity': 0.6,
-                }
-              },
-              {
-                selector: 'node:hover',
-                css: {
-                  'z-index': 20,
-                  'width': 'data(hoverSize)',
-                  'height': 'data(hoverSize)',
-                }
-              },
-              {
-                selector: 'edge:hover',
-                css: {
-                  'opacity': 1,
-                  'width': 'data(hoverThickness)',
-                }
-              }
-            ],
-            elements: ${JSON.stringify(buildCytoscapeElements(network))},
-            layout: {
-              name: 'cose',
-              directed: true,
-              animate: true,
-              animationDuration: 500,
-              avoidOverlap: true,
-              nodeSpacing: 20,
-            }
-          });
-
-          cy.fit();
-        })();
-      </script>
     </div>
   `;
+}
+
+function initializeCytoscape(data) {
+  if (typeof window.cytoscape !== "function") {
+    console.warn("[FINRA Flow] Cytoscape not loaded");
+    return;
+  }
+
+  const container = document.getElementById("finra-flow-graph");
+  if (!container) {
+    console.warn("[FINRA Flow] Graph container not found");
+    return;
+  }
+
+  const changes = Array.isArray(data?.changes) ? data.changes : [];
+  const dateFilter = data?.dateFilter || {};
+  const selectedFunc = data?.selectedFunction || "all";
+
+  // Filter changes (same logic as renderRoot)
+  const filtered = changes.filter(ch => {
+    const hasFunction = selectedFunc === "all" || ch.function === selectedFunc;
+    if (!isFlowMove(ch)) return false;
+    if (dateFilter.start) {
+      const chDate = ch.detected_at?.split(" ")?.[0];
+      if (!chDate || chDate < dateFilter.start) return false;
+    }
+    return hasFunction;
+  });
+
+  const network = buildNetwork(filtered);
+  const elements = buildCytoscapeElements(network);
+
+  if (elements.length === 0) {
+    console.log("[FINRA Flow] No elements to render");
+    return;
+  }
+
+  const cy = window.cytoscape({
+    container: container,
+    style: [
+      {
+        selector: "node",
+        css: {
+          content: "data(label)",
+          "text-valign": "center",
+          "text-halign": "center",
+          width: "data(size)",
+          height: "data(size)",
+          "background-color": "data(color)",
+          "font-size": "10px",
+          color: "#fff",
+          "text-outline-width": 1,
+          "text-outline-color": "#333",
+          "z-index": 10,
+        }
+      },
+      {
+        selector: "edge",
+        css: {
+          width: "data(thickness)",
+          "line-color": "data(color)",
+          "target-arrow-color": "data(color)",
+          "target-arrow-shape": "triangle",
+          "curve-style": "bezier",
+          opacity: 0.6,
+        }
+      },
+      {
+        selector: "node:hover",
+        css: {
+          "z-index": 20,
+          width: "data(hoverSize)",
+          height: "data(hoverSize)",
+        }
+      },
+      {
+        selector: "edge:hover",
+        css: {
+          opacity: 1,
+          width: "data(hoverThickness)",
+        }
+      }
+    ],
+    elements: elements,
+    layout: {
+      name: "cose",
+      directed: true,
+      animate: true,
+      animationDuration: 500,
+      avoidOverlap: true,
+      nodeSpacing: 20,
+    }
+  });
+
+  cy.fit();
+  cy.resize(); // Fix issue #4: ensure canvas is properly sized
+  console.log(`[FINRA Flow] Initialized with ${elements.filter(e => e.data.id).length} nodes and ${elements.filter(e => e.data.source).length} edges`);
 }
 
 function isFlowMove(change) {
@@ -273,8 +319,15 @@ function calculateStats(network) {
     outflows[flow.from] = (outflows[flow.from] || 0) + flow.count;
   });
 
-  const largestInflow = Object.entries(inflows).reduce((a, b) => b[1] > a[1] ? { firm: b[0], count: b[1] } : a, { firm: null, count: 0 });
-  const largestOutflow = Object.entries(outflows).reduce((a, b) => b[1] > a[1] ? { firm: b[0], count: b[1] } : a, { firm: null, count: 0 });
+  // Fix issue #2: use a.count instead of a[1]
+  const largestInflow = Object.entries(inflows).reduce((a, b) =>
+    b[1] > a.count ? { firm: b[0], count: b[1] } : a,
+    { firm: null, count: 0 }
+  );
+  const largestOutflow = Object.entries(outflows).reduce((a, b) =>
+    b[1] > a.count ? { firm: b[0], count: b[1] } : a,
+    { firm: null, count: 0 }
+  );
 
   return {
     firmCount: network.firms.length,
