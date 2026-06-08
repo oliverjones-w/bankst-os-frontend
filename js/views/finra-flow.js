@@ -121,7 +121,9 @@ function renderRoot(data) {
         </div>
       </div>
 
-      <div id="finra-flow-graph" class="flow-graph" style="width:100%;height:600px;"></div>
+      <div id="finra-flow-graph" class="flow-graph" style="width:100%;height:600px;">
+        ${network.firms.length === 0 ? '<div style="padding: 2rem; text-align: center; color: var(--text-faint);">No firm-to-firm movements in selected date range</div>' : ''}
+      </div>
 
       <div class="flow-legend">
         <div><span style="color:#4CAF50;font-weight:bold;">●</span> Net Inflow (Gaining talent)</div>
@@ -157,8 +159,11 @@ function renderRoot(data) {
 
       <script>
         (async function() {
+          const container = document.getElementById('finra-flow-graph');
+          if (!container || !window.cytoscape) return;
+
           const cy = window.cytoscape({
-            container: document.getElementById('finra-flow-graph'),
+            container: container,
             style: [
               {
                 selector: 'node',
@@ -341,16 +346,17 @@ function getDefaultDateRange(runs) {
   if (!Array.isArray(runs) || runs.length === 0) {
     return { start: "" };
   }
-  const lastRun = runs[0];
-  if (!lastRun.started_at) return { start: "" };
 
-  const date = new Date(lastRun.started_at);
-  date.setDate(date.getDate() - 7); // Last 7 days
+  // Find earliest run date for better default range
+  const earliest = runs[runs.length - 1];
+  if (!earliest.started_at) return { start: "" };
+
+  const date = new Date(earliest.started_at);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
-  return { start: `${year}-${month}-${day}` };
+  return { start: `${year}-${month}-${day}` }; // Show all data from earliest run
 }
 
 function rowsFrom(data) {
