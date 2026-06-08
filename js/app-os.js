@@ -19,6 +19,7 @@ import { createArticleReviewView, ARTICLE_REVIEW_VIEW_ID } from "./views/article
 import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
 import { createFinraView, FINRA_VIEW_ID } from "./views/finra.js";
+import { createFinraFlowView, FINRA_FLOW_VIEW_ID } from "./views/finra-flow.js";
 import { createEncoreView, ENCORE_VIEW_ID } from "./views/encore.js";
 
 const ACTIVE_VIEW_KEY = "bankst.simple.active-view";
@@ -157,6 +158,7 @@ const VIEWS = [
   }),
   createReferenceView(),
   createFinraView(finraGet),
+  createFinraFlowView(finraGet),
   createBbgWorkspaceView(),
   createEqdView(eqdGet, eqdPost, eqdPatch),
   createArticleReviewView(opsGet, opsPost),
