@@ -82,6 +82,47 @@ export function personNodeFromEqd(
   };
 }
 
+/**
+ * Normalize a mapping_tools HF-map record into a PersonNode. HF map is the
+ * buy-side counterpart to EQD — deep hedge-fund coverage. Same suggestion rules.
+ * Row fields: { id, name, firm, title, location, function, strategy, products, reports_to }.
+ */
+export function personNodeFromMappingHf(
+  row,
+  { sourceId = NS.MAPPING_HF, matchScore = null, matchTier = null, matchedFirmName = null } = {}
+) {
+  return {
+    key: makeKey(NS.MAPPING_HF, row.id),
+    displayName: row.name || "(unknown)",
+    resolutionState: ResolutionState.SUGGESTED_SOURCE,
+    source: {
+      sourceId,
+      personId: row.id,
+      roleId: null,
+    },
+    score: matchScore,
+    suggestion: {
+      sourceId,
+      score: matchScore,
+      tier: matchTier,
+      matchedFirmName,
+    },
+    vaultId: null,
+    fields: {
+      title: row.title ?? null,
+      function: row.function ?? null,
+      group: row.strategy ?? null,
+      focus: row.products ?? null,
+      priorFirm: null,
+      location: row.location ?? null,
+      seniorityTier: null,
+      roleType: null,
+      keywords: [],
+    },
+    raw: row,
+  };
+}
+
 /** Empty workspace data shell — used as a loading/error fallback. */
 export function emptyWorkspaceData(firm) {
   return {

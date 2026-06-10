@@ -53,6 +53,19 @@ export function diceCoefficient(a, b) {
   return (2 * intersection) / (totalA + totalB);
 }
 
+// Filler words common to many firm names — shared ONLY-generic overlap must not
+// carry a match (else "Garda Capital Partners" ≈ "ROTH Capital Partners").
+const GENERIC_TOKENS = new Set([
+  "capital", "partners", "partner", "management", "asset", "assets", "advisors",
+  "advisers", "group", "holdings", "global", "investment", "investments", "fund",
+  "funds", "associates", "company", "international", "securities", "markets",
+  "market", "trading", "financial", "the", "and", "co",
+]);
+
+function distinctiveTokens(normalized) {
+  return normalized.split(" ").filter((t) => t && !GENERIC_TOKENS.has(t));
+}
+
 /** Jaccard overlap of word tokens — rewards shared distinctive words ("capital", "partners"). */
 export function tokenJaccard(a, b) {
   const A = new Set(a.split(" ").filter(Boolean));
@@ -73,7 +86,18 @@ export function firmMatchScore(a, b) {
   const nb = normalizeFirmName(b);
   if (!na || !nb) return 0;
   if (na === nb) return 1;
-  return Math.max(diceCoefficient(na, nb), tokenJaccard(na, nb));
+
+  const raw = Math.max(diceCoefficient(na, nb), tokenJaccard(na, nb));
+  if (raw >= 0.9) return raw; // near-identical strings (e.g. "JP Morgan" ≈ "JPMorgan")
+
+  // In the fuzzy band, demand at least one shared DISTINCTIVE (non-filler) token.
+  // Blocks matches resting only on "Capital/Partners/Securities" etc.
+  const da = distinctiveTokens(na);
+  const db = distinctiveTokens(nb);
+  if (da.length && db.length && !da.some((t) => db.includes(t))) {
+    return Math.min(raw, 0.45);
+  }
+  return raw;
 }
 
 /** Coarse confidence band for UI / promotion hints. */

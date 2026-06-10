@@ -161,7 +161,7 @@ const VIEWS = [
   createFinraView(finraGet),
   createFinraFlowView(finraGet),
   createBbgWorkspaceView(),
-  createFirmRegistryView(refsGet, eqdGet),
+  createFirmRegistryView(refsGet, eqdGet, mappingGet),
   createArticleReviewView(opsGet, opsPost),
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet, outlookPost),

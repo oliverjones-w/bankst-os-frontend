@@ -17,6 +17,7 @@ export const NS = Object.freeze({
   GENOTYPE: "genotype",
   REFS: "refs", // canonical firm-directory identity (refs.db firms.id)
   EQD: "eqd",
+  MAPPING_HF: "hf", // mapping_tools HF map (buy-side hedge-fund people)
 });
 
 /** Build a namespaced key. */

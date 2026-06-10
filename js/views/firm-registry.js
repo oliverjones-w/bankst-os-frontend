@@ -14,6 +14,7 @@
  */
 
 import { registerEqdSource } from "../firm-workspace/sources/eqd-source.js";
+import { registerMappingHfSource } from "../firm-workspace/sources/mapping-hf-source.js";
 import { buildFirmWorkspaceData } from "../firm-workspace/suggestion-engine.js";
 import { createOverlayStore } from "../firm-workspace/overlay-store.js";
 import { localStorageTransport } from "../firm-workspace/overlay-transport.js";
@@ -22,11 +23,12 @@ import { renderFirmWorkspace, setFirmWorkspaceContext } from "../firm-workspace/
 
 export const FIRM_REGISTRY_VIEW_ID = "firm.registry";
 
-export function createFirmRegistryView(refsGet, eqdGet) {
-  // Register EQD as the first (non-privileged) suggestion source. Idempotent —
-  // registry replaces by id. Other source APIs (FINRA, LinkedIn, Encore) register
-  // here later with the same one-liner.
+export function createFirmRegistryView(refsGet, eqdGet, mappingGet) {
+  // Register suggestion sources (non-privileged, fanned out by the engine).
+  // EQD = sell-side banks; HF map = buy-side hedge funds. More source APIs
+  // (FINRA, LinkedIn, IR/credit maps) register here later with the same one-liner.
   registerEqdSource(eqdGet);
+  registerMappingHfSource(mappingGet);
 
   const _overlayTransport = localStorageTransport();
 
