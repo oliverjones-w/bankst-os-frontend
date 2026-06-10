@@ -1,0 +1,219 @@
+/* Firm Registry + Firm Workspace (Table · Canvas · Suggestions) */
+
+.fw-loading,
+.fw-board-empty,
+.fw-lane-empty,
+.fw-reg-empty {
+  color: var(--text-muted);
+  font: var(--font-ui-small);
+  padding: 16px;
+}
+
+/* ── Registry table ─────────────────────────────────────────────────────── */
+.fw-registry { padding: 12px 16px; }
+
+.fw-registry-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.fw-registry-search {
+  flex: 1;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-md);
+  color: var(--text-normal);
+  padding: 8px 12px;
+  font: var(--font-ui-small);
+}
+.fw-registry-search:focus {
+  outline: none;
+  border-color: var(--background-modifier-border-focus);
+}
+.fw-registry-count { color: var(--text-faint); font: var(--font-ui-smaller); }
+
+.fw-registry-table { width: 100%; border-collapse: collapse; }
+.fw-registry-table th {
+  text-align: left;
+  color: var(--text-faint);
+  font: var(--font-ui-smaller);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--background-modifier-border-faint);
+}
+.fw-reg-row { cursor: pointer; transition: background var(--transition-fast); }
+.fw-reg-row:hover { background: var(--background-modifier-hover); }
+.fw-reg-row td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--background-modifier-border-faint);
+  font: var(--font-ui-small);
+}
+.fw-reg-name { color: var(--text-normal); font-weight: 600; }
+.fw-reg-id { color: var(--text-faint); font-family: var(--font-monospace, monospace); }
+.fw-reg-go { color: var(--interactive-accent); text-align: right; opacity: 0; }
+.fw-reg-row:hover .fw-reg-go { opacity: 1; }
+
+/* ── Workspace shell ────────────────────────────────────────────────────── */
+.fw-shell { display: flex; flex-direction: column; height: 100%; }
+.fw-shell-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.fw-back {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  cursor: pointer;
+  font: var(--font-ui-smaller);
+}
+.fw-back:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.fw-shell-firm { color: var(--text-normal); font: var(--font-ui-medium); font-weight: 700; }
+.fw-shell-key { color: var(--text-faint); font-family: var(--font-monospace, monospace); font-size: 11px; }
+
+/* ── Root layout: table (left) + canvas (right) ─────────────────────────── */
+.fw-root {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+.fw-table {
+  border-right: 1px solid var(--background-modifier-border);
+  overflow-y: auto;
+  background: var(--background-secondary);
+}
+
+/* ── Lanes ──────────────────────────────────────────────────────────────── */
+.fw-lane { border-bottom: 1px solid var(--background-modifier-border-faint); }
+.fw-lane-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  position: sticky;
+  top: 0;
+  background: var(--background-secondary);
+}
+.fw-lane-title {
+  color: var(--text-normal);
+  font: var(--font-ui-smaller);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fw-lane--genotype .fw-lane-title { color: var(--color-green); }
+.fw-lane--source .fw-lane-title { color: var(--color-cyan); }
+.fw-lane-meta { color: var(--text-faint); font: var(--font-ui-smaller); }
+.fw-lane-body { padding: 4px 8px 10px; }
+
+.fw-list-card {
+  border: 1px solid var(--background-modifier-border-faint);
+  border-radius: var(--radius-md);
+  background: var(--background-primary);
+  padding: 7px 9px;
+  margin: 5px 4px;
+  cursor: grab;
+  transition: border-color var(--transition-fast), opacity var(--transition-fast);
+}
+.fw-list-card:hover { border-color: var(--background-modifier-border); }
+.fw-list-card.is-placed { opacity: 0.5; }
+.fw-list-main { display: flex; align-items: center; gap: 7px; }
+.fw-list-name { color: var(--text-normal); font: var(--font-ui-small); font-weight: 600; flex: 1; }
+.fw-list-sub { color: var(--text-muted); font: var(--font-ui-smaller); margin-top: 2px; }
+.fw-pinned { color: var(--interactive-accent); font-size: 10px; }
+
+.fw-list-actions { display: flex; gap: 10px; margin-top: 5px; }
+.fw-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--interactive-accent); font: var(--font-ui-smaller);
+}
+.fw-link--mute { color: var(--text-faint); }
+.fw-link:hover { text-decoration: underline; }
+
+/* Score badge */
+.fw-score {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 18px; padding: 0 5px;
+  border-radius: 9px; font: var(--font-ui-smaller); font-weight: 700;
+  color: var(--text-on-accent);
+}
+.fw-score--high { background: var(--color-green); }
+.fw-score--probable { background: var(--color-orange); }
+.fw-score--weak { background: var(--background-modifier-border); color: var(--text-muted); }
+
+/* ── Canvas ─────────────────────────────────────────────────────────────── */
+.fw-canvas { display: flex; flex-direction: column; min-width: 0; background: var(--bg-stage); }
+.fw-canvas-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; border-bottom: 1px solid var(--background-modifier-border-faint);
+}
+.fw-canvas-meta { color: var(--text-muted); font: var(--font-ui-smaller); }
+.fw-btn {
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-sm); color: var(--text-normal);
+  padding: 4px 10px; cursor: pointer; font: var(--font-ui-smaller);
+}
+.fw-btn:hover { background: var(--background-modifier-hover); }
+
+.fw-groups { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px 0; }
+.fw-group-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--background-accent-subtle);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm); padding: 2px 4px 2px 8px;
+  color: var(--text-normal); font: var(--font-ui-smaller);
+}
+.fw-group-count { color: var(--text-faint); }
+.fw-group-x {
+  background: none; border: none; color: var(--text-faint);
+  cursor: pointer; padding: 0 3px; font-size: 13px; line-height: 1;
+}
+.fw-group-x:hover { color: var(--color-red); }
+
+.fw-board { position: relative; flex: 1; overflow: auto; margin: 8px 14px 14px; min-height: 200px; }
+
+.fw-card {
+  position: absolute;
+  width: 210px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-left: 3px solid var(--color-cyan);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lifted);
+  padding: 7px 9px;
+  cursor: grab;
+  user-select: none;
+}
+.fw-card--confirmed { border-left-color: var(--color-green); }
+.fw-card-head { display: flex; align-items: center; gap: 6px; min-height: 16px; }
+.fw-card-group {
+  flex: 1; color: var(--text-faint); font: var(--font-ui-smaller);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.fw-card-x {
+  margin-left: auto; background: none; border: none; color: var(--text-faint);
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px;
+}
+.fw-card-x:hover { color: var(--color-red); }
+.fw-card-name { color: var(--text-normal); font: var(--font-ui-small); font-weight: 700; }
+.fw-card-sub { color: var(--text-muted); font: var(--font-ui-smaller); margin-top: 2px; }
+.fw-card-meta { color: var(--text-faint); font: var(--font-ui-smaller); margin-top: 3px; }
+
+/* Drag affordances */
+body.fw-dragging, body.fw-dragging * { cursor: grabbing !important; }
+.fw-ghost {
+  position: fixed; z-index: 9999; pointer-events: none;
+  background: var(--background-primary);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm); padding: 4px 9px;
+  color: var(--text-normal); font: var(--font-ui-smaller);
+  box-shadow: var(--shadow-lifted);
+}

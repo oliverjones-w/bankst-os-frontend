@@ -11,10 +11,11 @@ import {
   outlookGet,
   outlookPost,
 } from "./api.js";
-import { mandatesPatch, opsPost, eqdGet, eqdPost, eqdPatch } from "./api-os.js?v=3";
+import { mandatesPatch, opsPost, eqdGet, eqdPost, eqdPatch, refsGet } from "./api-os.js?v=4";
 import { escapeHtml } from "./utils.js";
 import { getTheme, toggleTheme } from "./theme.js";
 import { createEqdView, EQD_VIEW_ID } from "./views/eqd.js?v=3";
+import { createFirmRegistryView, FIRM_REGISTRY_VIEW_ID } from "./views/firm-registry.js";
 import { createArticleReviewView, ARTICLE_REVIEW_VIEW_ID } from "./views/article_review.js";
 import { createLogIntakeView } from "./views/log_intake.js";
 import { createOutlookArticlesView, OUTLOOK_ARTICLES_VIEW_ID } from "./views/outlook_articles.js";
@@ -160,7 +161,7 @@ const VIEWS = [
   createFinraView(finraGet),
   createFinraFlowView(finraGet),
   createBbgWorkspaceView(),
-  createEqdView(eqdGet, eqdPost, eqdPatch),
+  createFirmRegistryView(refsGet, eqdGet),
   createArticleReviewView(opsGet, opsPost),
   createLogIntakeView(opsGet, opsPost),
   createOutlookArticlesView(outlookGet, outlookPost),
@@ -239,7 +240,28 @@ function wireMainActions() {
     if (encoreView && encoreData) encoreView.onSearchInput(input.value || "", encoreData, renderActiveView);
   });
 
+  elements.viewRoot.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-firm-search]");
+    if (!input || state.activeViewId !== FIRM_REGISTRY_VIEW_ID) return;
+    const view = VIEW_BY_ID.get(FIRM_REGISTRY_VIEW_ID);
+    const data = state.cache.get(FIRM_REGISTRY_VIEW_ID)?.data;
+    if (view && data) view.onSearch(input.value || "", data, renderActiveView);
+  });
+
   elements.viewRoot.addEventListener("click", (event) => {
+    // ── Firm Registry → Workspace ───────────────────────────────────────────
+    if (state.activeViewId === FIRM_REGISTRY_VIEW_ID) {
+      const view = VIEW_BY_ID.get(FIRM_REGISTRY_VIEW_ID);
+      const data = state.cache.get(FIRM_REGISTRY_VIEW_ID)?.data;
+      if (view && data) {
+        const firmRow = event.target.closest("[data-firm-open]");
+        if (firmRow) { view.onFirmOpen(firmRow.dataset.firmOpen, data, renderActiveView); return; }
+        const firmBack = event.target.closest("[data-firm-back]");
+        if (firmBack) { view.onBack(data, renderActiveView); return; }
+      }
+      // workspace card drag/actions are handled by the component's own listeners
+    }
+
     const pipelineToggle = event.target.closest("[data-pipeline-row-key]");
     if (pipelineToggle && state.activeViewId === "pipeline.table") {
       const key = pipelineToggle.dataset.pipelineRowKey || "";

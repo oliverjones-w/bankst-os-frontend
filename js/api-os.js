@@ -6,6 +6,7 @@ import { Timer } from "./utils.js";
 
 const OPS_API_BASE = window.APP_CONFIG?.OPS_API_BASE || "/api/ops";
 const EQD_API_BASE = window.APP_CONFIG?.EQD_API_BASE || "/api/eqd";
+const REFS_API_BASE = window.APP_CONFIG?.REFS_API_BASE || "/api/refs";
 
 const CF_ACCESS_CLIENT_ID = "ea0a06998d94b1d895952de84a6bd423.access";
 const CF_ACCESS_CLIENT_SECRET = "e7df0dde86ef9d6988f4723b273dce62e465330d982e34018802d25d64b57454";
@@ -94,6 +95,17 @@ export async function eqdPost(path, body) {
     body: JSON.stringify(body),
   }));
   if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`EQD API ${res.status}: ${path}`); }
+  const data = await res.json();
+  timer.done({ status: res.status, ok: true });
+  return data;
+}
+
+// Refs API — canonical firm directory. The gateway injects x-refs-api-token, so
+// no token is needed client-side. This is the ONLY canonical firm source.
+export async function refsGet(path) {
+  const timer = new Timer("api", `refs:${path}`);
+  const res = await fetch(`${REFS_API_BASE}${path}`, addCfAccessHeaders({ headers: { Accept: "application/json" } }));
+  if (!res.ok) { timer.done({ status: res.status, ok: false }); throw new Error(`Refs API ${res.status}: ${path}`); }
   const data = await res.json();
   timer.done({ status: res.status, ok: true });
   return data;
